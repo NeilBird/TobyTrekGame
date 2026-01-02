@@ -53,28 +53,44 @@
                 </svg>
             </div>
             <h1>Toby Trek</h1>
-            <div class="version">v0.3.0</div>
+            <div class="version">v0.6.0</div>
             <div class="subtitle">A 4-World Adventure</div>
+            
+            <!-- Player Name Input -->
+            <div class="player-name-section">
+                <label for="player-name">Enter Your Name:</label>
+                <input type="text" id="player-name" maxlength="15" placeholder="Player 1">
+            </div>
+            
             <div class="instructions">
                 <p>Help Toby run through 4 worlds!</p>
                 <p>Use <span class="key">←</span> <span class="key">→</span> arrow keys to dodge and collect</p>
                 <div class="legend">
                     <div class="legend-item good">
-                        <span class="icon">🍗 🐟</span>
-                        <span>Treats = Yummy!</span>
+                        <span class="icon">🍗 🥫</span>
+                        <span>Chicken & Tuna = Yummy!</span>
                     </div>
                     <div class="legend-item bad">
-                        <span class="icon">🦴 💧</span>
-                        <span>Fish Bones & Puddle = AVOID!</span>
+                        <span class="icon">💨 💧</span>
+                        <span>Hairdryer & Puddle = AVOID!</span>
                     </div>
                     <div class="legend-item shield">
                         <span class="icon">🛡️</span>
                         <span>Shield = Temporary Protection!</span>
                     </div>
                 </div>
-                <p class="warning">⚠️ Toby hates bad fish and water!</p>
-                <p class="tip">🌿 Garden → 🎢 Park → 🚀 Space → ❄️ Snow</p>
+                <p class="warning">⚠️ Toby hates loud noises and water!</p>
+                <p class="tip">🌿 Garden → ❄️ Snow → 🎢 Park → 🚀 Space</p>
             </div>
+            
+            <!-- Leaderboard -->
+            <div class="leaderboard">
+                <h3>🏆 Top Scores</h3>
+                <div id="leaderboard-list">
+                    <p class="no-scores">No scores yet - be the first!</p>
+                </div>
+            </div>
+            
             <button id="start-btn" class="game-btn">Start Running!</button>
         </div>
 

@@ -15,9 +15,9 @@ Simply open `index.html` in any modern web browser to play!
 ### Gameplay
 - **4 Themed Worlds** that cycle every 2 levels:
   - 🌿 **Garden** (Levels 1-2): Sunny garden with flowers and hedges
-  - 🎢 **Park** (Levels 3-4): Playground with swings, slides, and trees
-  - 🚀 **Space** (Levels 5-6): Deep space with stars, planets, and nebulae
-  - ❄️ **Snow** (Levels 7-8): Winter wonderland with pine trees and mountains
+  - ❄️ **Snow** (Levels 3-4): Winter wonderland with pine trees and mountains
+  - 🎢 **Park** (Levels 5-6): Playground with swings, slides, and trees
+  - 🚀 **Space** (Levels 7-8): Deep space with stars, planets, and nebulae
 
 - **3D Tunnel Perspective**: Objects approach from the horizon creating depth
 - **Speed Up Challenge**: Game accelerates halfway through each level
@@ -28,8 +28,8 @@ Simply open `index.html` in any modern web browser to play!
 | Item | Type | Effect |
 |------|------|--------|
 | 🍗 Chicken | Treat | +15 points, restores energy |
-| 🐟 Nice Fish | Treat | +20 points, restores energy |
-| 🦴 Fish Skeleton | Hazard | -10 points, drains energy |
+| 🥫 Tuna Can | Treat | +20 points, restores energy |
+| 💨 Hair Dryer | Hazard | -10 points, drains energy |
 | 💧 Puddle | Hazard | -10 points, drains energy |
 | 🛡️ Shield | Power-up | 5 seconds of protection |
 
@@ -58,10 +58,11 @@ TobyTrekGame/
 
 ## 🎨 About Toby
 
-Toby was a white cat with grey and black markings, featuring distinctive yellow-green eyes. This game captures his spirit - running through gardens, avoiding things cats dislike (water and bad fish!), and collecting tasty treats.
+Toby was a white cat with grey and black markings, featuring distinctive yellow-green eyes. This game captures his spirit - running through gardens, avoiding things cats dislike (water and loud hairdryers!), and collecting tasty treats.
 
 ## 📜 Version History
 
+- **v0.4.0** - Tuna can replaces fish, hairdryer restored, reordered worlds (Garden→Snow→Park→Space)
 - **v0.3.0** - Added Snow world, fish skeleton & nice fish items, yellow-green eyes, atmospheric music
 - **v0.2.0** - Added Park & Space worlds, shield power-up, level completion system
 - **v0.1.0** - Initial release with Garden world

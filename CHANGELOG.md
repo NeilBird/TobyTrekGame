@@ -7,6 +7,82 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.6.0] - 2026-01-02
+
+### Added
+- **Player Name Input** - Players can now enter their name before starting:
+  - Input field on the home screen
+  - Defaults to "Player 1" if left empty
+  - Name is saved with high scores
+
+- **Leaderboard System** - Top 10 high scores saved locally:
+  - 🥇🥈🥉 Medal icons for top 3 positions
+  - Displays player name and score
+  - Persists between sessions using localStorage
+  - Shown on home screen
+
+- **Voice Sounds** - Toby now makes sounds when interacting:
+  - 🎵 **"Yey!"** sound when eating treats or collecting shields
+  - 🎵 **"Eeew!"** sound when hitting hazards
+  - Cheerful rising tone for positive interactions
+  - Descending disgusted tone for negative interactions
+
+- **Moving Side Scenery** - Decorative objects move along the path borders:
+  - 🌿 **Garden World**: Flower bushes, garden gnomes, butterflies, bird baths
+  - ❄️ **Snow World**: Snowmen, grit bins, snow-covered lamp posts, ice cat sculptures
+  - 🎢 **Park World**: Park benches, lamp posts, trash bins, flying birds
+  - 🚀 **Space World**: Tumbling asteroids, satellites, glowing alien plants, space rocks
+  - Objects spawn randomly on left/right sides
+  - Scale and move toward the player for 3D depth effect
+
+### Changed
+- **Energy Reset** - Toby's energy now resets to FULL at the start of each level (was +20)
+- Updated floating text messages: "Yey!" for shields, "Eeew!" for hazards, "Blocked!" when shield protects
+- Minor UI improvements
+
+---
+
+## [0.5.0] - 2026-01-02
+
+### Added
+- **Toby's Expressions** - Toby now shows emotions when interacting with items:
+  - 😊 **Happy Expression** when collecting treats (Chicken or Tuna):
+    - Big smile on his face
+    - Rosy pink blush on cheeks
+    - Floating "Yum yum!" text in gold
+  - 😢 **Sad Expression** when hitting hazards (Hair Dryer or Puddle):
+    - Downturned frown
+    - Sad eyebrows
+    - Blue tear drops falling from eyes
+    - Floating "Ouch!" text in red
+  - 🛡️ **Protected** feedback when shield blocks a hazard:
+    - Floating "Protected!" text in blue
+- Expressions last for 1 second before returning to normal
+- Floating text animates upward and fades out smoothly
+
+---
+
+## [0.4.0] - 2026-01-02
+
+### Changed
+- **Tuna Can** (🥫) replaces Nice Fish as the good treat item:
+  - Detailed metallic can with silver gradient
+  - Blue label with wave pattern and "TUNA" text
+  - Small fish icon on label
+  - Pull tab on top
+  - Realistic shine highlights
+- **Hair Dryer** restored as the bad item (reverted from Fish Skeleton):
+  - Pink hairdryer with detailed design
+  - Handle, nozzle, air blast lines
+  - Power button and vent holes
+- **World order reorganized**:
+  - 🌿 Garden (Levels 1-2) - unchanged
+  - ❄️ Snow (Levels 3-4) - moved earlier
+  - 🎢 Park (Levels 5-6) - moved later
+  - 🚀 Space (Levels 7-8) - now the final world
+
+---
+
 ## [0.3.0] - 2026-01-02
 
 ### Added
