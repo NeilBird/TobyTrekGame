@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emily Bird - Toby's Adventure</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="title">
+            <h1>Emily Bird</h1>
+            <p class="subtitle">Inspired by Toby the Cat 🐱</p>
+        </div>
+        
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+        
+        <div class="info">
+            <div class="score-display">
+                <span class="label">Score:</span>
+                <span id="score">0</span>
+            </div>
+            <div class="high-score-display">
+                <span class="label">High Score:</span>
+                <span id="highScore">0</span>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="startBtn" class="btn">Start Game</button>
+            <p class="instructions">Click or press SPACE to flap!</p>
+        </div>
+        
+        <div id="gameOver" class="game-over hidden">
+            <h2>Game Over!</h2>
+            <p>Your Score: <span id="finalScore">0</span></p>
+            <button id="restartBtn" class="btn">Play Again</button>
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>
