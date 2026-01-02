@@ -45,16 +45,18 @@ body {
 /* Start Screen */
 #start-screen {
     background: linear-gradient(180deg, #87CEEB 0%, #90EE90 50%, #228B22 100%);
-    padding: 20px;
+    padding: 10px 20px;
+    overflow-y: auto;
+    gap: 2px;
 }
 
 #start-screen h1 {
-    font-size: 42px;
+    font-size: 32px;
     color: #2E8B57;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 255, 255, 0.8);
-    margin-bottom: 2px;
-    margin-top: 5px;
-    letter-spacing: 3px;
+    margin-bottom: 0;
+    margin-top: 0;
+    letter-spacing: 2px;
 }
 
 .toby-icon {
@@ -63,49 +65,50 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 80px;
-    height: 80px;
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
 }
 
 .toby-icon svg {
-    width: 80px;
-    height: 80px;
+    width: 60px;
+    height: 60px;
 }
 
 .subtitle {
-    font-size: 14px;
+    font-size: 12px;
     color: #006400;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     font-style: italic;
     text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
 }
 
 .version {
-    font-size: 12px;
+    font-size: 10px;
     color: #555;
-    margin-bottom: 3px;
+    margin-bottom: 2px;
     font-weight: bold;
     background: rgba(255, 255, 255, 0.6);
-    padding: 2px 10px;
+    padding: 2px 8px;
     border-radius: 10px;
 }
 
 .instructions {
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(10px);
-    padding: 15px 25px;
-    border-radius: 15px;
-    margin-bottom: 15px;
+    padding: 8px 15px;
+    border-radius: 12px;
+    margin-bottom: 8px;
     text-align: center;
-    max-width: 500px;
+    max-width: 480px;
     border: 2px solid rgba(34, 139, 34, 0.3);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .instructions p {
-    font-size: 14px;
+    font-size: 12px;
     color: #333;
-    margin: 8px 0;
+    margin: 4px 0;
 }
 
 .key {
@@ -124,18 +127,18 @@ body {
 .legend {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    margin: 12px 0;
+    gap: 4px;
+    margin: 6px 0;
 }
 
 .legend-item {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    padding: 6px 15px;
-    border-radius: 8px;
-    font-size: 13px;
+    gap: 8px;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 11px;
 }
 
 .legend-item.good {
@@ -157,21 +160,21 @@ body {
 }
 
 .legend-item .icon {
-    font-size: 18px;
+    font-size: 14px;
 }
 
 .warning {
     color: #B8860B !important;
     font-weight: bold;
-    font-size: 12px !important;
-    margin-top: 5px !important;
+    font-size: 10px !important;
+    margin-top: 3px !important;
     margin-bottom: 0 !important;
 }
 
 .tip {
     color: #2E8B57 !important;
-    font-size: 11px !important;
-    margin-top: 3px !important;
+    font-size: 10px !important;
+    margin-top: 2px !important;
     margin-bottom: 0 !important;
 }
 
@@ -179,9 +182,9 @@ body {
     background: linear-gradient(180deg, #32CD32 0%, #228B22 100%);
     color: white;
     border: none;
-    padding: 12px 40px;
-    font-size: 20px;
-    border-radius: 25px;
+    padding: 10px 30px;
+    font-size: 16px;
+    border-radius: 20px;
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
     box-shadow: 0 4px 15px rgba(34, 139, 34, 0.4), 0 0 30px rgba(34, 139, 34, 0.2);
@@ -284,6 +287,75 @@ body {
     display: block;
 }
 
+/* Mobile Touch Controls */
+#touch-controls {
+    display: none;
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    justify-content: space-between;
+    padding: 0 20px;
+    z-index: 100;
+    pointer-events: none;
+}
+
+.touch-btn {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    border: 3px solid rgba(255, 255, 255, 0.6);
+    color: white;
+    font-size: 36px;
+    font-weight: bold;
+    cursor: pointer;
+    pointer-events: auto;
+    transition: all 0.1s ease;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.touch-btn:active {
+    background: rgba(255, 255, 255, 0.5);
+    transform: scale(0.95);
+}
+
+#touch-left {
+    margin-left: 10px;
+}
+
+#touch-right {
+    margin-right: 10px;
+}
+
+/* Show touch controls on touch devices */
+@media (hover: none) and (pointer: coarse) {
+    #touch-controls {
+        display: flex;
+    }
+}
+
+/* Also show on small screens */
+@media (max-width: 800px) {
+    #touch-controls {
+        display: flex;
+    }
+    
+    #game-container {
+        width: 100vw;
+        height: 100vh;
+        border-radius: 0;
+        border: none;
+    }
+    
+    body {
+        align-items: stretch;
+    }
+}
+
 /* Game Over Screen */
 #game-over-screen {
     background: linear-gradient(180deg, rgba(10, 10, 21, 0.98) 0%, rgba(26, 26, 46, 0.98) 100%);
@@ -328,23 +400,23 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 12px;
+    gap: 4px;
+    margin-bottom: 6px;
 }
 
 .player-name-section label {
-    font-size: 14px;
+    font-size: 12px;
     color: #2E8B57;
     font-weight: bold;
 }
 
 .player-name-section input {
-    padding: 8px 15px;
-    font-size: 16px;
+    padding: 6px 12px;
+    font-size: 14px;
     border: 2px solid #228B22;
-    border-radius: 20px;
+    border-radius: 15px;
     text-align: center;
-    width: 200px;
+    width: 180px;
     background: rgba(255, 255, 255, 0.9);
     color: #333;
     transition: border-color 0.2s, box-shadow 0.2s;
@@ -364,26 +436,26 @@ body {
 .leaderboard {
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(10px);
-    padding: 12px 20px;
-    border-radius: 12px;
-    margin-bottom: 15px;
+    padding: 8px 15px;
+    border-radius: 10px;
+    margin-bottom: 8px;
     text-align: center;
-    min-width: 280px;
+    min-width: 250px;
     border: 2px solid rgba(34, 139, 34, 0.3);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .leaderboard h3 {
-    font-size: 16px;
+    font-size: 14px;
     color: #2E8B57;
-    margin-bottom: 10px;
+    margin-bottom: 6px;
 }
 
 #leaderboard-list {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    max-height: 100px;
+    gap: 3px;
+    max-height: 70px;
     overflow-y: auto;
 }
 
@@ -431,6 +503,281 @@ body {
     margin: 5px 0;
 }
 
+/* Settings Bar */
+.settings-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 5px;
+}
+
+.settings-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid rgba(34, 139, 34, 0.5);
+    background: rgba(255, 255, 255, 0.8);
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.settings-btn:hover {
+    background: rgba(34, 139, 34, 0.2);
+    transform: scale(1.1);
+}
+
+/* Difficulty Section */
+.difficulty-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 5px;
+    font-size: 12px;
+    color: #333;
+}
+
+.difficulty-buttons {
+    display: flex;
+    gap: 5px;
+}
+
+.difficulty-btn {
+    padding: 4px 12px;
+    border-radius: 12px;
+    border: 2px solid #228B22;
+    background: rgba(255, 255, 255, 0.8);
+    color: #228B22;
+    font-size: 11px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.difficulty-btn:hover {
+    background: rgba(34, 139, 34, 0.2);
+}
+
+.difficulty-btn.active {
+    background: #228B22;
+    color: white;
+}
+
+/* Skin Section */
+.skin-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 5px;
+    font-size: 11px;
+    color: #333;
+}
+
+.skin-selector {
+    display: flex;
+    gap: 5px;
+}
+
+.skin-option {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.8);
+    border: 2px solid #ccc;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    padding: 2px;
+}
+
+.skin-option:hover {
+    border-color: #228B22;
+    transform: scale(1.05);
+}
+
+.skin-option.selected {
+    border-color: #228B22;
+    background: rgba(34, 139, 34, 0.2);
+}
+
+.skin-option.locked {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.skin-preview {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+}
+
+.skin-name {
+    font-size: 6px;
+    text-align: center;
+    max-width: 38px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Button Row */
+.button-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.daily-btn {
+    background: linear-gradient(180deg, #FF8C00 0%, #FF6600 100%);
+    box-shadow: 0 4px 15px rgba(255, 100, 0, 0.4);
+    font-size: 12px;
+    padding: 8px 15px;
+}
+
+.daily-btn:hover {
+    box-shadow: 0 8px 30px rgba(255, 100, 0, 0.6);
+}
+
+/* Power-up legend */
+.legend-item.power {
+    background: rgba(255, 100, 200, 0.2);
+    border: 1px solid rgba(255, 100, 200, 0.4);
+    color: #CC0066;
+}
+
+/* Pause Overlay */
+.pause-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 200;
+}
+
+.pause-content {
+    text-align: center;
+    color: white;
+}
+
+.pause-content h2 {
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.pause-content p {
+    margin-bottom: 20px;
+    color: #aaa;
+}
+
+/* HUD Pause Button */
+.hud-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.hud-btn:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+/* Achievements Modal */
+.modal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 300;
+}
+
+.modal-content {
+    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+    border-radius: 15px;
+    padding: 20px;
+    max-width: 500px;
+    max-height: 80%;
+    overflow-y: auto;
+    border: 2px solid #FFD700;
+}
+
+.modal-content h2 {
+    color: #FFD700;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+#achievements-progress {
+    font-size: 14px;
+    color: #aaa;
+}
+
+#achievements-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.achievement-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.achievement-item.unlocked {
+    border-color: #FFD700;
+    background: rgba(255, 215, 0, 0.1);
+}
+
+.achievement-item.locked {
+    opacity: 0.6;
+}
+
+.achievement-icon {
+    font-size: 24px;
+}
+
+.achievement-info {
+    flex: 1;
+}
+
+.achievement-name {
+    color: #FFD700;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.achievement-desc {
+    color: #aaa;
+    font-size: 11px;
+}
+
 /* Responsive adjustments */
 @media (max-width: 850px) {
     #game-container {
@@ -442,5 +789,20 @@ body {
     #game-canvas {
         width: 100%;
         height: auto;
+    }
+    
+    .modal-content {
+        margin: 10px;
+        max-height: 90%;
+    }
+    
+    .button-row {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .skin-selector {
+        flex-wrap: wrap;
+        justify-content: center;
     }
 }
