@@ -1,5 +1,5 @@
 // Game Version
-const GAME_VERSION = '0.2.0';
+const GAME_VERSION = '0.3.0';
 
 // Game Constants
 const CANVAS_WIDTH = 800;
@@ -15,7 +15,7 @@ const ENERGY_GAIN = 15;
 const ENERGY_LOSS = 20;
 const LEVEL_DURATION = 30000;
 const SPEED_UP_THRESHOLD = 0.5;
-const LEVELS_PER_WORLD = 3; // Complete 3 levels before changing world
+const LEVELS_PER_WORLD = 2; // Complete 2 levels before changing world
 const SHIELD_DURATION = 5000; // 5 seconds of protection
 
 // Tunnel perspective constants
@@ -28,16 +28,17 @@ const PLAYER_ZONE_Y = CANVAS_HEIGHT - 120; // Where objects reach the player
 const WORLDS = {
     GARDEN: 'garden',
     PARK: 'park', 
-    SPACE: 'space'
+    SPACE: 'space',
+    SNOW: 'snow'
 };
 
 // Game Objects Types - 2 good (treats), 2 bad (hazards), 1 shield
 const OBJECT_TYPES = {
     // Good items - Toby's treats!
     CHICKEN: { emoji: '🍗', type: 'treat', points: 15, color: '#FFB347' },
-    SHRIMP: { emoji: '🦐', type: 'treat', points: 20, color: '#FF6B6B' },
+    NICE_FISH: { emoji: 'nicefish', type: 'treat', points: 20, color: '#4FC3F7' },
     // Bad items - things Toby hates!
-    HAIRDRYER: { emoji: 'hairdryer', type: 'bad', points: -10, color: '#FFB347' },
+    FISH_SKELETON: { emoji: 'fishskeleton', type: 'bad', points: -10, color: '#BDBDBD' },
     PUDDLE: { emoji: '💧', type: 'bad', points: -10, color: '#87CEEB' },
     // Shield power-up!
     SHIELD: { emoji: '🛡️', type: 'shield', points: 5, color: '#00BFFF' }
@@ -138,153 +139,146 @@ function playBackgroundMusic() {
     if (!audioContext || musicPlaying) return;
     musicPlaying = true;
     
-    // Create a more interesting melody with different scales per world
-    const playNote = (freq, startTime, duration, type = 'square', volume = 0.08) => {
+    // Create atmospheric, cinematic game music
+    const playNote = (freq, startTime, duration, type = 'sine', volume = 0.06) => {
         const osc = audioContext.createOscillator();
         const gain = audioContext.createGain();
+        const filter = audioContext.createBiquadFilter();
+        
         osc.type = type;
         osc.frequency.value = freq;
-        gain.gain.value = volume;
-        gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
-        osc.connect(gain);
+        
+        filter.type = 'lowpass';
+        filter.frequency.value = 2000;
+        filter.Q.value = 1;
+        
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(volume, startTime + 0.05);
+        gain.gain.setValueAtTime(volume, startTime + duration - 0.1);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+        
+        osc.connect(filter);
+        filter.connect(gain);
         gain.connect(musicGain);
         osc.start(startTime);
         osc.stop(startTime + duration);
     };
 
-    // Different melodies for each world
+    // Different atmospheric melodies for each world
     const getWorldMelody = () => {
         if (currentWorld === WORLDS.GARDEN) {
-            // Happy major key melody
+            // Peaceful, nature-inspired melody - minor key for depth
             return [
-                { note: 523, time: 0, dur: 0.15 },     // C5
-                { note: 587, time: 0.2, dur: 0.15 },   // D5
-                { note: 659, time: 0.4, dur: 0.15 },   // E5
-                { note: 698, time: 0.6, dur: 0.15 },   // F5
-                { note: 784, time: 0.8, dur: 0.3 },    // G5
-                { note: 659, time: 1.2, dur: 0.15 },   // E5
-                { note: 523, time: 1.4, dur: 0.3 },    // C5
-                { note: 392, time: 1.8, dur: 0.15 },   // G4
-                { note: 440, time: 2.0, dur: 0.15 },   // A4
-                { note: 523, time: 2.2, dur: 0.15 },   // C5
-                { note: 587, time: 2.4, dur: 0.15 },   // D5
-                { note: 659, time: 2.6, dur: 0.3 },    // E5
-                { note: 784, time: 3.0, dur: 0.15 },   // G5
-                { note: 880, time: 3.2, dur: 0.15 },   // A5
-                { note: 784, time: 3.4, dur: 0.3 },    // G5
-                { note: 659, time: 3.8, dur: 0.15 },   // E5
+                { note: 392, time: 0, dur: 0.8 },      // G4
+                { note: 440, time: 1.0, dur: 0.6 },    // A4
+                { note: 523, time: 1.8, dur: 1.0 },    // C5
+                { note: 494, time: 3.0, dur: 0.6 },    // B4
+                { note: 440, time: 3.8, dur: 0.8 },    // A4
+                { note: 392, time: 4.8, dur: 1.2 },    // G4
             ];
         } else if (currentWorld === WORLDS.PARK) {
-            // Playful bouncy melody
+            // Adventurous, slightly tense melody
             return [
-                { note: 392, time: 0, dur: 0.1 },      // G4
-                { note: 494, time: 0.15, dur: 0.1 },   // B4
-                { note: 587, time: 0.3, dur: 0.2 },    // D5
-                { note: 784, time: 0.55, dur: 0.2 },   // G5
-                { note: 698, time: 0.8, dur: 0.15 },   // F5
-                { note: 587, time: 1.0, dur: 0.15 },   // D5
-                { note: 494, time: 1.2, dur: 0.2 },    // B4
-                { note: 392, time: 1.5, dur: 0.1 },    // G4
-                { note: 440, time: 1.65, dur: 0.1 },   // A4
-                { note: 494, time: 1.8, dur: 0.2 },    // B4
-                { note: 587, time: 2.05, dur: 0.2 },   // D5
-                { note: 659, time: 2.3, dur: 0.15 },   // E5
-                { note: 587, time: 2.5, dur: 0.15 },   // D5
-                { note: 494, time: 2.7, dur: 0.2 },    // B4
-                { note: 523, time: 2.95, dur: 0.3 },   // C5
-                { note: 494, time: 3.3, dur: 0.15 },   // B4
-                { note: 440, time: 3.5, dur: 0.15 },   // A4
-                { note: 392, time: 3.7, dur: 0.25 },   // G4
+                { note: 330, time: 0, dur: 0.5 },      // E4
+                { note: 392, time: 0.6, dur: 0.5 },    // G4
+                { note: 440, time: 1.2, dur: 0.8 },    // A4
+                { note: 494, time: 2.2, dur: 0.6 },    // B4
+                { note: 440, time: 3.0, dur: 0.5 },    // A4
+                { note: 392, time: 3.6, dur: 0.5 },    // G4
+                { note: 349, time: 4.2, dur: 0.8 },    // F4
+                { note: 330, time: 5.2, dur: 0.8 },    // E4
+            ];
+        } else if (currentWorld === WORLDS.SPACE) {
+            // Cosmic, mysterious ambient melody
+            return [
+                { note: 220, time: 0, dur: 1.5 },      // A3
+                { note: 262, time: 1.8, dur: 1.2 },    // C4
+                { note: 294, time: 3.2, dur: 1.0 },    // D4
+                { note: 262, time: 4.5, dur: 1.5 },    // C4
             ];
         } else {
-            // Space - mysterious ethereal melody
+            // Snow - calm, crystalline melody
             return [
-                { note: 330, time: 0, dur: 0.4 },      // E4
-                { note: 392, time: 0.5, dur: 0.3 },    // G4
-                { note: 440, time: 0.9, dur: 0.3 },    // A4
-                { note: 523, time: 1.3, dur: 0.5 },    // C5
-                { note: 494, time: 1.9, dur: 0.3 },    // B4
-                { note: 392, time: 2.3, dur: 0.4 },    // G4
-                { note: 349, time: 2.8, dur: 0.3 },    // F4
-                { note: 330, time: 3.2, dur: 0.5 },    // E4
+                { note: 523, time: 0, dur: 1.0 },      // C5
+                { note: 494, time: 1.2, dur: 0.8 },    // B4
+                { note: 440, time: 2.2, dur: 1.0 },    // A4
+                { note: 392, time: 3.4, dur: 0.8 },    // G4
+                { note: 440, time: 4.4, dur: 1.0 },    // A4
+                { note: 523, time: 5.6, dur: 0.4 },    // C5
             ];
         }
     };
 
-    // Bass lines per world
+    // Deep, cinematic bass lines
     const getWorldBass = () => {
         if (currentWorld === WORLDS.GARDEN) {
             return [
-                { note: 131, time: 0, dur: 0.6 },    // C3
-                { note: 165, time: 0.8, dur: 0.6 },  // E3
-                { note: 131, time: 1.6, dur: 0.6 },  // C3
-                { note: 98, time: 2.4, dur: 0.6 },   // G2
-                { note: 110, time: 3.2, dur: 0.6 },  // A2
+                { note: 98, time: 0, dur: 2.0 },      // G2
+                { note: 110, time: 2.5, dur: 1.5 },   // A2
+                { note: 131, time: 4.5, dur: 1.5 },   // C3
             ];
         } else if (currentWorld === WORLDS.PARK) {
             return [
-                { note: 98, time: 0, dur: 0.4 },     // G2
-                { note: 98, time: 0.5, dur: 0.4 },   // G2
-                { note: 123, time: 1.0, dur: 0.4 },  // B2
-                { note: 98, time: 1.5, dur: 0.4 },   // G2
-                { note: 110, time: 2.0, dur: 0.4 },  // A2
-                { note: 98, time: 2.5, dur: 0.4 },   // G2
-                { note: 131, time: 3.0, dur: 0.4 },  // C3
-                { note: 98, time: 3.5, dur: 0.4 },   // G2
+                { note: 82, time: 0, dur: 1.5 },      // E2
+                { note: 98, time: 2.0, dur: 1.5 },    // G2
+                { note: 87, time: 4.0, dur: 2.0 },    // F2
+            ];
+        } else if (currentWorld === WORLDS.SPACE) {
+            return [
+                { note: 55, time: 0, dur: 3.0 },      // A1 - deep drone
+                { note: 65, time: 3.5, dur: 2.5 },    // C2
             ];
         } else {
             return [
-                { note: 82, time: 0, dur: 1.5 },     // E2 - long drone
-                { note: 98, time: 2.0, dur: 1.5 },   // G2
+                { note: 131, time: 0, dur: 2.0 },     // C3
+                { note: 98, time: 2.5, dur: 2.0 },    // G2
+                { note: 110, time: 5.0, dur: 1.0 },   // A2
             ];
         }
     };
 
-    // Arpeggios/harmony
-    const getWorldArpeggio = () => {
+    // Ambient pads and textures
+    const getWorldPad = () => {
         if (currentWorld === WORLDS.GARDEN) {
             return [
-                { note: 262, time: 0.1, dur: 0.1 },
-                { note: 330, time: 0.3, dur: 0.1 },
-                { note: 392, time: 0.5, dur: 0.1 },
-                { note: 330, time: 1.1, dur: 0.1 },
-                { note: 392, time: 1.3, dur: 0.1 },
-                { note: 523, time: 1.5, dur: 0.1 },
-                { note: 262, time: 2.1, dur: 0.1 },
-                { note: 330, time: 2.3, dur: 0.1 },
-                { note: 392, time: 2.5, dur: 0.1 },
-                { note: 330, time: 3.1, dur: 0.1 },
-                { note: 262, time: 3.3, dur: 0.1 },
-                { note: 196, time: 3.5, dur: 0.1 },
+                { note: 196, time: 0, dur: 3.0 },     // G3
+                { note: 247, time: 0.1, dur: 2.8 },   // B3
+                { note: 294, time: 0.2, dur: 2.6 },   // D4
+                { note: 196, time: 3.5, dur: 2.5 },   // G3
+                { note: 220, time: 3.6, dur: 2.4 },   // A3
+                { note: 262, time: 3.7, dur: 2.3 },   // C4
             ];
         } else if (currentWorld === WORLDS.PARK) {
             return [
-                { note: 294, time: 0.1, dur: 0.08 },
-                { note: 392, time: 0.25, dur: 0.08 },
-                { note: 294, time: 0.85, dur: 0.08 },
-                { note: 392, time: 1.0, dur: 0.08 },
-                { note: 330, time: 1.6, dur: 0.08 },
-                { note: 440, time: 1.75, dur: 0.08 },
-                { note: 294, time: 2.35, dur: 0.08 },
-                { note: 392, time: 2.5, dur: 0.08 },
-                { note: 262, time: 3.1, dur: 0.08 },
-                { note: 330, time: 3.25, dur: 0.08 },
-                { note: 392, time: 3.55, dur: 0.08 },
+                { note: 165, time: 0, dur: 2.5 },     // E3
+                { note: 196, time: 0.1, dur: 2.3 },   // G3
+                { note: 247, time: 0.2, dur: 2.1 },   // B3
+                { note: 175, time: 3.0, dur: 2.5 },   // F3
+                { note: 220, time: 3.1, dur: 2.3 },   // A3
+                { note: 262, time: 3.2, dur: 2.1 },   // C4
+            ];
+        } else if (currentWorld === WORLDS.SPACE) {
+            return [
+                { note: 110, time: 0, dur: 4.0 },     // A2
+                { note: 165, time: 0.2, dur: 3.8 },   // E3
+                { note: 220, time: 0.4, dur: 3.6 },   // A3
+                { note: 131, time: 4.5, dur: 1.5 },   // C3
+                { note: 196, time: 4.7, dur: 1.3 },   // G3
             ];
         } else {
-            // Space - ethereal pads
+            // Snow - shimmering high pads
             return [
-                { note: 165, time: 0, dur: 1.8 },    // E3
-                { note: 196, time: 0.1, dur: 1.6 },  // G3
-                { note: 247, time: 0.2, dur: 1.4 },  // B3
-                { note: 165, time: 2.0, dur: 1.8 },  // E3
-                { note: 175, time: 2.1, dur: 1.6 },  // F3
-                { note: 220, time: 2.2, dur: 1.4 },  // A3
+                { note: 523, time: 0, dur: 2.5 },     // C5
+                { note: 659, time: 0.1, dur: 2.3 },   // E5
+                { note: 784, time: 0.2, dur: 2.1 },   // G5
+                { note: 494, time: 3.0, dur: 2.5 },   // B4
+                { note: 587, time: 3.1, dur: 2.3 },   // D5
+                { note: 698, time: 3.2, dur: 2.1 },   // F5
             ];
         }
     };
 
-    const loopDuration = 4;
+    const loopDuration = 6;
     
     function scheduleLoop() {
         if (!musicPlaying || gameState !== 'playing') return;
@@ -292,19 +286,21 @@ function playBackgroundMusic() {
         const now = audioContext.currentTime;
         const melody = getWorldMelody();
         const bass = getWorldBass();
-        const arpeggio = getWorldArpeggio();
+        const pad = getWorldPad();
         
+        // Melody - sine wave for smooth sound
         melody.forEach(({ note, time, dur }) => {
-            playNote(note, now + time, dur, 'square', 0.08);
+            playNote(note, now + time, dur, 'sine', 0.07);
         });
         
+        // Bass - triangle for warmth
         bass.forEach(({ note, time, dur }) => {
-            playNote(note, now + time, dur, 'triangle', 0.12);
+            playNote(note, now + time, dur, 'triangle', 0.08);
         });
         
-        arpeggio.forEach(({ note, time, dur }) => {
-            const type = currentWorld === WORLDS.SPACE ? 'sine' : 'square';
-            playNote(note, now + time, dur, type, 0.04);
+        // Ambient pad - sine for smoothness
+        pad.forEach(({ note, time, dur }) => {
+            playNote(note, now + time, dur, 'sine', 0.03);
         });
         
         setTimeout(scheduleLoop, loopDuration * 1000);
@@ -501,13 +497,15 @@ function advanceLevel() {
     approachingObjects = []; // Clear objects for new level
     
     // Change world every LEVELS_PER_WORLD levels
-    const worldIndex = Math.floor((level - 1) / LEVELS_PER_WORLD) % 3;
+    const worldIndex = Math.floor((level - 1) / LEVELS_PER_WORLD) % 4;
     if (worldIndex === 0) {
         currentWorld = WORLDS.GARDEN;
     } else if (worldIndex === 1) {
         currentWorld = WORLDS.PARK;
-    } else {
+    } else if (worldIndex === 2) {
         currentWorld = WORLDS.SPACE;
+    } else {
+        currentWorld = WORLDS.SNOW;
     }
     
     updateHUD();
@@ -727,8 +725,10 @@ function render() {
         drawGardenTunnel();
     } else if (currentWorld === WORLDS.PARK) {
         drawParkTunnel();
-    } else {
+    } else if (currentWorld === WORLDS.SPACE) {
         drawSpaceTunnel();
+    } else {
+        drawSnowTunnel();
     }
 
     // Draw approaching objects (sorted by depth - far objects first)
@@ -776,10 +776,11 @@ function render() {
         ctx.fillText(`Level ${level} Complete!`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 20);
         
         // Show what's coming next
-        const nextWorldIndex = Math.floor(level / LEVELS_PER_WORLD) % 3;
+        const nextWorldIndex = Math.floor(level / LEVELS_PER_WORLD) % 4;
         let nextWorldName = 'Garden';
         if (nextWorldIndex === 1) nextWorldName = 'Park';
         else if (nextWorldIndex === 2) nextWorldName = 'Space';
+        else if (nextWorldIndex === 3) nextWorldName = 'Snow';
         
         ctx.fillStyle = '#FFFFFF';
         ctx.font = '28px Arial';
@@ -1116,6 +1117,235 @@ function drawSpaceTunnel() {
     ctx.fill();
 }
 
+function drawSnowTunnel() {
+    // Winter sky gradient
+    const skyGradient = ctx.createLinearGradient(0, 0, 0, HORIZON_Y + 100);
+    skyGradient.addColorStop(0, '#4A6FA5');    // Deep winter blue
+    skyGradient.addColorStop(0.4, '#7BA3D0');  // Lighter blue
+    skyGradient.addColorStop(0.8, '#B8D4E8');  // Pale blue
+    skyGradient.addColorStop(1, '#E8F1F5');    // Almost white at horizon
+    ctx.fillStyle = skyGradient;
+    ctx.fillRect(0, 0, CANVAS_WIDTH, HORIZON_Y + 100);
+
+    // Draw snow-capped mountains in background
+    drawSnowMountains();
+
+    // Draw falling snowflakes
+    drawSnowflakes();
+
+    // Snowy path
+    const snowGradient = ctx.createLinearGradient(0, HORIZON_Y, 0, CANVAS_HEIGHT);
+    snowGradient.addColorStop(0, '#E8F4F8');   // Light snow at horizon
+    snowGradient.addColorStop(0.3, '#D4E6EC');  // Slightly blue snow
+    snowGradient.addColorStop(0.6, '#C0D8E0');  // Deeper snow
+    snowGradient.addColorStop(1, '#F5FBFC');    // Bright snow near player
+    
+    ctx.fillStyle = snowGradient;
+    ctx.beginPath();
+    ctx.moveTo(CANVAS_WIDTH / 2 - TUNNEL_WIDTH_AT_HORIZON / 2, HORIZON_Y);
+    ctx.lineTo(0, CANVAS_HEIGHT);
+    ctx.lineTo(CANVAS_WIDTH, CANVAS_HEIGHT);
+    ctx.lineTo(CANVAS_WIDTH / 2 + TUNNEL_WIDTH_AT_HORIZON / 2, HORIZON_Y);
+    ctx.closePath();
+    ctx.fill();
+
+    // Snow texture lines - sparkling effect
+    for (let i = 0; i < 10; i++) {
+        const z = ((i * 70 + tunnelOffset) % 700) / 700;
+        if (z < 0.05) continue;
+        
+        const y = getScreenY(z);
+        const leftX = getScreenX(-0.8, z);
+        const rightX = getScreenX(0.8, z);
+        
+        ctx.globalAlpha = 0.2 + z * 0.3;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.lineWidth = 1 + z;
+        ctx.beginPath();
+        ctx.moveTo(leftX, y);
+        ctx.lineTo(rightX, y);
+        ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    // Snow banks on sides
+    const snowBankGradient = ctx.createLinearGradient(0, HORIZON_Y, 0, CANVAS_HEIGHT);
+    snowBankGradient.addColorStop(0, '#D0E8F0');
+    snowBankGradient.addColorStop(0.5, '#B8DCE8');
+    snowBankGradient.addColorStop(1, '#A0D0E0');
+    
+    ctx.fillStyle = snowBankGradient;
+    ctx.beginPath();
+    ctx.moveTo(CANVAS_WIDTH / 2 - TUNNEL_WIDTH_AT_HORIZON / 2, HORIZON_Y);
+    ctx.lineTo(0, CANVAS_HEIGHT);
+    ctx.lineTo(0, HORIZON_Y);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(CANVAS_WIDTH / 2 + TUNNEL_WIDTH_AT_HORIZON / 2, HORIZON_Y);
+    ctx.lineTo(CANVAS_WIDTH, CANVAS_HEIGHT);
+    ctx.lineTo(CANVAS_WIDTH, HORIZON_Y);
+    ctx.closePath();
+    ctx.fill();
+
+    // Draw pine trees along borders
+    drawSnowTrees();
+
+    // Draw snowdrifts
+    drawSnowDrifts();
+}
+
+function drawSnowMountains() {
+    // Far mountains
+    ctx.fillStyle = '#8FAABE';
+    ctx.beginPath();
+    ctx.moveTo(0, HORIZON_Y);
+    ctx.lineTo(100, HORIZON_Y - 60);
+    ctx.lineTo(200, HORIZON_Y - 30);
+    ctx.lineTo(300, HORIZON_Y - 80);
+    ctx.lineTo(400, HORIZON_Y - 40);
+    ctx.lineTo(500, HORIZON_Y - 90);
+    ctx.lineTo(600, HORIZON_Y - 50);
+    ctx.lineTo(700, HORIZON_Y - 70);
+    ctx.lineTo(800, HORIZON_Y - 35);
+    ctx.lineTo(800, HORIZON_Y);
+    ctx.closePath();
+    ctx.fill();
+
+    // Snow caps
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.moveTo(95, HORIZON_Y - 55);
+    ctx.lineTo(100, HORIZON_Y - 60);
+    ctx.lineTo(105, HORIZON_Y - 55);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(295, HORIZON_Y - 70);
+    ctx.lineTo(300, HORIZON_Y - 80);
+    ctx.lineTo(310, HORIZON_Y - 65);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(490, HORIZON_Y - 80);
+    ctx.lineTo(500, HORIZON_Y - 90);
+    ctx.lineTo(515, HORIZON_Y - 75);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(695, HORIZON_Y - 60);
+    ctx.lineTo(700, HORIZON_Y - 70);
+    ctx.lineTo(710, HORIZON_Y - 55);
+    ctx.closePath();
+    ctx.fill();
+}
+
+function drawSnowflakes() {
+    ctx.fillStyle = '#FFFFFF';
+    // Animated snowflakes
+    const time = Date.now() / 1000;
+    for (let i = 0; i < 30; i++) {
+        const x = (i * 97 + time * 20 * (1 + (i % 3) * 0.3)) % CANVAS_WIDTH;
+        const y = (i * 43 + time * 40 * (1 + (i % 4) * 0.2)) % (HORIZON_Y + 50);
+        const size = 1.5 + (i % 3);
+        
+        ctx.globalAlpha = 0.6 + Math.sin(time + i) * 0.3;
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+}
+
+function drawSnowTrees() {
+    // Left side pine trees
+    for (let i = 0; i < 5; i++) {
+        const z = 0.2 + i * 0.15;
+        const y = getScreenY(z);
+        const x = getScreenX(-0.95, z) + 20;
+        const size = 15 + z * 30;
+        
+        drawPineTree(x, y, size);
+    }
+
+    // Right side pine trees
+    for (let i = 0; i < 5; i++) {
+        const z = 0.15 + i * 0.15;
+        const y = getScreenY(z);
+        const x = getScreenX(0.95, z) - 20;
+        const size = 15 + z * 30;
+        
+        drawPineTree(x, y, size);
+    }
+}
+
+function drawPineTree(x, y, size) {
+    // Trunk
+    ctx.fillStyle = '#5D4037';
+    ctx.fillRect(x - size * 0.08, y, size * 0.16, size * 0.3);
+
+    // Tree layers (3 triangular sections)
+    ctx.fillStyle = '#2E7D32';
+    for (let layer = 0; layer < 3; layer++) {
+        const layerY = y - layer * size * 0.25;
+        const layerWidth = size * (0.6 - layer * 0.12);
+        const layerHeight = size * 0.35;
+        
+        ctx.beginPath();
+        ctx.moveTo(x, layerY - layerHeight);
+        ctx.lineTo(x - layerWidth / 2, layerY);
+        ctx.lineTo(x + layerWidth / 2, layerY);
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    // Snow on branches
+    ctx.fillStyle = '#FFFFFF';
+    for (let layer = 0; layer < 3; layer++) {
+        const layerY = y - layer * size * 0.25;
+        const layerWidth = size * (0.5 - layer * 0.1);
+        
+        ctx.beginPath();
+        ctx.moveTo(x, layerY - size * 0.3);
+        ctx.lineTo(x - layerWidth / 3, layerY - size * 0.15);
+        ctx.lineTo(x + layerWidth / 3, layerY - size * 0.15);
+        ctx.closePath();
+        ctx.fill();
+    }
+}
+
+function drawSnowDrifts() {
+    ctx.fillStyle = '#FFFFFF';
+    
+    // Left side drifts
+    for (let i = 0; i < 4; i++) {
+        const z = 0.3 + i * 0.18;
+        const y = getScreenY(z);
+        const x = getScreenX(-0.85, z);
+        const size = 10 + z * 25;
+        
+        ctx.beginPath();
+        ctx.ellipse(x, y + 5, size, size * 0.4, 0, 0, Math.PI);
+        ctx.fill();
+    }
+
+    // Right side drifts
+    for (let i = 0; i < 4; i++) {
+        const z = 0.25 + i * 0.18;
+        const y = getScreenY(z);
+        const x = getScreenX(0.85, z);
+        const size = 10 + z * 25;
+        
+        ctx.beginPath();
+        ctx.ellipse(x, y + 5, size, size * 0.4, 0, 0, Math.PI);
+        ctx.fill();
+    }
+}
+
 function drawSwingSet(x, y) {
     // Posts
     ctx.strokeStyle = '#795548';
@@ -1411,9 +1641,11 @@ function drawApproachingObject(obj) {
 
     ctx.globalAlpha = 0.5 + obj.z * 0.5;
 
-    // Check if it's the hairdryer - draw custom graphic
-    if (obj.emoji === 'hairdryer') {
-        drawHairdryer(size);
+    // Check for custom graphics
+    if (obj.emoji === 'fishskeleton') {
+        drawFishSkeleton(size);
+    } else if (obj.emoji === 'nicefish') {
+        drawNiceFish(size);
     } else {
         // Scale and draw emoji
         ctx.font = `${size}px Arial`;
@@ -1425,83 +1657,212 @@ function drawApproachingObject(obj) {
     ctx.restore();
 }
 
-function drawHairdryer(size) {
+function drawFishSkeleton(size) {
     const scale = size / 40; // Base size is 40
     ctx.save();
     ctx.scale(scale, scale);
     
-    // Handle
+    // Fish skeleton body outline
+    ctx.strokeStyle = '#E0E0E0';
+    ctx.fillStyle = '#F5F5F5';
+    ctx.lineWidth = 2;
+    
+    // Main body shape
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 25, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Head
+    ctx.beginPath();
+    ctx.ellipse(-18, 0, 12, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Eye socket (empty/spooky)
     ctx.fillStyle = '#333333';
     ctx.beginPath();
-    ctx.roundRect(-8, 5, 16, 25, 3);
+    ctx.arc(-22, -2, 4, 0, Math.PI * 2);
     ctx.fill();
     
-    // Handle grip lines
-    ctx.strokeStyle = '#555555';
+    // Eye highlight
+    ctx.fillStyle = '#FF4444';
+    ctx.beginPath();
+    ctx.arc(-23, -3, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Spine - main backbone
+    ctx.strokeStyle = '#BDBDBD';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(-10, 0);
+    ctx.lineTo(25, 0);
+    ctx.stroke();
+    
+    // Ribs
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 6; i++) {
+        const x = -5 + i * 5;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x - 2, -8);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x - 2, 8);
+        ctx.stroke();
+    }
+    
+    // Tail bones
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(25, 0);
+    ctx.lineTo(35, -12);
+    ctx.moveTo(25, 0);
+    ctx.lineTo(35, 12);
+    ctx.moveTo(28, 0);
+    ctx.lineTo(38, -8);
+    ctx.moveTo(28, 0);
+    ctx.lineTo(38, 8);
+    ctx.stroke();
+    
+    // Jaw bone
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-25, 3);
+    ctx.lineTo(-30, 5);
+    ctx.lineTo(-28, 8);
+    ctx.stroke();
+    
+    // Teeth
+    ctx.fillStyle = '#FFFFFF';
+    ctx.strokeStyle = '#999999';
     ctx.lineWidth = 1;
     for (let i = 0; i < 3; i++) {
         ctx.beginPath();
-        ctx.moveTo(-5, 10 + i * 6);
-        ctx.lineTo(5, 10 + i * 6);
+        ctx.moveTo(-27 + i * 3, 3);
+        ctx.lineTo(-28 + i * 3, 8);
+        ctx.lineTo(-26 + i * 3, 3);
+        ctx.fill();
         ctx.stroke();
     }
     
-    // Main body
-    ctx.fillStyle = '#E91E63'; // Pink hairdryer
+    ctx.restore();
+}
+
+function drawNiceFish(size) {
+    const scale = size / 40; // Base size is 40
+    ctx.save();
+    ctx.scale(scale, scale);
+    
+    // Healthy, happy fish
+    
+    // Body - gradient blue/teal
+    const bodyGradient = ctx.createLinearGradient(-25, -15, 25, 15);
+    bodyGradient.addColorStop(0, '#4FC3F7');
+    bodyGradient.addColorStop(0.5, '#29B6F6');
+    bodyGradient.addColorStop(1, '#0288D1');
+    
+    ctx.fillStyle = bodyGradient;
     ctx.beginPath();
-    ctx.ellipse(0, -5, 18, 12, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, 0, 25, 14, 0, 0, Math.PI * 2);
     ctx.fill();
     
-    // Body highlight
-    ctx.fillStyle = '#F48FB1';
+    // Body shine
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
     ctx.beginPath();
-    ctx.ellipse(-5, -8, 8, 5, -0.3, 0, Math.PI * 2);
+    ctx.ellipse(-5, -6, 15, 5, -0.2, 0, Math.PI * 2);
     ctx.fill();
     
-    // Nozzle
-    ctx.fillStyle = '#424242';
+    // Tail fin
+    ctx.fillStyle = '#0277BD';
     ctx.beginPath();
-    ctx.moveTo(15, -10);
-    ctx.lineTo(28, -12);
-    ctx.lineTo(28, 2);
-    ctx.lineTo(15, 0);
+    ctx.moveTo(22, 0);
+    ctx.lineTo(38, -14);
+    ctx.lineTo(35, 0);
+    ctx.lineTo(38, 14);
     ctx.closePath();
     ctx.fill();
     
-    // Nozzle opening
-    ctx.fillStyle = '#212121';
+    // Tail fin detail
+    ctx.strokeStyle = '#01579B';
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.ellipse(28, -5, 3, 7, 0, 0, Math.PI * 2);
+    ctx.moveTo(25, 0);
+    ctx.lineTo(36, -10);
+    ctx.moveTo(25, 0);
+    ctx.lineTo(36, 10);
+    ctx.stroke();
+    
+    // Dorsal fin
+    ctx.fillStyle = '#0288D1';
+    ctx.beginPath();
+    ctx.moveTo(-5, -12);
+    ctx.quadraticCurveTo(5, -25, 15, -12);
+    ctx.lineTo(-5, -12);
     ctx.fill();
     
-    // Air blast lines
-    ctx.strokeStyle = '#90CAF9';
-    ctx.lineWidth = 2;
-    ctx.globalAlpha = 0.7;
-    for (let i = 0; i < 3; i++) {
-        ctx.beginPath();
-        ctx.moveTo(32, -8 + i * 3);
-        ctx.lineTo(40 + i * 3, -10 + i * 4);
-        ctx.stroke();
+    // Bottom fin
+    ctx.beginPath();
+    ctx.moveTo(0, 12);
+    ctx.quadraticCurveTo(5, 20, 12, 12);
+    ctx.lineTo(0, 12);
+    ctx.fill();
+    
+    // Side fin
+    ctx.fillStyle = '#039BE5';
+    ctx.beginPath();
+    ctx.ellipse(-5, 5, 8, 4, 0.5, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Head
+    ctx.fillStyle = '#4FC3F7';
+    ctx.beginPath();
+    ctx.ellipse(-18, 0, 12, 11, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Eye - happy expression
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.arc(-20, -2, 6, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = '#333333';
+    ctx.beginPath();
+    ctx.arc(-19, -2, 3, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Eye sparkle
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.arc(-20, -4, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Happy smile
+    ctx.strokeStyle = '#01579B';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(-25, 2, 4, 0.2, Math.PI - 0.2);
+    ctx.stroke();
+    
+    // Scales pattern
+    ctx.strokeStyle = 'rgba(1, 87, 155, 0.3)';
+    ctx.lineWidth = 1;
+    for (let row = 0; row < 3; row++) {
+        for (let col = 0; col < 4; col++) {
+            ctx.beginPath();
+            ctx.arc(-8 + col * 8, -6 + row * 6, 4, 0.5, Math.PI - 0.5);
+            ctx.stroke();
+        }
     }
-    ctx.globalAlpha = 1;
     
-    // Power button
-    ctx.fillStyle = '#4CAF50';
+    // Bubbles
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
     ctx.beginPath();
-    ctx.arc(-8, -5, 3, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Vent holes on back
-    ctx.fillStyle = '#C2185B';
-    ctx.beginPath();
-    ctx.arc(-14, -5, 2, 0, Math.PI * 2);
+    ctx.arc(-32, -5, 2, 0, Math.PI * 2);
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(-14, -9, 1.5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(-14, -1, 1.5, 0, Math.PI * 2);
+    ctx.arc(-35, -10, 1.5, 0, Math.PI * 2);
     ctx.fill();
     
     ctx.restore();
@@ -1600,11 +1961,23 @@ function drawToby() {
     ctx.lineTo(14, -33);
     ctx.fill();
 
-    // Eyes - bright green
-    ctx.fillStyle = '#50C878';
+    // Eyes - yellow/green with gradient
+    const eyeGradient1 = ctx.createRadialGradient(-8, -18, 0, -8, -18, 6);
+    eyeGradient1.addColorStop(0, '#9ACD32');   // Yellow-green center
+    eyeGradient1.addColorStop(0.5, '#7CB342'); // Lime green
+    eyeGradient1.addColorStop(1, '#558B2F');   // Darker green edge
+    
+    ctx.fillStyle = eyeGradient1;
     ctx.beginPath();
     ctx.ellipse(-8, -18, 5, 6, 0, 0, Math.PI * 2);
     ctx.fill();
+    
+    const eyeGradient2 = ctx.createRadialGradient(8, -18, 0, 8, -18, 6);
+    eyeGradient2.addColorStop(0, '#9ACD32');
+    eyeGradient2.addColorStop(0.5, '#7CB342');
+    eyeGradient2.addColorStop(1, '#558B2F');
+    
+    ctx.fillStyle = eyeGradient2;
     ctx.beginPath();
     ctx.ellipse(8, -18, 5, 6, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -1618,13 +1991,13 @@ function drawToby() {
     ctx.arc(10, -20, 2, 0, Math.PI * 2);
     ctx.fill();
 
-    // Pupils - black
+    // Pupils - black vertical slits (cat eyes)
     ctx.fillStyle = '#000000';
     ctx.beginPath();
-    ctx.ellipse(-8, -17, 2, 4, 0, 0, Math.PI * 2);
+    ctx.ellipse(-8, -17, 1.5, 4.5, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.beginPath();
-    ctx.ellipse(8, -17, 2, 4, 0, 0, Math.PI * 2);
+    ctx.ellipse(8, -17, 1.5, 4.5, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // Nose - pink

@@ -41,3 +41,7 @@ On the game over screen, Toby is the wrong colour, please update for consistency
 
 ## 9
 
+Change the music, make it less childish and annoying. Change the  hair dryer object that you need to avoid, to be a Fish Skeleton. And change the Shrimp to a "Nice" Fish, that is a similar shape to the dead fish. Make each different theme, only have two levels instead of three, garden level 1, park level 2 and outer space level 3. We could also add a "Snow" themed level after space. Please also update Toby's eyes, to be yellow / green colour, with black pupils. Overall can you make it more realistic, like a video game?
+
+## 10
+

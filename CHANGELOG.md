@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.3.0] - 2026-01-02
+
+### Added
+- **Snow World** - Fourth themed world added after Space:
+  - ❄️ Winter sky with gradient blues and pale horizon
+  - Snow-capped mountains in the background
+  - Animated falling snowflakes
+  - Pine trees covered in snow along the path borders
+  - Snow drifts with realistic shading
+  - Sparkling snow path texture
+- **Nice Fish** (🐟) - New treat item replacing Shrimp:
+  - Beautifully detailed healthy fish graphic
+  - Blue/teal gradient body with shimmer
+  - Fins, scales pattern, and happy expression
+  - Bubbles effect for realism
+
+### Changed
+- **World progression** now cycles through 4 worlds with 2 levels each:
+  - 🌿 Garden (Levels 1-2)
+  - 🎢 Park (Levels 3-4)
+  - 🚀 Space (Levels 5-6)
+  - ❄️ Snow (Levels 7-8)
+- **Fish Skeleton** (🦴) replaces Hair Dryer as bad item:
+  - Detailed skeleton graphic with bones, ribs, and spine
+  - Spooky red eye for warning effect
+  - Jaw with teeth details
+  - More thematically appropriate for a cat game
+- **Toby's eyes** updated to yellow/green color:
+  - Radial gradient from yellow-green center to darker green edge
+  - Vertical slit pupils for realistic cat appearance
+  - Applied to all Toby graphics (game, start screen, game over)
+- **Music completely redesigned** to be more atmospheric and cinematic:
+  - Slower, more melodic compositions
+  - Sine waves and filtered sounds instead of harsh square waves
+  - Ambient pad layers for depth
+  - World-specific themes:
+    - Garden: Peaceful, nature-inspired minor key
+    - Park: Adventurous, slightly tense
+    - Space: Cosmic, mysterious ambient
+    - Snow: Calm, crystalline, shimmering high pads
+  - Longer loop duration (6 seconds) for less repetition
+  - Lower volume and softer attack for pleasant listening
+
+### Fixed
+- Reduced overall game sound harshness with audio filtering
+- Improved visual consistency across all game screens
+
+---
+
 ## [0.2.0] - 2026-01-02
 
 ### Added

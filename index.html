@@ -25,11 +25,18 @@
                     <polygon points="58,35 68,12 78,35" fill="#FFFFFF" stroke="#CCCCCC" stroke-width="2"/>
                     <polygon points="62,32 68,18 74,32" fill="#666666"/>
                     <polygon points="64,32 68,22 72,32" fill="#FFB6C1"/>
-                    <!-- Eyes -->
-                    <ellipse cx="38" cy="55" rx="7" ry="8" fill="#50C878"/>
-                    <ellipse cx="62" cy="55" rx="7" ry="8" fill="#50C878"/>
-                    <ellipse cx="38" cy="56" rx="3" ry="5" fill="#000000"/>
-                    <ellipse cx="62" cy="56" rx="3" ry="5" fill="#000000"/>
+                    <!-- Eyes with yellow/green gradient -->
+                    <defs>
+                        <radialGradient id="eyeGradient" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" style="stop-color:#9ACD32" />
+                            <stop offset="50%" style="stop-color:#7CB342" />
+                            <stop offset="100%" style="stop-color:#558B2F" />
+                        </radialGradient>
+                    </defs>
+                    <ellipse cx="38" cy="55" rx="7" ry="8" fill="url(#eyeGradient)"/>
+                    <ellipse cx="62" cy="55" rx="7" ry="8" fill="url(#eyeGradient)"/>
+                    <ellipse cx="38" cy="56" rx="2" ry="5" fill="#000000"/>
+                    <ellipse cx="62" cy="56" rx="2" ry="5" fill="#000000"/>
                     <circle cx="36" cy="52" r="2" fill="#FFFFFF"/>
                     <circle cx="60" cy="52" r="2" fill="#FFFFFF"/>
                     <!-- Nose -->
@@ -46,27 +53,27 @@
                 </svg>
             </div>
             <h1>Toby Trek</h1>
-            <div class="version">v0.2.0</div>
-            <div class="subtitle">A Garden Adventure</div>
+            <div class="version">v0.3.0</div>
+            <div class="subtitle">A 4-World Adventure</div>
             <div class="instructions">
-                <p>Help Toby run through 3 worlds!</p>
+                <p>Help Toby run through 4 worlds!</p>
                 <p>Use <span class="key">←</span> <span class="key">→</span> arrow keys to dodge and collect</p>
                 <div class="legend">
                     <div class="legend-item good">
-                        <span class="icon">🍗 🦐</span>
+                        <span class="icon">🍗 🐟</span>
                         <span>Treats = Yummy!</span>
                     </div>
                     <div class="legend-item bad">
-                        <span class="icon">📢 💧</span>
-                        <span>Hairdryer & Puddle = AVOID!</span>
+                        <span class="icon">🦴 💧</span>
+                        <span>Fish Bones & Puddle = AVOID!</span>
                     </div>
                     <div class="legend-item shield">
                         <span class="icon">🛡️</span>
                         <span>Shield = Temporary Protection!</span>
                     </div>
                 </div>
-                <p class="warning">⚠️ Toby hates water and loud noises!</p>
-                <p class="tip">🌍 Garden → 🎢 Park → 🚀 Space</p>
+                <p class="warning">⚠️ Toby hates bad fish and water!</p>
+                <p class="tip">🌿 Garden → 🎢 Park → 🚀 Space → ❄️ Snow</p>
             </div>
             <button id="start-btn" class="game-btn">Start Running!</button>
         </div>
@@ -104,11 +111,18 @@
                     <polygon points="58,35 68,12 78,35" fill="#FFFFFF" stroke="#CCCCCC" stroke-width="2"/>
                     <polygon points="62,32 68,18 74,32" fill="#666666"/>
                     <polygon points="64,32 68,22 72,32" fill="#FFB6C1"/>
-                    <!-- Eyes - sad/tired -->
-                    <ellipse cx="38" cy="55" rx="7" ry="6" fill="#50C878"/>
-                    <ellipse cx="62" cy="55" rx="7" ry="6" fill="#50C878"/>
-                    <ellipse cx="38" cy="56" rx="3" ry="4" fill="#000000"/>
-                    <ellipse cx="62" cy="56" rx="3" ry="4" fill="#000000"/>
+                    <!-- Eyes - sad/tired with yellow/green color -->
+                    <defs>
+                        <radialGradient id="eyeGradientSad" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" style="stop-color:#9ACD32" />
+                            <stop offset="50%" style="stop-color:#7CB342" />
+                            <stop offset="100%" style="stop-color:#558B2F" />
+                        </radialGradient>
+                    </defs>
+                    <ellipse cx="38" cy="55" rx="7" ry="6" fill="url(#eyeGradientSad)"/>
+                    <ellipse cx="62" cy="55" rx="7" ry="6" fill="url(#eyeGradientSad)"/>
+                    <ellipse cx="38" cy="56" rx="2" ry="4" fill="#000000"/>
+                    <ellipse cx="62" cy="56" rx="2" ry="4" fill="#000000"/>
                     <circle cx="36" cy="53" r="2" fill="#FFFFFF"/>
                     <circle cx="60" cy="53" r="2" fill="#FFFFFF"/>
                     <!-- Tired eyebrows -->
