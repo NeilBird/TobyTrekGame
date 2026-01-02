@@ -5,7 +5,7 @@ const ctx = canvas.getContext('2d');
 // Game state
 let gameState = 'ready'; // 'ready', 'playing', 'gameOver'
 let score = 0;
-let highScore = localStorage.getItem('highScore') || 0;
+let highScore = parseInt(localStorage.getItem('highScore')) || 0;
 let animationId;
 
 // Bird properties
@@ -203,10 +203,14 @@ function endGame() {
     gameOverDiv.classList.remove('hidden');
 }
 
+function drawInitialScreen() {
+    ctx.fillStyle = '#87ceeb';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#764ba2';
+    ctx.font = '20px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Click "Start Game" to begin!', canvas.width / 2, canvas.height / 2);
+}
+
 // Draw initial state
-ctx.fillStyle = '#87ceeb';
-ctx.fillRect(0, 0, canvas.width, canvas.height);
-ctx.fillStyle = '#764ba2';
-ctx.font = '20px Arial';
-ctx.textAlign = 'center';
-ctx.fillText('Click "Start Game" to begin!', canvas.width / 2, canvas.height / 2);
+drawInitialScreen();
