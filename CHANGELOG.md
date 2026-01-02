@@ -7,6 +7,120 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.8.0] - 2026-01-02
+
+### Added
+- **Particle Effects System** - Visual feedback for all interactions:
+  - ✨ Sparkles when collecting treats and power-ups
+  - 💦 Splash particles when hitting puddles
+  - ⚡ Spark particles when hitting hairdryer
+  - Particles fade and fall with gravity
+
+- **Screen Shake Effect** - Impact feedback:
+  - Brief shake when Toby hits hazards
+  - Intensity and duration based on damage
+
+- **Combo System** - Chain collections for bonus points:
+  - 🔥 Combo counter increases with consecutive treats
+  - Combo bonus adds to score
+  - 2-second window to continue combo
+  - Combo resets when hit by hazard
+
+- **New Power-Ups**:
+  - ⚡ **Speed Boost**: 50% faster movement for 5 seconds
+  - 🧲 **Magnet**: Attracts treats towards Toby for 8 seconds
+  - ✨ **Double Points**: 2x points on all collectibles for 10 seconds
+  - All power-ups show countdown timers on screen
+
+- **Sound Toggle** - Mute controls:
+  - 🔊 Sound effects toggle button
+  - 🎵 Background music toggle button
+  - Press M to quick-toggle mute
+  - Settings saved between sessions
+
+- **Difficulty Settings** - Choose your challenge:
+  - 🟢 **Easy**: Slower speed, slower energy decay
+  - 🟡 **Normal**: Standard gameplay
+  - 🔴 **Hard**: Faster speed, faster energy decay, quicker spawns
+
+- **Achievements System** - 14 unlockable achievements:
+  - 🍖 First Bite: Collect first treat
+  - 🔥 Combo King/Master: Get 5x/10x combos
+  - 🏆 Treat Collector/Hoarder: 100/500 total treats
+  - 🌸❄️🎢🚀 World completions
+  - ✨ Untouchable: Complete level without damage
+  - ⭐🌟 Score milestones (1000/5000)
+  - 📅 Daily Warrior: Complete daily challenge
+  - 🎨 Fashion Cat: Unlock all skins
+  - Achievement notifications slide in when unlocked
+
+- **Daily Challenge Mode**:
+  - 📅 Same obstacle patterns for all players each day
+  - Seeded random generation from date
+  - Complete all 8 levels to earn rewards
+  - Unlocks random skin on completion
+
+- **Character Skins** - Customize Toby:
+  - 🐱 Classic Toby (default, unlocked)
+  - ✨ Golden Toby (unlock via achievements)
+  - 🌙 Midnight Toby (unlock via achievements)
+  - 🌈 Rainbow Toby (unlock via achievements)
+  - 🚀 Space Toby (unlock via achievements)
+  - Skin selector on home screen
+
+- **Pause Feature**:
+  - ⏸️ Pause button in HUD
+  - Press ESC or P to pause/resume
+  - Overlay shows pause state
+  - Music stops when paused
+
+- **Achievements Modal**:
+  - View all achievements and progress
+  - Shows locked/unlocked status
+  - Progress counter (X/14)
+
+### Changed
+- Improved HUD with pause button
+- Power-up indicators show remaining time
+- All sounds now respect sound toggle setting
+- Difficulty affects spawn rates and energy decay
+
+### Fixed
+- Energy decay now applies difficulty multiplier
+- Level completion properly tracks damage for achievement
+
+---
+
+## [0.7.0] - 2026-01-02
+
+### Added
+- **Mobile Touch Controls** - Full mobile device support:
+  - 📱 On-screen left/right arrow buttons for touch devices
+  - 👆 Tap anywhere on screen to move (left half = move left, right half = move right)
+  - 👉 Swipe gestures for continuous movement
+  - Auto-detected on touch devices and small screens
+  - Responsive layout that fills the screen on mobile
+
+- **Dynamic Moving Scenery** - Static decorations now move with the game:
+  - 🌸 **Garden World**: Detailed 6-petal flowers with stems/leaves, apple trees
+  - 🌲 **Snow World**: Snow-covered pine trees, sparkling snow drifts
+  - 🌳 **Park World**: Large leafy trees with roots, playground swing sets
+  - ⭐ **Space World**: Twinkling star clusters, colorful ringed planets
+  - All scenery scales and moves toward player for immersive 3D effect
+
+### Changed
+- **"Oww!" Pain Sound** - Changed from "Eeew" to "Oww":
+  - New descending pain sound (500Hz → 200Hz → 150Hz)
+  - More appropriate reaction when Toby hits hazards
+  - Floating text now shows "Oww!" instead of "Eeew!"
+
+### Improved
+- Better visual variety with randomized flower colors
+- Touch controls prevent page scrolling on mobile
+- Full-screen game canvas on mobile devices
+
+---
+
 ## [0.6.0] - 2026-01-02
 
 ### Added

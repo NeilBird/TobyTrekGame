@@ -61,4 +61,32 @@ At the start of each new level, Toby Energy should reset to full. Can we add a T
 
 ## 14
 
+Please update the home page, as the leader board does not fit inside the box correctly. The Toby icon is not visible at the top.
+
+## 15
+
+Great updates thank you. Instead of "Eeew", when hitting a puddle or hair dryer, it should more like "Oww", like it hurts Toby. Another improvement, please can the Flowers on the garden level, that are currently static down the sides become part of scenery and move. Similar on the other levels, the original items that are down the side of the path, like flowers or Christmas trees, those need to move to make it look and feel more dynamic. Are there any other changes you can suggest to make the game look and play better? Does the html work on mobile devices, which I need?
+
+## 16
+
+AI Suggested Improvements:
+Here are additional enhancements you could consider:
+
+Particle Effects: Add sparkles when collecting treats, splash when hitting puddles
+Screen Shake: Brief shake when Toby hits a hazard for more impact
+Combo System: Bonus points for collecting multiple treats in a row
+Power-ups: Speed boost, magnet (attracts treats), double points
+Sound Toggle: Add mute button for music/SFX
+Difficulty Settings: Easy/Normal/Hard modes
+Achievements: Unlock badges for milestones (100 treats, complete all levels, etc.)
+Daily Challenge: Different obstacle patterns each day
+Character Skins: Unlock different Toby outfits
+Pause Feature: Ability to pause the game mid-level
+Would you like me to implement any of these additional features?
+
+All of these please.
+
+And in addition to the nice License summary in the README, 'Created with ❤️ in memory of Toby (2026)' (keep this nice wording) can you please also add that this repo uses the MIT license.
+
+## 17
 

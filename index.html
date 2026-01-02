@@ -53,8 +53,15 @@
                 </svg>
             </div>
             <h1>Toby Trek</h1>
-            <div class="version">v0.6.0</div>
+            <div class="version">v0.8.0</div>
             <div class="subtitle">A 4-World Adventure</div>
+            
+            <!-- Settings Bar -->
+            <div class="settings-bar">
+                <button id="sound-toggle" class="settings-btn" title="Toggle Sound">🔊</button>
+                <button id="music-toggle" class="settings-btn" title="Toggle Music">🎵</button>
+                <button id="achievements-btn" class="settings-btn" title="Achievements">🏆</button>
+            </div>
             
             <!-- Player Name Input -->
             <div class="player-name-section">
@@ -62,25 +69,40 @@
                 <input type="text" id="player-name" maxlength="15" placeholder="Player 1">
             </div>
             
+            <!-- Difficulty Selection -->
+            <div class="difficulty-section">
+                <span>Difficulty:</span>
+                <div class="difficulty-buttons">
+                    <button class="difficulty-btn" data-difficulty="easy">Easy</button>
+                    <button class="difficulty-btn active" data-difficulty="normal">Normal</button>
+                    <button class="difficulty-btn" data-difficulty="hard">Hard</button>
+                </div>
+            </div>
+            
             <div class="instructions">
                 <p>Help Toby run through 4 worlds!</p>
-                <p>Use <span class="key">←</span> <span class="key">→</span> arrow keys to dodge and collect</p>
+                <p>Use <span class="key">←</span> <span class="key">→</span> keys or tap screen | Press <span class="key">P</span> to pause</p>
                 <div class="legend">
                     <div class="legend-item good">
                         <span class="icon">🍗 🥫</span>
-                        <span>Chicken & Tuna = Yummy!</span>
+                        <span>Treats = Yummy!</span>
                     </div>
                     <div class="legend-item bad">
                         <span class="icon">💨 💧</span>
-                        <span>Hairdryer & Puddle = AVOID!</span>
+                        <span>Hazards = AVOID!</span>
                     </div>
-                    <div class="legend-item shield">
-                        <span class="icon">🛡️</span>
-                        <span>Shield = Temporary Protection!</span>
+                    <div class="legend-item power">
+                        <span class="icon">🛡️⚡🧲✨</span>
+                        <span>Power-ups!</span>
                     </div>
                 </div>
-                <p class="warning">⚠️ Toby hates loud noises and water!</p>
                 <p class="tip">🌿 Garden → ❄️ Snow → 🎢 Park → 🚀 Space</p>
+            </div>
+            
+            <!-- Skin Selector -->
+            <div class="skin-section">
+                <span>Choose Skin:</span>
+                <div id="skin-selector" class="skin-selector"></div>
             </div>
             
             <!-- Leaderboard -->
@@ -91,7 +113,19 @@
                 </div>
             </div>
             
-            <button id="start-btn" class="game-btn">Start Running!</button>
+            <div class="button-row">
+                <button id="start-btn" class="game-btn">Start Running!</button>
+                <button id="daily-challenge-btn" class="game-btn daily-btn">📅 Daily Challenge</button>
+            </div>
+        </div>
+        
+        <!-- Achievements Modal -->
+        <div id="achievements-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2>🏆 Achievements <span id="achievements-progress">0/14</span></h2>
+                <div id="achievements-list"></div>
+                <button onclick="hideAchievements()" class="game-btn">Close</button>
+            </div>
         </div>
 
         <div id="game-screen" class="screen hidden">
@@ -105,9 +139,25 @@
                     </div>
                 </div>
                 <div id="level-display">Level: <span id="level">1</span></div>
+                <button id="pause-btn" class="hud-btn">⏸️</button>
             </div>
             <div id="speed-indicator" class="hidden">⚡ SPEED UP! ⚡</div>
             <canvas id="game-canvas"></canvas>
+            
+            <!-- Pause Overlay -->
+            <div id="pause-overlay" class="pause-overlay hidden">
+                <div class="pause-content">
+                    <h2>⏸️ PAUSED</h2>
+                    <p>Press ESC or P to resume</p>
+                    <button id="resume-btn" class="game-btn">Resume</button>
+                </div>
+            </div>
+            
+            <!-- Mobile Touch Controls -->
+            <div id="touch-controls">
+                <button id="touch-left" class="touch-btn">◀</button>
+                <button id="touch-right" class="touch-btn">▶</button>
+            </div>
         </div>
 
         <div id="game-over-screen" class="screen hidden">
