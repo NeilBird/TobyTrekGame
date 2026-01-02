@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toby Trek - The Cat Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-container">
+        <div id="start-screen" class="screen">
+            <div class="toby-icon">
+                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Toby's head - white with grey/black patches -->
+                    <ellipse cx="50" cy="55" rx="35" ry="30" fill="#FFFFFF" stroke="#CCCCCC" stroke-width="2"/>
+                    <!-- Black patch on head -->
+                    <ellipse cx="35" cy="45" rx="15" ry="12" fill="#333333" transform="rotate(-15 35 45)"/>
+                    <!-- Grey patch -->
+                    <ellipse cx="68" cy="60" rx="10" ry="8" fill="#888888" transform="rotate(10 68 60)"/>
+                    <!-- Left ear -->
+                    <polygon points="22,35 32,12 42,35" fill="#FFFFFF" stroke="#CCCCCC" stroke-width="2"/>
+                    <polygon points="26,32 32,18 38,32" fill="#333333"/>
+                    <polygon points="28,32 32,22 36,32" fill="#FFB6C1"/>
+                    <!-- Right ear -->
+                    <polygon points="58,35 68,12 78,35" fill="#FFFFFF" stroke="#CCCCCC" stroke-width="2"/>
+                    <polygon points="62,32 68,18 74,32" fill="#666666"/>
+                    <polygon points="64,32 68,22 72,32" fill="#FFB6C1"/>
+                    <!-- Eyes -->
+                    <ellipse cx="38" cy="55" rx="7" ry="8" fill="#50C878"/>
+                    <ellipse cx="62" cy="55" rx="7" ry="8" fill="#50C878"/>
+                    <ellipse cx="38" cy="56" rx="3" ry="5" fill="#000000"/>
+                    <ellipse cx="62" cy="56" rx="3" ry="5" fill="#000000"/>
+                    <circle cx="36" cy="52" r="2" fill="#FFFFFF"/>
+                    <circle cx="60" cy="52" r="2" fill="#FFFFFF"/>
+                    <!-- Nose -->
+                    <polygon points="50,65 46,72 54,72" fill="#FF69B4"/>
+                    <!-- Mouth -->
+                    <path d="M42,78 Q50,85 58,78" stroke="#333" stroke-width="2" fill="none"/>
+                    <!-- Whiskers -->
+                    <line x1="30" y1="68" x2="8" y2="62" stroke="#555" stroke-width="1.5"/>
+                    <line x1="30" y1="72" x2="8" y2="72" stroke="#555" stroke-width="1.5"/>
+                    <line x1="30" y1="76" x2="8" y2="82" stroke="#555" stroke-width="1.5"/>
+                    <line x1="70" y1="68" x2="92" y2="62" stroke="#555" stroke-width="1.5"/>
+                    <line x1="70" y1="72" x2="92" y2="72" stroke="#555" stroke-width="1.5"/>
+                    <line x1="70" y1="76" x2="92" y2="82" stroke="#555" stroke-width="1.5"/>
+                </svg>
+            </div>
+            <h1>Toby Trek</h1>
+            <div class="version">v0.2.0</div>
+            <div class="subtitle">A Garden Adventure</div>
+            <div class="instructions">
+                <p>Help Toby run through 3 worlds!</p>
+                <p>Use <span class="key">←</span> <span class="key">→</span> arrow keys to dodge and collect</p>
+                <div class="legend">
+                    <div class="legend-item good">
+                        <span class="icon">🍗 🦐</span>
+                        <span>Treats = Yummy!</span>
+                    </div>
+                    <div class="legend-item bad">
+                        <span class="icon">📢 💧</span>
+                        <span>Hairdryer & Puddle = AVOID!</span>
+                    </div>
+                    <div class="legend-item shield">
+                        <span class="icon">🛡️</span>
+                        <span>Shield = Temporary Protection!</span>
+                    </div>
+                </div>
+                <p class="warning">⚠️ Toby hates water and loud noises!</p>
+                <p class="tip">🌍 Garden → 🎢 Park → 🚀 Space</p>
+            </div>
+            <button id="start-btn" class="game-btn">Start Running!</button>
+        </div>
+
+        <div id="game-screen" class="screen hidden">
+            <div id="hud">
+                <div id="timer-display">⏱️ <span id="timer">00:00</span></div>
+                <div id="score-display">Score: <span id="score">0</span></div>
+                <div id="energy-container">
+                    <span>Energy:</span>
+                    <div id="energy-bar">
+                        <div id="energy-fill"></div>
+                    </div>
+                </div>
+                <div id="level-display">Level: <span id="level">1</span></div>
+            </div>
+            <div id="speed-indicator" class="hidden">⚡ SPEED UP! ⚡</div>
+            <canvas id="game-canvas"></canvas>
+        </div>
+
+        <div id="game-over-screen" class="screen hidden">
+            <div class="toby-icon sad">
+                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Toby's head - white with grey/black patches -->
+                    <ellipse cx="50" cy="55" rx="35" ry="30" fill="#FFFFFF" stroke="#CCCCCC" stroke-width="2"/>
+                    <!-- Black patch on head -->
+                    <ellipse cx="35" cy="45" rx="15" ry="12" fill="#333333" transform="rotate(-15 35 45)"/>
+                    <!-- Grey patch -->
+                    <ellipse cx="68" cy="60" rx="10" ry="8" fill="#888888" transform="rotate(10 68 60)"/>
+                    <!-- Left ear -->
+                    <polygon points="22,35 32,12 42,35" fill="#FFFFFF" stroke="#CCCCCC" stroke-width="2"/>
+                    <polygon points="26,32 32,18 38,32" fill="#333333"/>
+                    <polygon points="28,32 32,22 36,32" fill="#FFB6C1"/>
+                    <!-- Right ear -->
+                    <polygon points="58,35 68,12 78,35" fill="#FFFFFF" stroke="#CCCCCC" stroke-width="2"/>
+                    <polygon points="62,32 68,18 74,32" fill="#666666"/>
+                    <polygon points="64,32 68,22 72,32" fill="#FFB6C1"/>
+                    <!-- Eyes - sad/tired -->
+                    <ellipse cx="38" cy="55" rx="7" ry="6" fill="#50C878"/>
+                    <ellipse cx="62" cy="55" rx="7" ry="6" fill="#50C878"/>
+                    <ellipse cx="38" cy="56" rx="3" ry="4" fill="#000000"/>
+                    <ellipse cx="62" cy="56" rx="3" ry="4" fill="#000000"/>
+                    <circle cx="36" cy="53" r="2" fill="#FFFFFF"/>
+                    <circle cx="60" cy="53" r="2" fill="#FFFFFF"/>
+                    <!-- Tired eyebrows -->
+                    <line x1="32" y1="46" x2="44" y2="44" stroke="#333" stroke-width="2"/>
+                    <line x1="56" y1="44" x2="68" y2="46" stroke="#333" stroke-width="2"/>
+                    <!-- Nose -->
+                    <polygon points="50,65 46,72 54,72" fill="#FF69B4"/>
+                    <!-- Sad mouth -->
+                    <path d="M42,82 Q50,76 58,82" stroke="#333" stroke-width="2" fill="none"/>
+                    <!-- Whiskers -->
+                    <line x1="30" y1="68" x2="8" y2="62" stroke="#555" stroke-width="1.5"/>
+                    <line x1="30" y1="72" x2="8" y2="72" stroke="#555" stroke-width="1.5"/>
+                    <line x1="30" y1="76" x2="8" y2="82" stroke="#555" stroke-width="1.5"/>
+                    <line x1="70" y1="68" x2="92" y2="62" stroke="#555" stroke-width="1.5"/>
+                    <line x1="70" y1="72" x2="92" y2="72" stroke="#555" stroke-width="1.5"/>
+                    <line x1="70" y1="76" x2="92" y2="82" stroke="#555" stroke-width="1.5"/>
+                </svg>
+            </div>
+            <h1>Game Over!</h1>
+            <p id="game-over-message">Toby ran out of energy!</p>
+            <div id="final-stats">
+                <p>⏱️ Time: <span id="final-time">00:00</span></p>
+                <p>🏆 Score: <span id="final-score">0</span></p>
+                <p>📊 Level: <span id="final-level">1</span></p>
+            </div>
+            <button id="restart-btn" class="game-btn">Run Again!</button>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>
