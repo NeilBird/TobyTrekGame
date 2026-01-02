@@ -1,5 +1,5 @@
 // Game Version
-const GAME_VERSION = '0.3.0';
+const GAME_VERSION = '0.6.0';
 
 // Game Constants
 const CANVAS_WIDTH = 800;
@@ -36,9 +36,9 @@ const WORLDS = {
 const OBJECT_TYPES = {
     // Good items - Toby's treats!
     CHICKEN: { emoji: '🍗', type: 'treat', points: 15, color: '#FFB347' },
-    NICE_FISH: { emoji: 'nicefish', type: 'treat', points: 20, color: '#4FC3F7' },
+    TUNA: { emoji: 'tuna', type: 'treat', points: 20, color: '#4FC3F7' },
     // Bad items - things Toby hates!
-    FISH_SKELETON: { emoji: 'fishskeleton', type: 'bad', points: -10, color: '#BDBDBD' },
+    HAIRDRYER: { emoji: 'hairdryer', type: 'bad', points: -10, color: '#FFB347' },
     PUDDLE: { emoji: '💧', type: 'bad', points: -10, color: '#87CEEB' },
     // Shield power-up!
     SHIELD: { emoji: '🛡️', type: 'shield', points: 5, color: '#00BFFF' }
@@ -65,6 +65,20 @@ let levelCompleteTime = 0;
 let shieldActive = false;
 let shieldEndTime = 0;
 let shieldBubblePhase = 0;
+
+// Expression state
+let tobyExpression = 'normal'; // 'normal', 'happy', 'sad'
+let expressionEndTime = 0;
+let floatingTexts = []; // For "Yum yum" text
+
+// Player name and leaderboard
+let playerName = 'Player 1';
+let leaderboard = [];
+
+// Side scenery (moving objects on the sides)
+let sideScenery = [];
+let lastSideScenerySpawn = 0;
+const SIDE_SCENERY_INTERVAL = 2000; // Spawn every 2 seconds
 
 // Audio
 let audioContext;
@@ -96,6 +110,7 @@ let keys = { left: false, right: false };
 let startScreen, gameScreen, gameOverScreen;
 let scoreDisplay, energyFill, levelDisplay, speedIndicator, timerDisplay;
 let finalScore, finalLevel, finalTime;
+let playerNameInput, leaderboardList;
 
 // Initialize game
 function init() {
@@ -115,12 +130,18 @@ function init() {
     finalScore = document.getElementById('final-score');
     finalLevel = document.getElementById('final-level');
     finalTime = document.getElementById('final-time');
+    playerNameInput = document.getElementById('player-name');
+    leaderboardList = document.getElementById('leaderboard-list');
 
     document.getElementById('start-btn').addEventListener('click', startGame);
     document.getElementById('restart-btn').addEventListener('click', startGame);
     
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('keyup', handleKeyUp);
+
+    // Load leaderboard from localStorage
+    loadLeaderboard();
+    displayLeaderboard();
 
     showScreen('start');
 }
@@ -334,6 +355,11 @@ function showScreen(screen) {
 function startGame() {
     initAudio();
     
+    // Get player name (default to "Player 1" if empty)
+    if (playerNameInput) {
+        playerName = playerNameInput.value.trim() || 'Player 1';
+    }
+    
     gameState = 'playing';
     score = 0;
     energy = 100;
@@ -347,13 +373,18 @@ function startGame() {
     currentApproachSpeed = INITIAL_APPROACH_SPEED;
     spawnInterval = SPAWN_INTERVAL_BASE;
     approachingObjects = [];
+    sideScenery = [];
     lastSpawnTime = 0;
+    lastSideScenerySpawn = 0;
     tunnelOffset = 0;
     levelCompleted = false;
     levelCompleteTime = 0;
     shieldActive = false;
     shieldEndTime = 0;
     shieldBubblePhase = 0;
+    tobyExpression = 'normal';
+    expressionEndTime = 0;
+    floatingTexts = [];
 
     toby.x = CANVAS_WIDTH / 2;
     toby.targetX = CANVAS_WIDTH / 2;
@@ -387,6 +418,14 @@ function gameLoop(timestamp) {
 function update(timestamp) {
     // Update play time
     playTime = Date.now() - gameStartTime;
+    
+    // Check expression expiration
+    if (tobyExpression !== 'normal' && Date.now() > expressionEndTime) {
+        tobyExpression = 'normal';
+    }
+    
+    // Update floating texts (remove old ones)
+    floatingTexts = floatingTexts.filter(ft => Date.now() - ft.startTime < 1000);
     
     // Check shield expiration
     if (shieldActive && Date.now() > shieldEndTime) {
@@ -448,6 +487,12 @@ function update(timestamp) {
         spawnObject();
         lastSpawnTime = timestamp;
     }
+    
+    // Spawn side scenery
+    if (timestamp - lastSideScenerySpawn > SIDE_SCENERY_INTERVAL) {
+        spawnSideScenery();
+        lastSideScenerySpawn = timestamp;
+    }
 
     // Update approaching objects
     for (let i = approachingObjects.length - 1; i >= 0; i--) {
@@ -468,6 +513,17 @@ function update(timestamp) {
         // Remove objects that passed the player
         if (obj.z > 1.1) {
             approachingObjects.splice(i, 1);
+        }
+    }
+    
+    // Update side scenery (moves toward player like objects)
+    for (let i = sideScenery.length - 1; i >= 0; i--) {
+        const scenery = sideScenery[i];
+        scenery.z += currentApproachSpeed * 0.8; // Slightly slower than main objects
+        
+        // Remove scenery that passed the player
+        if (scenery.z > 1.2) {
+            sideScenery.splice(i, 1);
         }
     }
 
@@ -493,19 +549,20 @@ function advanceLevel() {
     speedIndicator.classList.add('hidden');
     currentApproachSpeed = INITIAL_APPROACH_SPEED + (level * 0.0015);
     spawnInterval = Math.max(800, SPAWN_INTERVAL_BASE - (level * 50));
-    energy = Math.min(100, energy + 20);
+    energy = 100; // Reset energy to full at start of each level!
     approachingObjects = []; // Clear objects for new level
+    sideScenery = []; // Clear side scenery for new level
     
     // Change world every LEVELS_PER_WORLD levels
     const worldIndex = Math.floor((level - 1) / LEVELS_PER_WORLD) % 4;
     if (worldIndex === 0) {
         currentWorld = WORLDS.GARDEN;
     } else if (worldIndex === 1) {
-        currentWorld = WORLDS.PARK;
-    } else if (worldIndex === 2) {
-        currentWorld = WORLDS.SPACE;
-    } else {
         currentWorld = WORLDS.SNOW;
+    } else if (worldIndex === 2) {
+        currentWorld = WORLDS.PARK;
+    } else {
+        currentWorld = WORLDS.SPACE;
     }
     
     updateHUD();
@@ -639,19 +696,35 @@ function handleCollision(obj) {
         shieldBubblePhase = 0;
         score += obj.points * level;
         playShieldCollectSound();
+        playYeySound(); // Voice: "Yey!"
+        // Happy expression for shield too
+        tobyExpression = 'happy';
+        expressionEndTime = Date.now() + 1000;
+        floatingTexts.push({ text: 'Yey!', x: toby.x, y: toby.y - 60, startTime: Date.now(), color: '#00BFFF', duration: 1000 });
     } else if (obj.type === 'treat') {
         score += obj.points * level;
         energy = Math.min(100, energy + ENERGY_GAIN);
         playCollectSound();
+        playYeySound(); // Voice: "Yey!"
+        // Happy expression!
+        tobyExpression = 'happy';
+        expressionEndTime = Date.now() + 1000;
+        floatingTexts.push({ text: 'Yum yum!', x: toby.x, y: toby.y - 60, startTime: Date.now(), color: '#FFD700', duration: 1000 });
     } else {
         // Bad item - but shield protects!
         if (shieldActive) {
             // Shield absorbs the hit
             playCollectSound(); // Positive sound since we're protected
+            floatingTexts.push({ text: 'Blocked!', x: toby.x, y: toby.y - 60, startTime: Date.now(), color: '#00BFFF', duration: 1000 });
         } else {
             score = Math.max(0, score + obj.points);
             energy = Math.max(0, energy - ENERGY_LOSS);
             playHitSound();
+            playEeewSound(); // Voice: "Eeew!"
+            // Sad expression!
+            tobyExpression = 'sad';
+            expressionEndTime = Date.now() + 1500;
+            floatingTexts.push({ text: 'Eeew!', x: toby.x, y: toby.y - 60, startTime: Date.now(), color: '#FF4444', duration: 1000 });
         }
     }
 }
@@ -686,6 +759,83 @@ function playHitSound() {
     osc.stop(audioContext.currentTime + 0.2);
 }
 
+// Voice sound for "Yey!" when eating good things
+function playYeySound() {
+    if (!audioContext) return;
+    
+    // Create a cheerful "Yey!" sound using frequency modulation
+    const carrier = audioContext.createOscillator();
+    const modulator = audioContext.createOscillator();
+    const modGain = audioContext.createGain();
+    const gain = audioContext.createGain();
+    
+    // "Y" sound - rising tone
+    carrier.type = 'sine';
+    carrier.frequency.setValueAtTime(400, audioContext.currentTime);
+    carrier.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.1);
+    // "ey" sound - sustain high
+    carrier.frequency.setValueAtTime(800, audioContext.currentTime + 0.1);
+    carrier.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.3);
+    
+    // Add vibrato for voice-like quality
+    modulator.type = 'sine';
+    modulator.frequency.value = 30;
+    modGain.gain.value = 20;
+    
+    modulator.connect(modGain);
+    modGain.connect(carrier.frequency);
+    
+    gain.gain.setValueAtTime(0.25, audioContext.currentTime);
+    gain.gain.setValueAtTime(0.25, audioContext.currentTime + 0.15);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.35);
+    
+    carrier.connect(gain);
+    gain.connect(audioContext.destination);
+    
+    carrier.start();
+    modulator.start();
+    carrier.stop(audioContext.currentTime + 0.35);
+    modulator.stop(audioContext.currentTime + 0.35);
+}
+
+// Voice sound for "Eeew!" when hitting bad things
+function playEeewSound() {
+    if (!audioContext) return;
+    
+    // Create a disgusted "Eeew!" sound
+    const carrier = audioContext.createOscillator();
+    const modulator = audioContext.createOscillator();
+    const modGain = audioContext.createGain();
+    const gain = audioContext.createGain();
+    
+    // "Ee" sound - high pitch
+    carrier.type = 'sine';
+    carrier.frequency.setValueAtTime(700, audioContext.currentTime);
+    carrier.frequency.setValueAtTime(700, audioContext.currentTime + 0.15);
+    // "ew" sound - drops down
+    carrier.frequency.exponentialRampToValueAtTime(250, audioContext.currentTime + 0.4);
+    
+    // Add wobble for disgust effect
+    modulator.type = 'sine';
+    modulator.frequency.value = 15;
+    modGain.gain.value = 30;
+    
+    modulator.connect(modGain);
+    modGain.connect(carrier.frequency);
+    
+    gain.gain.setValueAtTime(0.25, audioContext.currentTime);
+    gain.gain.setValueAtTime(0.2, audioContext.currentTime + 0.2);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.45);
+    
+    carrier.connect(gain);
+    gain.connect(audioContext.destination);
+    
+    carrier.start();
+    modulator.start();
+    carrier.stop(audioContext.currentTime + 0.45);
+    modulator.stop(audioContext.currentTime + 0.45);
+}
+
 function formatTime(ms) {
     const seconds = Math.floor(ms / 1000);
     const minutes = Math.floor(seconds / 60);
@@ -714,7 +864,69 @@ function gameOver() {
     finalScore.textContent = score;
     finalLevel.textContent = level;
     finalTime.textContent = formatTime(playTime);
+    
+    // Save score to leaderboard
+    saveScore(playerName, score, level);
+    
     showScreen('gameover');
+}
+
+// Leaderboard functions
+function loadLeaderboard() {
+    try {
+        const saved = localStorage.getItem('tobyTrekLeaderboard');
+        if (saved) {
+            leaderboard = JSON.parse(saved);
+        }
+    } catch (e) {
+        console.error('Error loading leaderboard:', e);
+        leaderboard = [];
+    }
+}
+
+function saveLeaderboard() {
+    try {
+        localStorage.setItem('tobyTrekLeaderboard', JSON.stringify(leaderboard));
+    } catch (e) {
+        console.error('Error saving leaderboard:', e);
+    }
+}
+
+function saveScore(name, score, level) {
+    const entry = {
+        name: name,
+        score: score,
+        level: level,
+        date: new Date().toISOString()
+    };
+    
+    leaderboard.push(entry);
+    
+    // Sort by score (highest first)
+    leaderboard.sort((a, b) => b.score - a.score);
+    
+    // Keep only top 10
+    leaderboard = leaderboard.slice(0, 10);
+    
+    saveLeaderboard();
+    displayLeaderboard();
+}
+
+function displayLeaderboard() {
+    if (!leaderboardList) return;
+    
+    if (leaderboard.length === 0) {
+        leaderboardList.innerHTML = '<p class="no-scores">No scores yet - be the first!</p>';
+        return;
+    }
+    
+    leaderboardList.innerHTML = leaderboard.map((entry, index) => `
+        <div class="leaderboard-entry ${index === 0 ? 'first' : ''}">
+            <span class="rank">${index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : (index + 1) + '.'}</span>
+            <span class="name">${entry.name}</span>
+            <span class="score">${entry.score}</span>
+        </div>
+    `).join('');
 }
 
 function render() {
@@ -730,6 +942,9 @@ function render() {
     } else {
         drawSnowTunnel();
     }
+    
+    // Draw side scenery (snowmen, grit bins, benches, etc.)
+    drawSideScenery();
 
     // Draw approaching objects (sorted by depth - far objects first)
     approachingObjects
@@ -739,6 +954,9 @@ function render() {
 
     // Draw Toby
     drawToby();
+    
+    // Draw floating texts (Yum yum!, Ouch!, etc.)
+    drawFloatingTexts();
     
     // Draw shield bubble around Toby if active
     if (shieldActive) {
@@ -778,9 +996,9 @@ function render() {
         // Show what's coming next
         const nextWorldIndex = Math.floor(level / LEVELS_PER_WORLD) % 4;
         let nextWorldName = 'Garden';
-        if (nextWorldIndex === 1) nextWorldName = 'Park';
-        else if (nextWorldIndex === 2) nextWorldName = 'Space';
-        else if (nextWorldIndex === 3) nextWorldName = 'Snow';
+        if (nextWorldIndex === 1) nextWorldName = 'Snow';
+        else if (nextWorldIndex === 2) nextWorldName = 'Park';
+        else if (nextWorldIndex === 3) nextWorldName = 'Space';
         
         ctx.fillStyle = '#FFFFFF';
         ctx.font = '28px Arial';
@@ -791,6 +1009,43 @@ function render() {
         }
         ctx.shadowBlur = 0;
     }
+}
+
+function drawFloatingTexts() {
+    const currentTime = Date.now();
+    
+    floatingTexts.forEach(ft => {
+        const age = currentTime - ft.startTime;
+        const progress = age / ft.duration;
+        
+        // Float upward
+        const y = ft.y - (progress * 60);
+        
+        // Fade out
+        const alpha = 1 - progress;
+        
+        ctx.save();
+        ctx.font = 'bold 28px Comic Sans MS, cursive';
+        ctx.textAlign = 'center';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+        ctx.shadowBlur = 4;
+        
+        // Color based on type
+        if (ft.text === 'Yum yum!') {
+            ctx.fillStyle = `rgba(255, 215, 0, ${alpha})`; // Gold for treats
+        } else if (ft.text === 'Ouch!') {
+            ctx.fillStyle = `rgba(255, 80, 80, ${alpha})`; // Red for hazards
+        } else {
+            ctx.fillStyle = `rgba(0, 191, 255, ${alpha})`; // Blue for shield
+        }
+        
+        // Slight wobble animation
+        const wobble = Math.sin(age / 50) * 3;
+        
+        ctx.fillText(ft.text, ft.x + wobble, y);
+        ctx.shadowBlur = 0;
+        ctx.restore();
+    });
 }
 
 function drawShieldBubble() {
@@ -1617,6 +1872,459 @@ function drawFlowers() {
     drawDetailedFlowers();
 }
 
+// Side Scenery System - decorative objects that move along the sides
+function spawnSideScenery() {
+    // Determine which type of scenery based on current world
+    let sceneryTypes = [];
+    
+    if (currentWorld === WORLDS.GARDEN) {
+        sceneryTypes = ['flower_bush', 'garden_gnome', 'butterfly', 'bird_bath'];
+    } else if (currentWorld === WORLDS.SNOW) {
+        sceneryTypes = ['snowman', 'grit_bin', 'snow_lamp', 'ice_sculpture'];
+    } else if (currentWorld === WORLDS.PARK) {
+        sceneryTypes = ['bench', 'lamp_post', 'trash_bin', 'bird'];
+    } else { // SPACE
+        sceneryTypes = ['asteroid', 'satellite', 'alien_plant', 'space_rock'];
+    }
+    
+    const type = sceneryTypes[Math.floor(Math.random() * sceneryTypes.length)];
+    const side = Math.random() < 0.5 ? 'left' : 'right';
+    
+    sideScenery.push({
+        type: type,
+        side: side,
+        z: 0.05, // Start far away
+        offsetX: Math.random() * 30 // Small random offset
+    });
+}
+
+function drawSideScenery() {
+    // Sort by z so far objects are drawn first
+    sideScenery.sort((a, b) => a.z - b.z);
+    
+    sideScenery.forEach(scenery => {
+        const scale = 0.3 + scenery.z * 1.2; // Scale based on distance
+        const y = getScreenY(scenery.z);
+        
+        // Position on left or right side, outside the main tunnel
+        let x;
+        if (scenery.side === 'left') {
+            x = getScreenX(-1.2 - scenery.offsetX / 100, scenery.z);
+        } else {
+            x = getScreenX(1.2 + scenery.offsetX / 100, scenery.z);
+        }
+        
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(scale, scale);
+        
+        // Draw based on type and world
+        if (currentWorld === WORLDS.SNOW) {
+            drawSnowSceneryItem(scenery.type, scenery.side);
+        } else if (currentWorld === WORLDS.GARDEN) {
+            drawGardenSceneryItem(scenery.type, scenery.side);
+        } else if (currentWorld === WORLDS.PARK) {
+            drawParkSceneryItem(scenery.type, scenery.side);
+        } else {
+            drawSpaceSceneryItem(scenery.type, scenery.side);
+        }
+        
+        ctx.restore();
+    });
+}
+
+function drawSnowSceneryItem(type, side) {
+    if (type === 'snowman') {
+        // Snowman - three balls with accessories
+        ctx.fillStyle = '#FFFFFF';
+        // Bottom ball
+        ctx.beginPath();
+        ctx.arc(0, 20, 20, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#CCDDEE';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        // Middle ball
+        ctx.beginPath();
+        ctx.arc(0, -5, 15, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        // Head
+        ctx.beginPath();
+        ctx.arc(0, -25, 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        // Eyes
+        ctx.fillStyle = '#333';
+        ctx.beginPath();
+        ctx.arc(-4, -27, 2, 0, Math.PI * 2);
+        ctx.arc(4, -27, 2, 0, Math.PI * 2);
+        ctx.fill();
+        // Carrot nose
+        ctx.fillStyle = '#FF6600';
+        ctx.beginPath();
+        ctx.moveTo(0, -25);
+        ctx.lineTo(8, -23);
+        ctx.lineTo(0, -21);
+        ctx.closePath();
+        ctx.fill();
+        // Scarf
+        ctx.fillStyle = '#FF0000';
+        ctx.fillRect(-12, -15, 24, 5);
+        // Hat
+        ctx.fillStyle = '#222';
+        ctx.fillRect(-8, -42, 16, 12);
+        ctx.fillRect(-10, -32, 20, 3);
+    } else if (type === 'grit_bin') {
+        // Grit/Salt bin - yellow rectangular box
+        ctx.fillStyle = '#FFD700';
+        ctx.fillRect(-15, -5, 30, 35);
+        // Lid
+        ctx.fillStyle = '#E6C200';
+        ctx.fillRect(-17, -10, 34, 8);
+        // "GRIT" text
+        ctx.fillStyle = '#333';
+        ctx.font = 'bold 8px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('GRIT', 0, 18);
+    } else if (type === 'snow_lamp') {
+        // Street lamp covered in snow
+        ctx.fillStyle = '#444';
+        ctx.fillRect(-3, -50, 6, 80);
+        // Lamp head
+        ctx.fillStyle = '#666';
+        ctx.beginPath();
+        ctx.moveTo(-12, -50);
+        ctx.lineTo(12, -50);
+        ctx.lineTo(8, -40);
+        ctx.lineTo(-8, -40);
+        ctx.closePath();
+        ctx.fill();
+        // Light glow
+        ctx.fillStyle = 'rgba(255, 255, 200, 0.6)';
+        ctx.beginPath();
+        ctx.arc(0, -45, 15, 0, Math.PI * 2);
+        ctx.fill();
+        // Snow on top
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.ellipse(0, -52, 14, 5, 0, 0, Math.PI * 2);
+        ctx.fill();
+    } else if (type === 'ice_sculpture') {
+        // Ice cat sculpture
+        ctx.fillStyle = 'rgba(180, 220, 255, 0.7)';
+        ctx.strokeStyle = 'rgba(100, 180, 255, 0.8)';
+        ctx.lineWidth = 2;
+        // Body
+        ctx.beginPath();
+        ctx.ellipse(0, 10, 15, 12, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        // Head
+        ctx.beginPath();
+        ctx.arc(0, -10, 12, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        // Ears
+        ctx.beginPath();
+        ctx.moveTo(-10, -18);
+        ctx.lineTo(-5, -28);
+        ctx.lineTo(0, -18);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0, -18);
+        ctx.lineTo(5, -28);
+        ctx.lineTo(10, -18);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    }
+}
+
+function drawGardenSceneryItem(type, side) {
+    if (type === 'flower_bush') {
+        // Colorful flower bush
+        ctx.fillStyle = '#228B22';
+        ctx.beginPath();
+        ctx.arc(0, 10, 25, 0, Math.PI * 2);
+        ctx.fill();
+        // Flowers
+        const colors = ['#FF69B4', '#FF6347', '#FFD700', '#FF1493', '#FF4500'];
+        for (let i = 0; i < 8; i++) {
+            ctx.fillStyle = colors[i % colors.length];
+            const angle = (i / 8) * Math.PI * 2;
+            const fx = Math.cos(angle) * 18;
+            const fy = Math.sin(angle) * 15 + 5;
+            ctx.beginPath();
+            ctx.arc(fx, fy, 6, 0, Math.PI * 2);
+            ctx.fill();
+            // Center
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.arc(fx, fy, 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    } else if (type === 'garden_gnome') {
+        // Garden gnome
+        // Body
+        ctx.fillStyle = '#0066CC';
+        ctx.beginPath();
+        ctx.moveTo(-10, 30);
+        ctx.lineTo(10, 30);
+        ctx.lineTo(8, 5);
+        ctx.lineTo(-8, 5);
+        ctx.closePath();
+        ctx.fill();
+        // Head
+        ctx.fillStyle = '#FFD5B4';
+        ctx.beginPath();
+        ctx.arc(0, -5, 10, 0, Math.PI * 2);
+        ctx.fill();
+        // Pointy hat
+        ctx.fillStyle = '#FF0000';
+        ctx.beginPath();
+        ctx.moveTo(-10, -8);
+        ctx.lineTo(0, -35);
+        ctx.lineTo(10, -8);
+        ctx.closePath();
+        ctx.fill();
+        // Beard
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.moveTo(-8, 0);
+        ctx.quadraticCurveTo(0, 20, 8, 0);
+        ctx.closePath();
+        ctx.fill();
+        // Eyes
+        ctx.fillStyle = '#333';
+        ctx.beginPath();
+        ctx.arc(-4, -7, 2, 0, Math.PI * 2);
+        ctx.arc(4, -7, 2, 0, Math.PI * 2);
+        ctx.fill();
+    } else if (type === 'butterfly') {
+        // Animated butterfly
+        const wingFlap = Math.sin(Date.now() / 100) * 0.3;
+        ctx.save();
+        // Left wing
+        ctx.fillStyle = '#FF69B4';
+        ctx.rotate(-wingFlap);
+        ctx.beginPath();
+        ctx.ellipse(-10, 0, 12, 8, -0.3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#FFB6C1';
+        ctx.beginPath();
+        ctx.ellipse(-12, 0, 5, 3, -0.3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        ctx.save();
+        // Right wing
+        ctx.fillStyle = '#FF69B4';
+        ctx.rotate(wingFlap);
+        ctx.beginPath();
+        ctx.ellipse(10, 0, 12, 8, 0.3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#FFB6C1';
+        ctx.beginPath();
+        ctx.ellipse(12, 0, 5, 3, 0.3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        // Body
+        ctx.fillStyle = '#333';
+        ctx.fillRect(-2, -8, 4, 16);
+    } else if (type === 'bird_bath') {
+        // Bird bath
+        ctx.fillStyle = '#888';
+        // Base
+        ctx.fillRect(-5, 10, 10, 25);
+        // Bowl
+        ctx.beginPath();
+        ctx.ellipse(0, 5, 20, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#6699CC';
+        ctx.beginPath();
+        ctx.ellipse(0, 3, 16, 5, 0, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+function drawParkSceneryItem(type, side) {
+    if (type === 'bench') {
+        // Park bench
+        ctx.fillStyle = '#8B4513';
+        // Seat
+        ctx.fillRect(-20, 5, 40, 5);
+        // Back
+        ctx.fillRect(-20, -15, 40, 5);
+        ctx.fillRect(-20, -8, 40, 5);
+        // Legs
+        ctx.fillStyle = '#333';
+        ctx.fillRect(-18, 10, 4, 20);
+        ctx.fillRect(14, 10, 4, 20);
+        // Arm rests
+        ctx.fillRect(-22, -5, 4, 15);
+        ctx.fillRect(18, -5, 4, 15);
+    } else if (type === 'lamp_post') {
+        // Classic lamp post
+        ctx.fillStyle = '#222';
+        ctx.fillRect(-3, -40, 6, 70);
+        // Lamp
+        ctx.fillStyle = '#333';
+        ctx.beginPath();
+        ctx.moveTo(-10, -45);
+        ctx.lineTo(10, -45);
+        ctx.lineTo(8, -35);
+        ctx.lineTo(-8, -35);
+        ctx.closePath();
+        ctx.fill();
+        // Light
+        ctx.fillStyle = 'rgba(255, 255, 150, 0.8)';
+        ctx.beginPath();
+        ctx.arc(0, -40, 8, 0, Math.PI * 2);
+        ctx.fill();
+        // Glow
+        ctx.fillStyle = 'rgba(255, 255, 150, 0.3)';
+        ctx.beginPath();
+        ctx.arc(0, -40, 20, 0, Math.PI * 2);
+        ctx.fill();
+    } else if (type === 'trash_bin') {
+        // Trash bin
+        ctx.fillStyle = '#228B22';
+        ctx.fillRect(-12, -5, 24, 35);
+        // Lid
+        ctx.fillStyle = '#1E7A1E';
+        ctx.beginPath();
+        ctx.ellipse(0, -5, 14, 5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        // Opening
+        ctx.fillStyle = '#333';
+        ctx.beginPath();
+        ctx.arc(0, 8, 6, 0, Math.PI * 2);
+        ctx.fill();
+    } else if (type === 'bird') {
+        // Flying bird
+        const flapOffset = Math.sin(Date.now() / 80) * 10;
+        ctx.fillStyle = '#444';
+        // Body
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 8, 5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        // Wings
+        ctx.beginPath();
+        ctx.moveTo(-5, 0);
+        ctx.quadraticCurveTo(-15, -10 + flapOffset, -20, 0);
+        ctx.quadraticCurveTo(-15, 5, -5, 0);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(5, 0);
+        ctx.quadraticCurveTo(15, -10 + flapOffset, 20, 0);
+        ctx.quadraticCurveTo(15, 5, 5, 0);
+        ctx.fill();
+        // Head
+        ctx.beginPath();
+        ctx.arc(10, -2, 4, 0, Math.PI * 2);
+        ctx.fill();
+        // Beak
+        ctx.fillStyle = '#FF6600';
+        ctx.beginPath();
+        ctx.moveTo(14, -2);
+        ctx.lineTo(20, -1);
+        ctx.lineTo(14, 0);
+        ctx.closePath();
+        ctx.fill();
+    }
+}
+
+function drawSpaceSceneryItem(type, side) {
+    if (type === 'asteroid') {
+        // Tumbling asteroid
+        ctx.save();
+        ctx.rotate(Date.now() / 1000);
+        ctx.fillStyle = '#666';
+        ctx.beginPath();
+        ctx.moveTo(0, -20);
+        ctx.lineTo(15, -10);
+        ctx.lineTo(20, 5);
+        ctx.lineTo(10, 20);
+        ctx.lineTo(-10, 18);
+        ctx.lineTo(-18, 5);
+        ctx.lineTo(-15, -12);
+        ctx.closePath();
+        ctx.fill();
+        // Craters
+        ctx.fillStyle = '#444';
+        ctx.beginPath();
+        ctx.arc(5, 0, 5, 0, Math.PI * 2);
+        ctx.arc(-8, 8, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    } else if (type === 'satellite') {
+        // Space satellite
+        ctx.fillStyle = '#888';
+        // Body
+        ctx.fillRect(-8, -8, 16, 16);
+        // Solar panels
+        ctx.fillStyle = '#1E90FF';
+        ctx.fillRect(-35, -5, 25, 10);
+        ctx.fillRect(10, -5, 25, 10);
+        // Panel lines
+        ctx.strokeStyle = '#333';
+        ctx.lineWidth = 1;
+        for (let i = -30; i < -10; i += 5) {
+            ctx.beginPath();
+            ctx.moveTo(i, -5);
+            ctx.lineTo(i, 5);
+            ctx.stroke();
+        }
+        for (let i = 15; i < 35; i += 5) {
+            ctx.beginPath();
+            ctx.moveTo(i, -5);
+            ctx.lineTo(i, 5);
+            ctx.stroke();
+        }
+        // Antenna
+        ctx.fillStyle = '#AAA';
+        ctx.fillRect(-1, -20, 2, 12);
+        ctx.beginPath();
+        ctx.arc(0, -22, 4, 0, Math.PI * 2);
+        ctx.fill();
+    } else if (type === 'alien_plant') {
+        // Bioluminescent alien plant
+        ctx.fillStyle = '#00FF88';
+        // Stem
+        ctx.fillRect(-3, 0, 6, 30);
+        // Glowing bulbs
+        const glow = 0.5 + Math.sin(Date.now() / 300) * 0.3;
+        ctx.fillStyle = `rgba(0, 255, 200, ${glow})`;
+        ctx.beginPath();
+        ctx.arc(-10, -10, 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(10, -5, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(0, -20, 12, 0, Math.PI * 2);
+        ctx.fill();
+        // Glow effect
+        ctx.fillStyle = `rgba(0, 255, 200, ${glow * 0.3})`;
+        ctx.beginPath();
+        ctx.arc(0, -10, 30, 0, Math.PI * 2);
+        ctx.fill();
+    } else if (type === 'space_rock') {
+        // Floating space rock
+        ctx.fillStyle = '#554433';
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 18, 12, Date.now() / 2000, 0, Math.PI * 2);
+        ctx.fill();
+        // Highlights
+        ctx.fillStyle = '#776655';
+        ctx.beginPath();
+        ctx.ellipse(-5, -3, 6, 4, 0.3, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
 function drawApproachingObject(obj) {
     const screenX = getScreenX(obj.laneX, obj.z);
     const screenY = getScreenY(obj.z);
@@ -1642,10 +2350,10 @@ function drawApproachingObject(obj) {
     ctx.globalAlpha = 0.5 + obj.z * 0.5;
 
     // Check for custom graphics
-    if (obj.emoji === 'fishskeleton') {
-        drawFishSkeleton(size);
-    } else if (obj.emoji === 'nicefish') {
-        drawNiceFish(size);
+    if (obj.emoji === 'hairdryer') {
+        drawHairdryer(size);
+    } else if (obj.emoji === 'tuna') {
+        drawTunaCan(size);
     } else {
         // Scale and draw emoji
         ctx.font = `${size}px Arial`;
@@ -1657,212 +2365,170 @@ function drawApproachingObject(obj) {
     ctx.restore();
 }
 
-function drawFishSkeleton(size) {
+function drawHairdryer(size) {
     const scale = size / 40; // Base size is 40
     ctx.save();
     ctx.scale(scale, scale);
     
-    // Fish skeleton body outline
-    ctx.strokeStyle = '#E0E0E0';
-    ctx.fillStyle = '#F5F5F5';
-    ctx.lineWidth = 2;
-    
-    // Main body shape
-    ctx.beginPath();
-    ctx.ellipse(0, 0, 25, 12, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    
-    // Head
-    ctx.beginPath();
-    ctx.ellipse(-18, 0, 12, 10, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    
-    // Eye socket (empty/spooky)
+    // Handle
     ctx.fillStyle = '#333333';
     ctx.beginPath();
-    ctx.arc(-22, -2, 4, 0, Math.PI * 2);
+    ctx.roundRect(-8, 5, 16, 25, 3);
     ctx.fill();
     
-    // Eye highlight
-    ctx.fillStyle = '#FF4444';
-    ctx.beginPath();
-    ctx.arc(-23, -3, 1.5, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Spine - main backbone
-    ctx.strokeStyle = '#BDBDBD';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(-10, 0);
-    ctx.lineTo(25, 0);
-    ctx.stroke();
-    
-    // Ribs
-    ctx.lineWidth = 2;
-    for (let i = 0; i < 6; i++) {
-        const x = -5 + i * 5;
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x - 2, -8);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x - 2, 8);
-        ctx.stroke();
-    }
-    
-    // Tail bones
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(25, 0);
-    ctx.lineTo(35, -12);
-    ctx.moveTo(25, 0);
-    ctx.lineTo(35, 12);
-    ctx.moveTo(28, 0);
-    ctx.lineTo(38, -8);
-    ctx.moveTo(28, 0);
-    ctx.lineTo(38, 8);
-    ctx.stroke();
-    
-    // Jaw bone
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(-25, 3);
-    ctx.lineTo(-30, 5);
-    ctx.lineTo(-28, 8);
-    ctx.stroke();
-    
-    // Teeth
-    ctx.fillStyle = '#FFFFFF';
-    ctx.strokeStyle = '#999999';
+    // Handle grip lines
+    ctx.strokeStyle = '#555555';
     ctx.lineWidth = 1;
     for (let i = 0; i < 3; i++) {
         ctx.beginPath();
-        ctx.moveTo(-27 + i * 3, 3);
-        ctx.lineTo(-28 + i * 3, 8);
-        ctx.lineTo(-26 + i * 3, 3);
-        ctx.fill();
+        ctx.moveTo(-5, 10 + i * 6);
+        ctx.lineTo(5, 10 + i * 6);
         ctx.stroke();
     }
+    
+    // Main body
+    ctx.fillStyle = '#E91E63'; // Pink hairdryer
+    ctx.beginPath();
+    ctx.ellipse(0, -5, 18, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Body highlight
+    ctx.fillStyle = '#F48FB1';
+    ctx.beginPath();
+    ctx.ellipse(-5, -8, 8, 5, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Nozzle
+    ctx.fillStyle = '#424242';
+    ctx.beginPath();
+    ctx.moveTo(15, -10);
+    ctx.lineTo(28, -12);
+    ctx.lineTo(28, 2);
+    ctx.lineTo(15, 0);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Nozzle opening
+    ctx.fillStyle = '#212121';
+    ctx.beginPath();
+    ctx.ellipse(28, -5, 3, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Air blast lines
+    ctx.strokeStyle = '#90CAF9';
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 0.7;
+    for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.moveTo(32, -8 + i * 3);
+        ctx.lineTo(40 + i * 3, -10 + i * 4);
+        ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    
+    // Power button
+    ctx.fillStyle = '#4CAF50';
+    ctx.beginPath();
+    ctx.arc(-8, -5, 3, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Vent holes on back
+    ctx.fillStyle = '#C2185B';
+    ctx.beginPath();
+    ctx.arc(-14, -5, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(-14, -9, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(-14, -1, 1.5, 0, Math.PI * 2);
+    ctx.fill();
     
     ctx.restore();
 }
 
-function drawNiceFish(size) {
+function drawTunaCan(size) {
     const scale = size / 40; // Base size is 40
     ctx.save();
     ctx.scale(scale, scale);
     
-    // Healthy, happy fish
+    // Can body - silver/metallic
+    const canGradient = ctx.createLinearGradient(-20, 0, 20, 0);
+    canGradient.addColorStop(0, '#A0A0A0');
+    canGradient.addColorStop(0.3, '#E0E0E0');
+    canGradient.addColorStop(0.5, '#F5F5F5');
+    canGradient.addColorStop(0.7, '#E0E0E0');
+    canGradient.addColorStop(1, '#A0A0A0');
     
-    // Body - gradient blue/teal
-    const bodyGradient = ctx.createLinearGradient(-25, -15, 25, 15);
-    bodyGradient.addColorStop(0, '#4FC3F7');
-    bodyGradient.addColorStop(0.5, '#29B6F6');
-    bodyGradient.addColorStop(1, '#0288D1');
-    
-    ctx.fillStyle = bodyGradient;
+    ctx.fillStyle = canGradient;
     ctx.beginPath();
-    ctx.ellipse(0, 0, 25, 14, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, 0, 20, 12, 0, 0, Math.PI * 2);
     ctx.fill();
     
-    // Body shine
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    // Can rim - top
+    ctx.strokeStyle = '#888888';
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.ellipse(-5, -6, 15, 5, -0.2, 0, Math.PI * 2);
+    ctx.ellipse(0, -8, 18, 5, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    // Can rim - bottom  
+    ctx.beginPath();
+    ctx.ellipse(0, 8, 18, 5, 0, 0, Math.PI);
+    ctx.stroke();
+    
+    // Label background - blue
+    ctx.fillStyle = '#1976D2';
+    ctx.beginPath();
+    ctx.rect(-18, -5, 36, 10);
     ctx.fill();
     
-    // Tail fin
-    ctx.fillStyle = '#0277BD';
+    // Label wave pattern (ocean)
+    ctx.fillStyle = '#2196F3';
     ctx.beginPath();
-    ctx.moveTo(22, 0);
-    ctx.lineTo(38, -14);
-    ctx.lineTo(35, 0);
-    ctx.lineTo(38, 14);
+    ctx.moveTo(-18, 2);
+    for (let i = 0; i < 6; i++) {
+        ctx.quadraticCurveTo(-15 + i * 6, 0, -12 + i * 6, 2);
+        ctx.quadraticCurveTo(-9 + i * 6, 4, -6 + i * 6, 2);
+    }
+    ctx.lineTo(18, 5);
+    ctx.lineTo(-18, 5);
     ctx.closePath();
     ctx.fill();
     
-    // Tail fin detail
-    ctx.strokeStyle = '#01579B';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(25, 0);
-    ctx.lineTo(36, -10);
-    ctx.moveTo(25, 0);
-    ctx.lineTo(36, 10);
-    ctx.stroke();
-    
-    // Dorsal fin
-    ctx.fillStyle = '#0288D1';
-    ctx.beginPath();
-    ctx.moveTo(-5, -12);
-    ctx.quadraticCurveTo(5, -25, 15, -12);
-    ctx.lineTo(-5, -12);
-    ctx.fill();
-    
-    // Bottom fin
-    ctx.beginPath();
-    ctx.moveTo(0, 12);
-    ctx.quadraticCurveTo(5, 20, 12, 12);
-    ctx.lineTo(0, 12);
-    ctx.fill();
-    
-    // Side fin
-    ctx.fillStyle = '#039BE5';
-    ctx.beginPath();
-    ctx.ellipse(-5, 5, 8, 4, 0.5, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Head
-    ctx.fillStyle = '#4FC3F7';
-    ctx.beginPath();
-    ctx.ellipse(-18, 0, 12, 11, 0, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Eye - happy expression
+    // "TUNA" text
     ctx.fillStyle = '#FFFFFF';
-    ctx.beginPath();
-    ctx.arc(-20, -2, 6, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.font = 'bold 8px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('TUNA', 0, -1);
     
-    ctx.fillStyle = '#333333';
+    // Small fish icon on label
+    ctx.fillStyle = '#FFD54F';
     ctx.beginPath();
-    ctx.arc(-19, -2, 3, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Eye sparkle
-    ctx.fillStyle = '#FFFFFF';
-    ctx.beginPath();
-    ctx.arc(-20, -4, 1.5, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Happy smile
-    ctx.strokeStyle = '#01579B';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.arc(-25, 2, 4, 0.2, Math.PI - 0.2);
-    ctx.stroke();
-    
-    // Scales pattern
-    ctx.strokeStyle = 'rgba(1, 87, 155, 0.3)';
-    ctx.lineWidth = 1;
-    for (let row = 0; row < 3; row++) {
-        for (let col = 0; col < 4; col++) {
-            ctx.beginPath();
-            ctx.arc(-8 + col * 8, -6 + row * 6, 4, 0.5, Math.PI - 0.5);
-            ctx.stroke();
-        }
-    }
-    
-    // Bubbles
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-    ctx.beginPath();
-    ctx.arc(-32, -5, 2, 0, Math.PI * 2);
+    ctx.ellipse(-10, 3, 4, 2, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(-35, -10, 1.5, 0, Math.PI * 2);
+    ctx.moveTo(-6, 3);
+    ctx.lineTo(-3, 1);
+    ctx.lineTo(-3, 5);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Pull tab on top
+    ctx.fillStyle = '#9E9E9E';
+    ctx.beginPath();
+    ctx.ellipse(8, -10, 5, 2, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#757575';
+    ctx.beginPath();
+    ctx.arc(10, -10, 2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Shine/highlight
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.beginPath();
+    ctx.ellipse(-8, -3, 6, 8, -0.2, 0, Math.PI * 2);
     ctx.fill();
     
     ctx.restore();
@@ -2009,15 +2675,69 @@ function drawToby() {
     ctx.closePath();
     ctx.fill();
 
-    // Mouth
+    // Mouth - changes based on expression
     ctx.strokeStyle = '#333333';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(0, -4);
     ctx.lineTo(0, 0);
-    ctx.moveTo(-6, 2);
-    ctx.quadraticCurveTo(0, 6, 6, 2);
+    
+    if (tobyExpression === 'happy') {
+        // Big smile!
+        ctx.moveTo(-8, 0);
+        ctx.quadraticCurveTo(0, 10, 8, 0);
+    } else if (tobyExpression === 'sad') {
+        // Sad frown
+        ctx.moveTo(-6, 5);
+        ctx.quadraticCurveTo(0, 0, 6, 5);
+    } else {
+        // Normal slight smile
+        ctx.moveTo(-6, 2);
+        ctx.quadraticCurveTo(0, 6, 6, 2);
+    }
     ctx.stroke();
+    
+    // Tears when sad
+    if (tobyExpression === 'sad') {
+        ctx.fillStyle = '#87CEEB';
+        // Left tear
+        ctx.beginPath();
+        ctx.ellipse(-10, -10, 2, 4, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(-11, -4, 1.5, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
+        // Right tear
+        ctx.beginPath();
+        ctx.ellipse(10, -10, 2, 4, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(11, -4, 1.5, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Sad eyebrows
+        ctx.strokeStyle = '#333333';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-12, -26);
+        ctx.lineTo(-4, -24);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(4, -24);
+        ctx.lineTo(12, -26);
+        ctx.stroke();
+    }
+    
+    // Blush/rosy cheeks when happy
+    if (tobyExpression === 'happy') {
+        ctx.fillStyle = 'rgba(255, 182, 193, 0.5)';
+        ctx.beginPath();
+        ctx.ellipse(-14, -8, 5, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(14, -8, 5, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
+    }
 
     // Whiskers - dark grey
     ctx.strokeStyle = '#555555';

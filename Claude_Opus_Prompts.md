@@ -45,3 +45,20 @@ Change the music, make it less childish and annoying. Change the  hair dryer obj
 
 ## 10
 
+Please update the README.md to reflect the code in this repository.
+
+## 11
+
+Revert the "bad" fish skeleton, so that it is a Hair Dryer again, make the "good" fish a can of Tuna. Can swap levels around, leave levels 1 and 2 as the garden theme, then the park theme to levels 3 and 4, then follow this with the Snow themed levels (as 5 and 6), and move the Outer Space levels to the last levels, (as 7 and 8).
+
+## 12
+
+When Toby eats something good, make him smile and say "Yum yum", and when he runs into the water or hair dryer, make his face very sad and make him cry a little.
+
+## 13
+
+At the start of each new level, Toby Energy should reset to full. Can we add a Top Score Leader board on the home page, and ask each user to enter their name, before playing, if they do not enter a name, default to "Player 1". Also, I would you to completely upgrade the game play, so that Toby is running forwards, and the scenery at the sides of each level also moves down, instead of the objects simply falling towards Toby, this will make it more realistic and less childish. For example, on the snow level, we could add occasional Snowmen and Grit bins at the side, that Toby cannot reach or touch, but they move down the sides as well. Can you make Toby make a noise in addition to the facial expressions, such as "Yey" for good things that he eats, and "Eeew" for bad things, to improve the game interaction with the sounds.
+
+## 14
+
+
