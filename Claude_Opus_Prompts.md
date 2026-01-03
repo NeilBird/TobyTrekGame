@@ -153,3 +153,20 @@ on level  6 toby is unable to move to fight the boss this is still a bug?
 
 ## 29
 
+Toby can still not move on the Boss Level, can I share Debug ouput from the Developer Tools of the web broswer on a laptop?
+
+## 30
+
+Output: 
+Firebase initialized successfully
+game.js:1974 Firebase leaderboard connected - real-time updates enabled!
+favicon.ico:1 Failed to load resource: the server responded with a status of 404 ()
+logger.ts:115 [2026-01-03T13:58:58.530Z] @firebase/database: FIREBASE WARNING: Using an unspecified index. Your data will be downloaded and filtered on the client. Consider adding ".indexOn": "score" at /leaderboard to your security rules for better performance.
+q @ logger.ts:115
+favicon.ico:1 Failed to load resource: the server responded with a status of 404 ()
+game.js:933 Uncaught ReferenceError: checkCollisions is not defined
+at update (game.js:933:9)
+at gameLoop (game.js:827:5)
+
+## 31
+
