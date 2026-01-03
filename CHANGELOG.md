@@ -25,6 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Boss indicator message now auto-hides after 3 seconds
   - Previously the "BOSS BATTLE!" prompt would block the screen
   - Added `pointer-events: none` to indicator overlays to prevent touch blocking
+- **Boss Battle Movement Bug** 🐛
+  - Fixed crash caused by undefined `checkCollisions()` function
+  - Toby can now move during boss battles (was completely frozen before)
 
 ---
 

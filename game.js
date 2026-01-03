@@ -930,7 +930,18 @@ function update(timestamp) {
         });
         
         // Check collisions with boss hazards
-        checkCollisions();
+        for (let i = approachingObjects.length - 1; i >= 0; i--) {
+            const obj = approachingObjects[i];
+            if (obj.z >= 0.85 && obj.z <= 1.0 && !obj.collected) {
+                const objScreenX = getScreenX(obj.laneX, obj.z);
+                const objSize = getObjectSize(obj.z);
+                
+                if (Math.abs(objScreenX - toby.x) < (objSize / 2 + TOBY_WIDTH / 3)) {
+                    handleCollision(obj);
+                    obj.collected = true;
+                }
+            }
+        }
         
         // Remove objects that passed the player
         approachingObjects = approachingObjects.filter(obj => obj.z < 1.2 || obj.collected);
