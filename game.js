@@ -1,5 +1,5 @@
 // Game Version
-const GAME_VERSION = '0.9.7';
+const GAME_VERSION = '0.9.8';
 
 // Game Constants
 const CANVAS_WIDTH = 800;
@@ -91,6 +91,7 @@ let bossDefeated = false;
 let bossDefeatedTime = 0;
 let bossBattleStartTime = 0;
 let currentBossType = 0; // 0=Dave, 1=Hoover, 2=Cucumber, 3=Dougie
+let bossShieldSpawned = false; // Track if 50% shield has been given
 
 // Boss types
 const BOSS_TYPES = {
@@ -140,6 +141,23 @@ let kittyCoins = 0;
 const COINS_PER_TREAT = 1;      // Earn 1 coin per treat collected
 const COINS_PER_LEVEL = 10;    // Earn 10 coins per level completed
 const COINS_PER_BOSS = 50;     // Earn 50 coins for defeating a boss
+
+// Helper functions for color manipulation (used for skin rendering)
+function lightenColor(hex, percent) {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const r = Math.min(255, Math.floor((num >> 16) + (255 - (num >> 16)) * percent));
+    const g = Math.min(255, Math.floor(((num >> 8) & 0x00FF) + (255 - ((num >> 8) & 0x00FF)) * percent));
+    const b = Math.min(255, Math.floor((num & 0x0000FF) + (255 - (num & 0x0000FF)) * percent));
+    return '#' + (0x1000000 + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+}
+
+function darkenColor(hex, percent) {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const r = Math.max(0, Math.floor((num >> 16) * (1 - percent)));
+    const g = Math.max(0, Math.floor(((num >> 8) & 0x00FF) * (1 - percent)));
+    const b = Math.max(0, Math.floor((num & 0x0000FF) * (1 - percent)));
+    return '#' + (0x1000000 + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+}
 
 // Character skins with prices
 const TOBY_SKINS = {
@@ -1155,6 +1173,7 @@ function startBossBattle() {
     bossDefeated = false;
     bossDefeatedTime = 0;
     bossHitTime = 0;
+    bossShieldSpawned = false; // Reset shield spawn flag for new boss
     
     // Clear any existing objects
     approachingObjects = [];
@@ -1223,6 +1242,12 @@ function updateBossBattle() {
             if (soundEnabled) playBossHitSound();
             spawnParticles(bossX, bossY, '#FF0000', 20);
             
+            // Spawn a shield at 50% health to help block hair dryers
+            if (!bossShieldSpawned && bossHealth <= bossMaxHealth * 0.5) {
+                spawnBossShield();
+                bossShieldSpawned = true;
+            }
+            
             // Check if boss defeated
             if (bossHealth <= 0) {
                 defeatBoss();
@@ -1273,6 +1298,21 @@ function spawnBossPunch() {
         rotationSpeed: (Math.random() - 0.5) * 0.1
     };
     approachingObjects.push(obj);
+}
+
+function spawnBossShield() {
+    // Spawn a single shield at 50% boss health to help player block hair dryers
+    const obj = {
+        laneX: 0, // Spawn in center for visibility
+        z: 0,
+        ...OBJECT_TYPES.SHIELD,
+        objectType: OBJECT_TYPES.SHIELD,
+        collected: false,
+        rotation: 0,
+        rotationSpeed: 0.05
+    };
+    approachingObjects.push(obj);
+    addFloatingText('🛡️ Shield incoming!', '#00BFFF', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 50);
 }
 
 function throwPunch() {
@@ -2060,22 +2100,16 @@ function saveScore(name, score, level) {
 }
 
 function saveToFirebase(entry) {
-    console.log('saveToFirebase called with:', entry);
-    
     if (!isFirebaseAvailable()) {
-        console.log('Firebase not available, skipping save');
         return;
     }
     
     try {
         const scoresRef = firebaseDB.ref('leaderboard');
-        console.log('Attempting to push to Firebase leaderboard...');
         
         // Push the new score
         scoresRef.push(entry)
             .then(() => {
-                console.log('Score saved to Firebase successfully!');
-                
                 // Clean up old scores (keep only top 50 globally)
                 scoresRef.orderByChild('score').limitToFirst(1).once('value', (snapshot) => {
                     // Firebase will handle the real-time update
@@ -2083,8 +2117,6 @@ function saveToFirebase(entry) {
             })
             .catch((error) => {
                 console.error('Error saving to Firebase:', error);
-                console.error('Error code:', error.code);
-                console.error('Error message:', error.message);
             });
     } catch (e) {
         console.error('Exception in saveToFirebase:', e);
@@ -4951,6 +4983,15 @@ function drawTunaCan(size) {
 function drawToby() {
     ctx.save();
     
+    // Get current skin colors
+    const skin = TOBY_SKINS[currentSkin] || TOBY_SKINS.default;
+    const bodyColor = skin.bodyColor;
+    const patchColor = skin.patchColor;
+    // Derive secondary colors from skin
+    const bodyLighter = lightenColor(bodyColor, 0.1);
+    const bodyDarker = darkenColor(bodyColor, 0.15);
+    const patchLighter = lightenColor(patchColor, 0.2);
+    
     // Apply body bob for running animation
     ctx.translate(toby.x, toby.y + toby.bobOffset);
 
@@ -4973,8 +5014,8 @@ function drawToby() {
     ctx.save();
     
     // Back left leg (further back, darker)
-    ctx.fillStyle = '#E8E8E8';
-    ctx.strokeStyle = '#BBBBBB';
+    ctx.fillStyle = bodyDarker;
+    ctx.strokeStyle = darkenColor(bodyColor, 0.25);
     ctx.lineWidth = 1;
     
     // Upper back leg
@@ -4995,7 +5036,7 @@ function drawToby() {
     ctx.fill();
     ctx.stroke();
     // Paw
-    ctx.fillStyle = '#E8E8E8';
+    ctx.fillStyle = bodyDarker;
     ctx.beginPath();
     ctx.ellipse(0, 18, 7, 4, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -5019,7 +5060,7 @@ function drawToby() {
     ctx.ellipse(0, 8, 5, 10, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
-    ctx.fillStyle = '#E8E8E8';
+    ctx.fillStyle = bodyDarker;
     ctx.beginPath();
     ctx.ellipse(0, 18, 7, 4, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -5034,8 +5075,8 @@ function drawToby() {
     ctx.translate(22, 10);
     ctx.rotate(tailWag * 0.02);
     
-    // Tail - white with grey/black
-    ctx.fillStyle = '#FFFFFF';
+    // Tail - uses skin body color
+    ctx.fillStyle = bodyColor;
     ctx.beginPath();
     ctx.moveTo(0, 5);
     ctx.quadraticCurveTo(18 + tailWag * 0.3, 0, 23 + tailWag * 0.5, -15);
@@ -5043,12 +5084,12 @@ function drawToby() {
     ctx.quadraticCurveTo(13, -5, 0, 12);
     ctx.closePath();
     ctx.fill();
-    ctx.strokeStyle = '#CCCCCC';
+    ctx.strokeStyle = bodyDarker;
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    // Tail stripes - grey/black
-    ctx.fillStyle = '#666666';
+    // Tail stripes - uses skin patch color
+    ctx.fillStyle = patchLighter;
     ctx.beginPath();
     ctx.moveTo(6, -2);
     ctx.quadraticCurveTo(13 + tailWag * 0.2, -5, 16 + tailWag * 0.3, -10);
@@ -5056,7 +5097,7 @@ function drawToby() {
     ctx.closePath();
     ctx.fill();
 
-    ctx.fillStyle = '#333333';
+    ctx.fillStyle = patchColor;
     ctx.beginPath();
     ctx.moveTo(16 + tailWag * 0.3, -12);
     ctx.quadraticCurveTo(23 + tailWag * 0.4, -18, 22 + tailWag * 0.4, -22);
@@ -5066,27 +5107,27 @@ function drawToby() {
     ctx.restore();
 
     // ===== BODY =====
-    ctx.fillStyle = '#FFFFFF';
+    ctx.fillStyle = bodyColor;
     ctx.beginPath();
     ctx.ellipse(0, 10, 28, 22, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = '#CCCCCC';
+    ctx.strokeStyle = bodyDarker;
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    // Body patches - grey
-    ctx.fillStyle = '#888888';
+    // Body patches - uses skin patch colors
+    ctx.fillStyle = patchLighter;
     ctx.beginPath();
     ctx.ellipse(-10, 5, 12, 10, 0.3, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = '#666666';
+    ctx.fillStyle = patchColor;
     ctx.beginPath();
     ctx.ellipse(12, 12, 8, 7, -0.2, 0, Math.PI * 2);
     ctx.fill();
 
     // ===== FRONT LEGS (in front of body) =====
-    ctx.fillStyle = '#FFFFFF';
-    ctx.strokeStyle = '#CCCCCC';
+    ctx.fillStyle = bodyColor;
+    ctx.strokeStyle = bodyDarker;
     ctx.lineWidth = 1;
     
     // Front left leg
@@ -5123,7 +5164,7 @@ function drawToby() {
     ctx.save();
     ctx.translate(15, 22);
     ctx.rotate(legSwingBack * 0.04);
-    ctx.fillStyle = '#FFFFFF';
+    ctx.fillStyle = bodyColor;
     ctx.beginPath();
     ctx.ellipse(0, 6, 6, 10, -0.1, 0, Math.PI * 2);
     ctx.fill();
@@ -5150,28 +5191,28 @@ function drawToby() {
     ctx.save();
     ctx.translate(0, headBob);
     
-    // Head - white
-    ctx.fillStyle = '#FFFFFF';
+    // Head - uses skin body color
+    ctx.fillStyle = bodyColor;
     ctx.beginPath();
     ctx.arc(0, -15, 22, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = '#CCCCCC';
+    ctx.strokeStyle = bodyDarker;
     ctx.stroke();
 
-    // Head patch - black
-    ctx.fillStyle = '#333333';
+    // Head patch - uses skin patch color
+    ctx.fillStyle = patchColor;
     ctx.beginPath();
     ctx.ellipse(-8, -22, 10, 8, 0.3, 0, Math.PI * 2);
     ctx.fill();
 
-    // Ears - white with black tips
-    ctx.fillStyle = '#FFFFFF';
+    // Ears - uses skin body color with patch tips
+    ctx.fillStyle = bodyColor;
     ctx.beginPath();
     ctx.moveTo(-17, -32);
     ctx.lineTo(-12, -45);
     ctx.lineTo(-5, -32);
     ctx.fill();
-    ctx.strokeStyle = '#CCCCCC';
+    ctx.strokeStyle = bodyDarker;
     ctx.stroke();
     
     ctx.beginPath();
@@ -5181,15 +5222,15 @@ function drawToby() {
     ctx.fill();
     ctx.stroke();
 
-    // Black ear tips
-    ctx.fillStyle = '#333333';
+    // Ear tips - uses skin patch color
+    ctx.fillStyle = patchColor;
     ctx.beginPath();
     ctx.moveTo(-14, -38);
     ctx.lineTo(-12, -45);
     ctx.lineTo(-10, -38);
     ctx.fill();
 
-    ctx.fillStyle = '#666666';
+    ctx.fillStyle = patchLighter;
     ctx.beginPath();
     ctx.moveTo(10, -38);
     ctx.lineTo(12, -45);
