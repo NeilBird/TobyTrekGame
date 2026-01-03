@@ -283,6 +283,46 @@ body {
     }
 }
 
+#boss-indicator {
+    position: absolute;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg, rgba(100, 0, 100, 0.9) 0%, rgba(150, 0, 50, 0.9) 100%);
+    color: #FFD700;
+    padding: 12px 25px;
+    border-radius: 25px;
+    font-weight: bold;
+    font-size: 16px;
+    animation: boss-pulse 0.5s ease-in-out infinite alternate;
+    z-index: 20;
+    box-shadow: 0 0 30px rgba(150, 0, 100, 0.6);
+    border: 2px solid #FF0000;
+    text-shadow: 0 0 10px #FF0000;
+}
+
+@keyframes boss-pulse {
+    from {
+        transform: translateX(-50%) scale(1);
+        box-shadow: 0 0 30px rgba(150, 0, 100, 0.6);
+    }
+    to {
+        transform: translateX(-50%) scale(1.05);
+        box-shadow: 0 0 50px rgba(255, 0, 0, 0.8);
+    }
+}
+
+#punch-counter {
+    background: linear-gradient(90deg, #FF6B35 0%, #FF4500 100%);
+    color: white;
+    padding: 5px 15px;
+    border-radius: 15px;
+    font-weight: bold;
+    font-size: 14px;
+    box-shadow: 0 2px 10px rgba(255, 107, 53, 0.4);
+    border: 2px solid #FF8C00;
+}
+
 #game-canvas {
     display: block;
 }
@@ -501,6 +541,28 @@ body {
     color: #888;
     font-size: 12px;
     margin: 5px 0;
+}
+
+/* Firebase Status Indicator */
+.firebase-status {
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.firebase-status.online {
+    background: linear-gradient(90deg, rgba(76, 175, 80, 0.2), rgba(76, 175, 80, 0.1));
+    color: #2E7D32;
+    border: 1px solid rgba(76, 175, 80, 0.4);
+}
+
+.firebase-status.offline {
+    background: rgba(158, 158, 158, 0.2);
+    color: #666;
+    border: 1px solid rgba(158, 158, 158, 0.4);
 }
 
 /* Settings Bar */

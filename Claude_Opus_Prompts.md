@@ -90,3 +90,19 @@ And in addition to the nice License summary in the README, 'Created with ❤️ 
 
 ## 17
 
+is there an end boss on level 13?
+
+## 18
+
+can i add 1 more world ... do you have any ideas?
+
+## 19
+
+so,i want an end boss every 10 levels ,i want it to be a angry black cat and its in a castle .you collect something maybe a muscle or punch and when you get to the end you throw them and try and defeat the cat.
+
+## 20
+
+do you need to update the README.md? - We are publishing the web page using GitHub Pages, would it be possible to store the Leader board high score so that all users can see other users scores? and not just their own scores?
+
+## 21
+

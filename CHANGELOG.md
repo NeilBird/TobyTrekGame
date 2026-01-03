@@ -7,6 +7,68 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.9.1] - 2026-01-03
+
+### Added
+- **Global Leaderboard** - Compete with players worldwide!
+  - 🌐 Firebase Realtime Database integration
+  - Real-time score updates - see new high scores instantly
+  - Global vs Local indicator shows connection status
+  - Scores sync across all players and devices
+  - XSS protection on player names
+  - Graceful fallback to local storage if Firebase unavailable
+
+---
+
+## [0.9.0] - 2026-01-03
+
+### Added
+- **Boss Battle System** - Epic boss fights every 10 levels!
+  - 😼 **Angry Black Cat Boss**: A menacing boss in a dark castle
+  - 🏰 **Castle World**: New dark, stormy castle environment with:
+    - Gothic stone architecture
+    - Glowing torches with animated flames
+    - Lightning effects in the stormy sky
+    - Ominous atmosphere
+  
+- **Combat Mechanics**:
+  - 👊 **Punch Power-ups**: Collect fists during normal levels as ammo
+  - Press **SPACE** to throw punches at the boss
+  - Boss health bar with damage feedback
+  - Boss moves and attacks with increasing difficulty
+  - Boss throws hazards (hairdryers) at Toby
+  - 5 bonus punches given if player reaches boss with too few
+
+- **Boss Progression**:
+  - Boss appears every 10 levels (Level 10, 20, 30, etc.)
+  - Each boss has more health than the last
+  - Boss speed increases with each encounter
+  - Big score bonus (500+ points) for defeating boss
+
+- **New Achievements**:
+  - 😼 **Boss Slayer**: Defeat the angry black cat boss
+  - 🏰 **Boss Master**: Defeat 3 bosses
+
+- **Visual Enhancements**:
+  - Angry black cat with glowing red eyes and sharp claws
+  - Animated tail swishing and raised threatening paws
+  - Hit flash effect when boss takes damage
+  - Defeated boss animation
+  - Punch projectiles with motion trail effect
+  - Boss health bar with color-coded health status
+
+- **Audio**:
+  - Ominous boss music when battle starts
+  - Punch throwing sound effect
+  - Boss hit sound effect
+  - Victory fanfare when boss is defeated
+
+### Changed
+- Updated instructions to mention boss battles and punch power-up
+- Updated subtitle to "A 4-World Adventure + Boss Battles!"
+
+---
+
 ## [0.8.0] - 2026-01-02
 
 ### Added
