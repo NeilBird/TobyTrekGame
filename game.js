@@ -2060,15 +2060,21 @@ function saveScore(name, score, level) {
 }
 
 function saveToFirebase(entry) {
-    if (!isFirebaseAvailable()) return;
+    console.log('saveToFirebase called with:', entry);
+    
+    if (!isFirebaseAvailable()) {
+        console.log('Firebase not available, skipping save');
+        return;
+    }
     
     try {
         const scoresRef = firebaseDB.ref('leaderboard');
+        console.log('Attempting to push to Firebase leaderboard...');
         
         // Push the new score
         scoresRef.push(entry)
             .then(() => {
-                console.log('Score saved to Firebase!');
+                console.log('Score saved to Firebase successfully!');
                 
                 // Clean up old scores (keep only top 50 globally)
                 scoresRef.orderByChild('score').limitToFirst(1).once('value', (snapshot) => {
@@ -2077,9 +2083,11 @@ function saveToFirebase(entry) {
             })
             .catch((error) => {
                 console.error('Error saving to Firebase:', error);
+                console.error('Error code:', error.code);
+                console.error('Error message:', error.message);
             });
     } catch (e) {
-        console.error('Error saving to Firebase:', e);
+        console.error('Exception in saveToFirebase:', e);
     }
 }
 

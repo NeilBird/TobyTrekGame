@@ -174,3 +174,7 @@ Users report that they do not have enought Fists to defeat the Bosses on the Bos
 
 ## 32
 
+I don't think the Leaderboard is working, there is still no data in the Realtime database?
+
+## 33
+
