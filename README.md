@@ -13,7 +13,7 @@ Simply open `index.html` in any modern web browser to play! Works on desktop and
 - **SPACE** to throw punches at bosses!
 - **P** or **ESC** to pause the game
 - **M** to toggle sound mute
-- On mobile: Tap screen sides or double-tap to throw punches
+- On mobile: Tap screen sides to move, tap 👊 button to throw punches
 
 ## 🌟 Features
 
@@ -24,10 +24,11 @@ Simply open `index.html` in any modern web browser to play! Works on desktop and
   - 🎢 **Park** (Levels 5-6): Playground with swings, slides, and trees
   - 🚀 **Space** (Levels 7-8): Deep space with stars, planets, and nebulae
 
-- **🏰 Boss Battles Every 10 Levels!**
+- **🏰 Boss Battles Every 6 Levels!**
   - Face the **Angry Black Cat** in a dark, stormy castle
   - Collect 👊 punch power-ups during normal levels
   - Throw punches to defeat the boss and earn big bonus points!
+  - Earn **50 Kitty Coins** per boss defeated!
 
 - **3D Tunnel Perspective**: Objects approach from the horizon creating depth
 - **Speed Up Challenge**: Game accelerates halfway through each level
@@ -54,7 +55,7 @@ Simply open `index.html` in any modern web browser to play! Works on desktop and
 | 💧 Puddle | Hazard | -10 points, drains energy |
 
 ### 😼 Boss Battles
-Every 10 levels (10, 20, 30...), Toby faces an **Angry Black Cat** boss in a spooky castle!
+Every 6 levels (6, 12, 18...), Toby faces an **Angry Black Cat** boss in a spooky castle!
 - Boss has a health bar that increases with each encounter
 - Press **SPACE** to throw collected punches
 - Dodge the hairdryers the boss throws at you
@@ -71,13 +72,24 @@ Unlock achievements for milestones like:
 - 😼 **Boss Slayer** - Defeat the angry black cat
 - 🏰 **Boss Master** - Defeat 3 bosses
 
+### 🪙 Kitty Coins & Shop
+Earn **Kitty Coins** to purchase skins in the shop:
+- **1 coin** per treat collected
+- **10 coins** per level completed
+- **50 coins** per boss defeated
+
 ### Character Skins
-Unlock and customize Toby with different skins:
-- Classic Toby (default)
-- Golden Toby
-- Midnight Toby
-- Rainbow Toby
-- Space Toby
+Purchase and customize Toby with different skins:
+| Skin | Price |
+|------|-------|
+| Classic Toby | Free (default) |
+| Golden Toby | 100 🪙 |
+| Midnight Toby | 150 🪙 |
+| Rainbow Toby | 200 🪙 |
+| Space Toby | 250 🪙 |
+| Tiger Toby | 300 🪙 |
+| Ghost Toby | 350 🪙 |
+| Neon Toby | 400 🪙 |
 
 ### Audio
 - **Atmospheric Music**: Each world has unique ambient soundtrack
@@ -85,6 +97,7 @@ Unlock and customize Toby with different skins:
 - **Voice Sounds**: "Yey!" for treats, "Oww!" for hazards
 
 ### Visual Effects
+- **Animated Toby**: Running legs, bobbing body, wagging tail
 - **Particle Effects**: Sparkles when collecting items
 - **Screen Shake**: Impact feedback when hitting hazards
 - **Floating Text**: Combo counters, damage indicators
@@ -120,8 +133,12 @@ Toby was a white cat with grey and black markings, featuring distinctive yellow-
 
 ## 📜 Version History
 
+- **v0.9.5** - Running Animation: Animated legs, body bobbing, tail wagging, whisker wiggle
+- **v0.9.4** - Gameplay Fixes: Improved music, easier difficulty, boss every 6 levels, mobile energy bar fix, mobile punch button
+- **v0.9.3** - Kitty Coins: Currency system, shop interface, 3 new skins (Tiger, Ghost, Neon)
+- **v0.9.2** - Modern UI: Dark theme, collapsible panels, cleaner home screen
 - **v0.9.1** - Global Leaderboard: Firebase integration for worldwide high scores, real-time updates
-- **v0.9.0** - Boss Battle System: Angry black cat boss every 10 levels, castle world, punch combat, new achievements
+- **v0.9.0** - Boss Battle System: Angry black cat boss, castle world, punch combat, new achievements
 - **v0.8.0** - Major feature update: Particle effects, screen shake, combo system, new power-ups (speed, magnet, double points), pause, sound/music toggles, difficulty settings, achievements, character skins, daily challenges
 - **v0.7.0** - Mobile support, dynamic scenery, "Oww!" sound
 - **v0.6.0** - Leaderboard, player names, voice sounds, side scenery
