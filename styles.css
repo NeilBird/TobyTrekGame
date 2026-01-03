@@ -707,6 +707,7 @@ body {
     left: 0;
     right: 0;
     justify-content: space-between;
+    align-items: center;
     padding: 0 20px;
     z-index: 100;
     pointer-events: none;
@@ -743,10 +744,53 @@ body {
     margin-right: 10px;
 }
 
+/* Mobile punch button */
+#touch-punch {
+    width: 70px;
+    height: 70px;
+    background: rgba(255, 100, 0, 0.5);
+    border-color: rgba(255, 150, 50, 0.8);
+    font-size: 32px;
+    display: none; /* Hidden by default, shown during boss battles */
+}
+
+#touch-punch:active {
+    background: rgba(255, 100, 0, 0.8);
+}
+
+#touch-punch.visible {
+    display: block;
+}
+
 /* Show touch controls on touch devices */
 @media (hover: none) and (pointer: coarse) {
     #touch-controls {
         display: flex;
+    }
+    
+    /* Fix iOS Safari energy bar visibility */
+    #energy-container {
+        position: fixed;
+        bottom: 120px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.7);
+        padding: 8px 15px;
+        border-radius: 25px;
+        z-index: 101;
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    #energy-bar {
+        width: 120px;
+        height: 14px;
+    }
+    
+    #hud {
+        flex-wrap: wrap;
+        gap: 5px 10px;
     }
 }
 
@@ -765,6 +809,32 @@ body {
     
     body {
         align-items: stretch;
+    }
+    
+    /* Ensure energy bar is visible on mobile */
+    #energy-container {
+        position: fixed;
+        bottom: 120px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.7);
+        padding: 8px 15px;
+        border-radius: 25px;
+        z-index: 101;
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    #energy-bar {
+        width: 120px;
+        height: 14px;
+    }
+    
+    #hud {
+        flex-wrap: wrap;
+        gap: 5px 10px;
+        padding: 10px;
     }
 }
 

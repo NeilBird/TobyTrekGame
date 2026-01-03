@@ -137,3 +137,11 @@ How does the Coins / Points / Currency work to get new skins? Is there a shop in
 
 ## 25
 
+The space is too fast and difficult, even on easy mode, can this be improved. Also the music is still not great, can this be improved please? When playing on mobile, Toby's Energy bar is not visible in Safari on iOS. Can we move the energy bar on mobile experience, to be above the right / left control buttons? On mobile, how are punches thrown if this uses a space bar on a device that uses a keyboard? - Also can we move the Boss's to be every 6 levels, instead of 10 levels please?
+
+## 26
+
+Would it be possible to make Toby more animated, so that the game play makes it look like he is actually running forward, towards the track? rather than just sitting still?
+
+## 27
+

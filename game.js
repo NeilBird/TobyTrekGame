@@ -17,13 +17,13 @@ const LEVEL_DURATION = 30000;
 const SPEED_UP_THRESHOLD = 0.5;
 const LEVELS_PER_WORLD = 2; // Complete 2 levels before changing world
 const SHIELD_DURATION = 5000; // 5 seconds of protection
-const BOSS_LEVEL_INTERVAL = 10; // Boss battle every 10 levels
+const BOSS_LEVEL_INTERVAL = 6; // Boss battle every 6 levels
 
 // Difficulty settings
 const DIFFICULTY_SETTINGS = {
-    easy: { speedMult: 0.7, energyDecayMult: 0.6, spawnMult: 1.3, label: 'Easy' },
-    normal: { speedMult: 1.0, energyDecayMult: 1.0, spawnMult: 1.0, label: 'Normal' },
-    hard: { speedMult: 1.4, energyDecayMult: 1.5, spawnMult: 0.7, label: 'Hard' }
+    easy: { speedMult: 0.5, energyDecayMult: 0.4, spawnMult: 1.5, label: 'Easy' },
+    normal: { speedMult: 0.8, energyDecayMult: 0.8, spawnMult: 1.1, label: 'Normal' },
+    hard: { speedMult: 1.2, energyDecayMult: 1.3, spawnMult: 0.8, label: 'Hard' }
 };
 let currentDifficulty = 'normal';
 
@@ -195,7 +195,10 @@ let toby = {
     height: TOBY_HEIGHT,
     speed: TOBY_SPEED,
     direction: 0,
-    targetX: CANVAS_WIDTH / 2
+    targetX: CANVAS_WIDTH / 2,
+    // Animation state
+    runCycle: 0,       // Animation frame counter (0 to 2π)
+    bobOffset: 0       // Vertical bobbing offset
 };
 
 // Approaching objects (3D perspective)
@@ -265,15 +268,15 @@ function initAudio() {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
     musicGain = audioContext.createGain();
     musicGain.connect(audioContext.destination);
-    musicGain.gain.value = 0.3;
+    musicGain.gain.value = 0.25;
 }
 
 function playBackgroundMusic() {
     if (!audioContext || musicPlaying) return;
     musicPlaying = true;
     
-    // Create atmospheric, cinematic game music
-    const playNote = (freq, startTime, duration, type = 'sine', volume = 0.06) => {
+    // Create smooth, pleasant game music with proper filtering
+    const playNote = (freq, startTime, duration, type = 'sine', volume = 0.05) => {
         const osc = audioContext.createOscillator();
         const gain = audioContext.createGain();
         const filter = audioContext.createBiquadFilter();
@@ -281,13 +284,15 @@ function playBackgroundMusic() {
         osc.type = type;
         osc.frequency.value = freq;
         
+        // Smooth low-pass filter to remove harshness
         filter.type = 'lowpass';
-        filter.frequency.value = 2000;
-        filter.Q.value = 1;
+        filter.frequency.value = 1200;
+        filter.Q.value = 0.5;
         
+        // Smooth envelope
         gain.gain.setValueAtTime(0, startTime);
-        gain.gain.linearRampToValueAtTime(volume, startTime + 0.05);
-        gain.gain.setValueAtTime(volume, startTime + duration - 0.1);
+        gain.gain.linearRampToValueAtTime(volume, startTime + 0.1);
+        gain.gain.setValueAtTime(volume * 0.8, startTime + duration * 0.7);
         gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
         
         osc.connect(filter);
@@ -296,144 +301,162 @@ function playBackgroundMusic() {
         osc.start(startTime);
         osc.stop(startTime + duration);
     };
+    
+    // Play a chord (multiple notes together)
+    const playChord = (notes, startTime, duration, volume = 0.03) => {
+        notes.forEach(note => {
+            playNote(note, startTime, duration, 'sine', volume);
+        });
+    };
 
-    // Different atmospheric melodies for each world
-    const getWorldMelody = () => {
+    // Pleasant major/minor progressions for each world
+    const getWorldMusic = () => {
         if (currentWorld === WORLDS.GARDEN) {
-            // Peaceful, nature-inspired melody - minor key for depth
-            return [
-                { note: 392, time: 0, dur: 0.8 },      // G4
-                { note: 440, time: 1.0, dur: 0.6 },    // A4
-                { note: 523, time: 1.8, dur: 1.0 },    // C5
-                { note: 494, time: 3.0, dur: 0.6 },    // B4
-                { note: 440, time: 3.8, dur: 0.8 },    // A4
-                { note: 392, time: 4.8, dur: 1.2 },    // G4
-            ];
+            // Peaceful C major - happy garden vibes
+            return {
+                chords: [
+                    { notes: [262, 330, 392], time: 0, dur: 2.0 },     // C major
+                    { notes: [294, 370, 440], time: 2.2, dur: 1.8 },   // D minor  
+                    { notes: [262, 330, 392], time: 4.2, dur: 1.8 },   // C major
+                    { notes: [247, 311, 370], time: 6.2, dur: 1.8 },   // G major
+                ],
+                melody: [
+                    { note: 523, time: 0.5, dur: 0.4 },
+                    { note: 494, time: 1.0, dur: 0.4 },
+                    { note: 440, time: 1.5, dur: 0.6 },
+                    { note: 392, time: 2.5, dur: 0.8 },
+                    { note: 440, time: 4.0, dur: 0.5 },
+                    { note: 494, time: 5.0, dur: 0.5 },
+                    { note: 523, time: 6.0, dur: 1.0 },
+                ],
+                bass: [
+                    { note: 131, time: 0, dur: 2.0 },
+                    { note: 147, time: 2.2, dur: 1.8 },
+                    { note: 131, time: 4.2, dur: 1.8 },
+                    { note: 98, time: 6.2, dur: 1.8 },
+                ]
+            };
+        } else if (currentWorld === WORLDS.SNOW) {
+            // Peaceful, crystalline winter melody
+            return {
+                chords: [
+                    { notes: [220, 277, 330], time: 0, dur: 2.5 },     // A minor
+                    { notes: [196, 247, 294], time: 2.7, dur: 2.3 },   // G major
+                    { notes: [175, 220, 262], time: 5.2, dur: 2.5 },   // F major
+                    { notes: [196, 247, 294], time: 7.9, dur: 2.1 },   // G major
+                ],
+                melody: [
+                    { note: 659, time: 0, dur: 1.0 },
+                    { note: 587, time: 1.2, dur: 0.8 },
+                    { note: 523, time: 2.2, dur: 1.2 },
+                    { note: 494, time: 4.0, dur: 0.8 },
+                    { note: 440, time: 5.0, dur: 1.5 },
+                    { note: 494, time: 7.0, dur: 0.8 },
+                    { note: 523, time: 8.2, dur: 1.5 },
+                ],
+                bass: [
+                    { note: 110, time: 0, dur: 2.5 },
+                    { note: 98, time: 2.7, dur: 2.3 },
+                    { note: 87, time: 5.2, dur: 2.5 },
+                    { note: 98, time: 7.9, dur: 2.1 },
+                ]
+            };
         } else if (currentWorld === WORLDS.PARK) {
-            // Adventurous, slightly tense melody
-            return [
-                { note: 330, time: 0, dur: 0.5 },      // E4
-                { note: 392, time: 0.6, dur: 0.5 },    // G4
-                { note: 440, time: 1.2, dur: 0.8 },    // A4
-                { note: 494, time: 2.2, dur: 0.6 },    // B4
-                { note: 440, time: 3.0, dur: 0.5 },    // A4
-                { note: 392, time: 3.6, dur: 0.5 },    // G4
-                { note: 349, time: 4.2, dur: 0.8 },    // F4
-                { note: 330, time: 5.2, dur: 0.8 },    // E4
-            ];
+            // Playful, bouncy adventure tune
+            return {
+                chords: [
+                    { notes: [262, 330, 392], time: 0, dur: 1.5 },     // C major
+                    { notes: [220, 277, 330], time: 1.7, dur: 1.5 },   // A minor
+                    { notes: [175, 220, 262], time: 3.4, dur: 1.5 },   // F major
+                    { notes: [196, 247, 294], time: 5.1, dur: 1.5 },   // G major
+                ],
+                melody: [
+                    { note: 392, time: 0, dur: 0.3 },
+                    { note: 440, time: 0.4, dur: 0.3 },
+                    { note: 494, time: 0.8, dur: 0.5 },
+                    { note: 523, time: 1.5, dur: 0.6 },
+                    { note: 440, time: 2.5, dur: 0.4 },
+                    { note: 392, time: 3.2, dur: 0.6 },
+                    { note: 349, time: 4.2, dur: 0.5 },
+                    { note: 392, time: 5.0, dur: 0.8 },
+                ],
+                bass: [
+                    { note: 131, time: 0, dur: 1.5 },
+                    { note: 110, time: 1.7, dur: 1.5 },
+                    { note: 87, time: 3.4, dur: 1.5 },
+                    { note: 98, time: 5.1, dur: 1.5 },
+                ]
+            };
         } else if (currentWorld === WORLDS.SPACE) {
-            // Cosmic, mysterious ambient melody
-            return [
-                { note: 220, time: 0, dur: 1.5 },      // A3
-                { note: 262, time: 1.8, dur: 1.2 },    // C4
-                { note: 294, time: 3.2, dur: 1.0 },    // D4
-                { note: 262, time: 4.5, dur: 1.5 },    // C4
-            ];
+            // Cosmic, dreamy ambient - SLOWER and more relaxed
+            return {
+                chords: [
+                    { notes: [165, 220, 262], time: 0, dur: 3.5 },     // E minor spread
+                    { notes: [147, 196, 247], time: 4.0, dur: 3.5 },   // D minor spread
+                    { notes: [131, 175, 220], time: 8.0, dur: 3.5 },   // C minor spread
+                ],
+                melody: [
+                    { note: 330, time: 1.0, dur: 1.5 },
+                    { note: 294, time: 3.0, dur: 1.5 },
+                    { note: 262, time: 5.5, dur: 2.0 },
+                    { note: 294, time: 8.5, dur: 1.5 },
+                    { note: 330, time: 10.5, dur: 1.5 },
+                ],
+                bass: [
+                    { note: 82, time: 0, dur: 4.0 },
+                    { note: 73, time: 4.0, dur: 4.0 },
+                    { note: 65, time: 8.0, dur: 4.0 },
+                ]
+            };
         } else {
-            // Snow - calm, crystalline melody
-            return [
-                { note: 523, time: 0, dur: 1.0 },      // C5
-                { note: 494, time: 1.2, dur: 0.8 },    // B4
-                { note: 440, time: 2.2, dur: 1.0 },    // A4
-                { note: 392, time: 3.4, dur: 0.8 },    // G4
-                { note: 440, time: 4.4, dur: 1.0 },    // A4
-                { note: 523, time: 5.6, dur: 0.4 },    // C5
-            ];
+            // Castle/Boss - dramatic but not harsh
+            return {
+                chords: [
+                    { notes: [147, 175, 220], time: 0, dur: 2.0 },     // D minor
+                    { notes: [131, 165, 196], time: 2.2, dur: 2.0 },   // C minor
+                    { notes: [147, 175, 220], time: 4.4, dur: 2.0 },   // D minor
+                    { notes: [165, 196, 247], time: 6.6, dur: 2.0 },   // E diminished
+                ],
+                melody: [
+                    { note: 440, time: 0, dur: 0.5 },
+                    { note: 392, time: 0.6, dur: 0.5 },
+                    { note: 349, time: 1.2, dur: 0.8 },
+                    { note: 330, time: 2.5, dur: 0.8 },
+                    { note: 349, time: 4.0, dur: 0.5 },
+                    { note: 392, time: 5.0, dur: 0.5 },
+                    { note: 440, time: 6.0, dur: 1.0 },
+                ],
+                bass: [
+                    { note: 73, time: 0, dur: 2.0 },
+                    { note: 65, time: 2.2, dur: 2.0 },
+                    { note: 73, time: 4.4, dur: 2.0 },
+                    { note: 82, time: 6.6, dur: 2.0 },
+                ]
+            };
         }
     };
 
-    // Deep, cinematic bass lines
-    const getWorldBass = () => {
-        if (currentWorld === WORLDS.GARDEN) {
-            return [
-                { note: 98, time: 0, dur: 2.0 },      // G2
-                { note: 110, time: 2.5, dur: 1.5 },   // A2
-                { note: 131, time: 4.5, dur: 1.5 },   // C3
-            ];
-        } else if (currentWorld === WORLDS.PARK) {
-            return [
-                { note: 82, time: 0, dur: 1.5 },      // E2
-                { note: 98, time: 2.0, dur: 1.5 },    // G2
-                { note: 87, time: 4.0, dur: 2.0 },    // F2
-            ];
-        } else if (currentWorld === WORLDS.SPACE) {
-            return [
-                { note: 55, time: 0, dur: 3.0 },      // A1 - deep drone
-                { note: 65, time: 3.5, dur: 2.5 },    // C2
-            ];
-        } else {
-            return [
-                { note: 131, time: 0, dur: 2.0 },     // C3
-                { note: 98, time: 2.5, dur: 2.0 },    // G2
-                { note: 110, time: 5.0, dur: 1.0 },   // A2
-            ];
-        }
-    };
-
-    // Ambient pads and textures
-    const getWorldPad = () => {
-        if (currentWorld === WORLDS.GARDEN) {
-            return [
-                { note: 196, time: 0, dur: 3.0 },     // G3
-                { note: 247, time: 0.1, dur: 2.8 },   // B3
-                { note: 294, time: 0.2, dur: 2.6 },   // D4
-                { note: 196, time: 3.5, dur: 2.5 },   // G3
-                { note: 220, time: 3.6, dur: 2.4 },   // A3
-                { note: 262, time: 3.7, dur: 2.3 },   // C4
-            ];
-        } else if (currentWorld === WORLDS.PARK) {
-            return [
-                { note: 165, time: 0, dur: 2.5 },     // E3
-                { note: 196, time: 0.1, dur: 2.3 },   // G3
-                { note: 247, time: 0.2, dur: 2.1 },   // B3
-                { note: 175, time: 3.0, dur: 2.5 },   // F3
-                { note: 220, time: 3.1, dur: 2.3 },   // A3
-                { note: 262, time: 3.2, dur: 2.1 },   // C4
-            ];
-        } else if (currentWorld === WORLDS.SPACE) {
-            return [
-                { note: 110, time: 0, dur: 4.0 },     // A2
-                { note: 165, time: 0.2, dur: 3.8 },   // E3
-                { note: 220, time: 0.4, dur: 3.6 },   // A3
-                { note: 131, time: 4.5, dur: 1.5 },   // C3
-                { note: 196, time: 4.7, dur: 1.3 },   // G3
-            ];
-        } else {
-            // Snow - shimmering high pads
-            return [
-                { note: 523, time: 0, dur: 2.5 },     // C5
-                { note: 659, time: 0.1, dur: 2.3 },   // E5
-                { note: 784, time: 0.2, dur: 2.1 },   // G5
-                { note: 494, time: 3.0, dur: 2.5 },   // B4
-                { note: 587, time: 3.1, dur: 2.3 },   // D5
-                { note: 698, time: 3.2, dur: 2.1 },   // F5
-            ];
-        }
-    };
-
-    const loopDuration = 6;
+    const loopDuration = currentWorld === WORLDS.SPACE ? 12 : 8;
     
     function scheduleLoop() {
         if (!musicPlaying || gameState !== 'playing') return;
         
         const now = audioContext.currentTime;
-        const melody = getWorldMelody();
-        const bass = getWorldBass();
-        const pad = getWorldPad();
+        const music = getWorldMusic();
         
-        // Melody - sine wave for smooth sound
-        melody.forEach(({ note, time, dur }) => {
-            playNote(note, now + time, dur, 'sine', 0.07);
+        // Play smooth chords
+        music.chords.forEach(({ notes, time, dur }) => {
+            playChord(notes, now + time, dur, 0.025);
         });
         
-        // Bass - triangle for warmth
-        bass.forEach(({ note, time, dur }) => {
-            playNote(note, now + time, dur, 'triangle', 0.08);
+        // Play gentle melody
+        music.melody.forEach(({ note, time, dur }) => {
+            playNote(note, now + time, dur, 'sine', 0.04);
         });
         
-        // Ambient pad - sine for smoothness
-        pad.forEach(({ note, time, dur }) => {
-            playNote(note, now + time, dur, 'sine', 0.03);
+        // Play warm bass
+        music.bass.forEach(({ note, time, dur }) => {
+            playNote(note, now + time, dur, 'triangle', 0.05);
         });
         
         setTimeout(scheduleLoop, loopDuration * 1000);
@@ -529,6 +552,10 @@ function startGame() {
     thrownPunches = [];
     bossDefeated = false;
     bossDefeatedTime = 0;
+    
+    // Hide mobile punch button
+    const touchPunch = document.getElementById('touch-punch');
+    if (touchPunch) touchPunch.classList.remove('visible');
 
     toby.x = CANVAS_WIDTH / 2;
     toby.targetX = CANVAS_WIDTH / 2;
@@ -682,6 +709,22 @@ function setupTouchControls() {
             keys.right = false;
         });
     }
+    
+    // Punch button for mobile boss battles
+    const touchPunch = document.getElementById('touch-punch');
+    if (touchPunch) {
+        touchPunch.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (isBossLevel && gameState === 'playing' && !gamePaused) {
+                throwPunch();
+            }
+        }, { passive: false });
+        touchPunch.addEventListener('click', () => {
+            if (isBossLevel && gameState === 'playing' && !gamePaused) {
+                throwPunch();
+            }
+        });
+    }
 }
 
 function handleTouchStart(e) {
@@ -779,6 +822,12 @@ function gameLoop(timestamp) {
 function update(timestamp) {
     // Update play time
     playTime = Date.now() - gameStartTime;
+    
+    // Update Toby's running animation
+    const animSpeed = 0.25; // Animation speed
+    toby.runCycle += animSpeed;
+    if (toby.runCycle > Math.PI * 2) toby.runCycle -= Math.PI * 2;
+    toby.bobOffset = Math.sin(toby.runCycle * 2) * 3; // Body bobbing
     
     // Check expression expiration
     if (tobyExpression !== 'normal' && Date.now() > expressionEndTime) {
@@ -1021,8 +1070,8 @@ function advanceLevel() {
     
     // Apply difficulty settings
     const diffSettings = DIFFICULTY_SETTINGS[currentDifficulty];
-    currentApproachSpeed = (INITIAL_APPROACH_SPEED + (level * 0.0015)) * diffSettings.speedMult;
-    spawnInterval = Math.max(800, (SPAWN_INTERVAL_BASE - (level * 50)) * diffSettings.spawnMult);
+    currentApproachSpeed = (INITIAL_APPROACH_SPEED + (level * 0.001)) * diffSettings.speedMult;
+    spawnInterval = Math.max(900, (SPAWN_INTERVAL_BASE - (level * 30)) * diffSettings.spawnMult);
     
     energy = 100; // Reset energy to full at start of each level!
     levelDamageTaken = false;
@@ -1094,6 +1143,10 @@ function startBossBattle() {
     // Show boss indicator
     const bossIndicator = document.getElementById('boss-indicator');
     if (bossIndicator) bossIndicator.classList.remove('hidden');
+    
+    // Show mobile punch button
+    const touchPunch = document.getElementById('touch-punch');
+    if (touchPunch) touchPunch.classList.add('visible');
     
     if (soundEnabled) playBossMusic();
     updateHUD();
@@ -1214,6 +1267,10 @@ function defeatBoss() {
     // Hide boss indicator
     const bossIndicator = document.getElementById('boss-indicator');
     if (bossIndicator) bossIndicator.classList.add('hidden');
+    
+    // Hide mobile punch button
+    const touchPunch = document.getElementById('touch-punch');
+    if (touchPunch) touchPunch.classList.remove('visible');
     
     // After celebration, continue to next level
     setTimeout(() => {
@@ -4410,7 +4467,9 @@ function drawTunaCan(size) {
 
 function drawToby() {
     ctx.save();
-    ctx.translate(toby.x, toby.y);
+    
+    // Apply body bob for running animation
+    ctx.translate(toby.x, toby.y + toby.bobOffset);
 
     // Flip based on direction
     if (toby.direction === -1) {
@@ -4419,10 +4478,111 @@ function drawToby() {
 
     const scale = 1.2; // Make Toby bigger
     ctx.scale(scale, scale);
-
-    // Draw cat body (WHITE with grey/black markings)
     
-    // Body - white
+    // Animation values for running
+    const runPhase = toby.runCycle;
+    const legSwing = Math.sin(runPhase) * 12;           // Front/back leg swing
+    const legSwingBack = Math.sin(runPhase + Math.PI) * 12; // Opposite phase for back legs
+    const tailWag = Math.sin(runPhase * 1.5) * 8;       // Tail wagging
+    const headBob = Math.sin(runPhase * 2) * 1.5;       // Slight head bob
+
+    // ===== BACK LEGS (drawn first, behind body) =====
+    ctx.save();
+    
+    // Back left leg (further back, darker)
+    ctx.fillStyle = '#E8E8E8';
+    ctx.strokeStyle = '#BBBBBB';
+    ctx.lineWidth = 1;
+    
+    // Upper back leg
+    ctx.save();
+    ctx.translate(-12, 20);
+    ctx.rotate(legSwingBack * 0.03);
+    ctx.beginPath();
+    ctx.ellipse(0, 8, 7, 12, 0.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Lower back leg + paw
+    ctx.save();
+    ctx.translate(0, 16);
+    ctx.rotate(legSwingBack * 0.02);
+    ctx.beginPath();
+    ctx.ellipse(0, 8, 5, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    // Paw
+    ctx.fillStyle = '#E8E8E8';
+    ctx.beginPath();
+    ctx.ellipse(0, 18, 7, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+    ctx.restore();
+    
+    // Back right leg
+    ctx.save();
+    ctx.translate(12, 20);
+    ctx.rotate(legSwing * 0.03);
+    ctx.beginPath();
+    ctx.ellipse(0, 8, 7, 12, -0.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    
+    ctx.save();
+    ctx.translate(0, 16);
+    ctx.rotate(legSwing * 0.02);
+    ctx.beginPath();
+    ctx.ellipse(0, 8, 5, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#E8E8E8';
+    ctx.beginPath();
+    ctx.ellipse(0, 18, 7, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+    ctx.restore();
+    
+    ctx.restore();
+
+    // ===== ANIMATED TAIL =====
+    ctx.save();
+    ctx.translate(22, 10);
+    ctx.rotate(tailWag * 0.02);
+    
+    // Tail - white with grey/black
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.moveTo(0, 5);
+    ctx.quadraticCurveTo(18 + tailWag * 0.3, 0, 23 + tailWag * 0.5, -15);
+    ctx.quadraticCurveTo(28 + tailWag * 0.3, -25, 18 + tailWag * 0.2, -20);
+    ctx.quadraticCurveTo(13, -5, 0, 12);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#CCCCCC';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Tail stripes - grey/black
+    ctx.fillStyle = '#666666';
+    ctx.beginPath();
+    ctx.moveTo(6, -2);
+    ctx.quadraticCurveTo(13 + tailWag * 0.2, -5, 16 + tailWag * 0.3, -10);
+    ctx.quadraticCurveTo(18 + tailWag * 0.2, -8, 11, -2);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#333333';
+    ctx.beginPath();
+    ctx.moveTo(16 + tailWag * 0.3, -12);
+    ctx.quadraticCurveTo(23 + tailWag * 0.4, -18, 22 + tailWag * 0.4, -22);
+    ctx.quadraticCurveTo(26 + tailWag * 0.3, -20, 20 + tailWag * 0.3, -12);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    // ===== BODY =====
     ctx.fillStyle = '#FFFFFF';
     ctx.beginPath();
     ctx.ellipse(0, 10, 28, 22, 0, 0, Math.PI * 2);
@@ -4441,6 +4601,72 @@ function drawToby() {
     ctx.ellipse(12, 12, 8, 7, -0.2, 0, Math.PI * 2);
     ctx.fill();
 
+    // ===== FRONT LEGS (in front of body) =====
+    ctx.fillStyle = '#FFFFFF';
+    ctx.strokeStyle = '#CCCCCC';
+    ctx.lineWidth = 1;
+    
+    // Front left leg
+    ctx.save();
+    ctx.translate(-15, 22);
+    ctx.rotate(legSwing * 0.04);
+    // Upper leg
+    ctx.beginPath();
+    ctx.ellipse(0, 6, 6, 10, 0.1, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    // Lower leg
+    ctx.save();
+    ctx.translate(0, 12);
+    ctx.rotate(legSwing * 0.03);
+    ctx.beginPath();
+    ctx.ellipse(0, 6, 5, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    // Paw
+    ctx.beginPath();
+    ctx.ellipse(0, 14, 8, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    // Paw pads - pink
+    ctx.fillStyle = '#FFB6C1';
+    ctx.beginPath();
+    ctx.arc(0, 15, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    ctx.restore();
+    
+    // Front right leg
+    ctx.save();
+    ctx.translate(15, 22);
+    ctx.rotate(legSwingBack * 0.04);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.ellipse(0, 6, 6, 10, -0.1, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.save();
+    ctx.translate(0, 12);
+    ctx.rotate(legSwingBack * 0.03);
+    ctx.beginPath();
+    ctx.ellipse(0, 6, 5, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.ellipse(0, 14, 8, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#FFB6C1';
+    ctx.beginPath();
+    ctx.arc(0, 15, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    ctx.restore();
+
+    // ===== HEAD (with slight bob) =====
+    ctx.save();
+    ctx.translate(0, headBob);
+    
     // Head - white
     ctx.fillStyle = '#FFFFFF';
     ctx.beginPath();
@@ -4613,75 +4839,28 @@ function drawToby() {
         ctx.fill();
     }
 
-    // Whiskers - dark grey
+    // Whiskers - dark grey (with slight animation)
+    const whiskerWiggle = Math.sin(runPhase * 3) * 2;
     ctx.strokeStyle = '#555555';
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(-12, -6);
-    ctx.lineTo(-30, -10);
+    ctx.lineTo(-30, -10 + whiskerWiggle);
     ctx.moveTo(-12, -3);
     ctx.lineTo(-30, -3);
     ctx.moveTo(-12, 0);
-    ctx.lineTo(-30, 4);
+    ctx.lineTo(-30, 4 - whiskerWiggle);
     ctx.moveTo(12, -6);
-    ctx.lineTo(30, -10);
+    ctx.lineTo(30, -10 - whiskerWiggle);
     ctx.moveTo(12, -3);
     ctx.lineTo(30, -3);
     ctx.moveTo(12, 0);
-    ctx.lineTo(30, 4);
+    ctx.lineTo(30, 4 + whiskerWiggle);
     ctx.stroke();
+    
+    ctx.restore(); // End head transform
 
-    // Tail - white with grey/black
-    ctx.fillStyle = '#FFFFFF';
-    ctx.beginPath();
-    ctx.moveTo(22, 15);
-    ctx.quadraticCurveTo(40, 10, 45, -5);
-    ctx.quadraticCurveTo(50, -15, 40, -10);
-    ctx.quadraticCurveTo(35, 5, 22, 22);
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle = '#CCCCCC';
-    ctx.stroke();
-
-    // Tail stripes - grey/black
-    ctx.fillStyle = '#666666';
-    ctx.beginPath();
-    ctx.moveTo(28, 8);
-    ctx.quadraticCurveTo(35, 5, 38, 0);
-    ctx.quadraticCurveTo(40, 2, 33, 8);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.fillStyle = '#333333';
-    ctx.beginPath();
-    ctx.moveTo(38, -2);
-    ctx.quadraticCurveTo(45, -8, 44, -12);
-    ctx.quadraticCurveTo(48, -10, 42, -2);
-    ctx.closePath();
-    ctx.fill();
-
-    // Paws - white
-    ctx.fillStyle = '#FFFFFF';
-    ctx.beginPath();
-    ctx.ellipse(-15, 30, 10, 6, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#CCCCCC';
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.ellipse(15, 30, 10, 6, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    // Paw pads - pink
-    ctx.fillStyle = '#FFB6C1';
-    ctx.beginPath();
-    ctx.arc(-15, 32, 3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(15, 32, 3, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.restore();
+    ctx.restore(); // End main transform
 
     // Draw name label
     ctx.fillStyle = '#FFFFFF';

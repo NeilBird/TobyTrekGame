@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.9.5] - 2026-01-03
+
+### Added
+- **Running Animation for Toby** 🏃
+  - Toby now has fully animated legs that move as he runs
+  - Four separate legs with realistic running motion
+  - Body bobbing up and down while running
+  - Animated wagging tail
+  - Head bobbing motion
+  - Whiskers wiggle while running
+  - Makes Toby look like he's actually running forward towards the track!
+
+---
+
+## [0.9.4] - 2026-01-03
+
+### Improved
+- **Music System** 🎵
+  - Completely rewritten background music for all worlds
+  - Smoother, more pleasant melodies with proper chord progressions
+  - Low-pass filtering for less harsh tones
+  - Each world has unique chord progressions, melodies, and bass lines
+  - Space world music slowed down for calmer gameplay
+
+- **Difficulty Balancing** ⚖️
+  - Reduced speed multipliers across all difficulties
+    - Easy: 0.7 → 0.5
+    - Normal: 1.0 → 0.8
+    - Hard: 1.4 → 1.2
+  - Reduced per-level speed scaling (0.0015 → 0.001)
+  - Overall smoother difficulty curve
+
+### Added
+- **Mobile Punch Button** 👊
+  - New dedicated punch button for touch devices
+  - Appears during boss battles
+  - Orange styling to indicate attack function
+
+### Changed
+- **Boss Battles** now occur every **6 levels** (previously every 10)
+- Boss indicator text updated to mention tap option for mobile
+
+### Fixed
+- **Mobile Energy Bar** - Repositioned above touch controls for iOS Safari visibility
+  - Fixed positioning with dark background for better visibility
+  - Works correctly on all mobile browsers including iOS Safari
+
+---
+
 ## [0.9.3] - 2026-01-03
 
 ### Added
