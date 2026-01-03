@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.9.8] - 2026-01-03
+
+### Changed
+- **Removed Firebase Debug Logging** 🧹
+  - Leaderboard confirmed working - removed verbose console logging
+  - Cleaner console output during gameplay
+  - Error logging retained for troubleshooting real issues
+
+---
+
 ## [0.9.7] - 2026-01-03
 
 ### Improved
