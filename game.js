@@ -1,5 +1,5 @@
 // Game Version
-const GAME_VERSION = '0.8.0';
+const GAME_VERSION = '0.9.1';
 
 // Game Constants
 const CANVAS_WIDTH = 800;
@@ -17,6 +17,7 @@ const LEVEL_DURATION = 30000;
 const SPEED_UP_THRESHOLD = 0.5;
 const LEVELS_PER_WORLD = 2; // Complete 2 levels before changing world
 const SHIELD_DURATION = 5000; // 5 seconds of protection
+const BOSS_LEVEL_INTERVAL = 10; // Boss battle every 10 levels
 
 // Difficulty settings
 const DIFFICULTY_SETTINGS = {
@@ -37,7 +38,8 @@ const WORLDS = {
     GARDEN: 'garden',
     PARK: 'park', 
     SPACE: 'space',
-    SNOW: 'snow'
+    SNOW: 'snow',
+    CASTLE: 'castle' // Boss battle world!
 };
 
 // Game Objects Types - 2 good (treats), 2 bad (hazards), 1 shield, plus new power-ups
@@ -53,7 +55,9 @@ const OBJECT_TYPES = {
     // New power-ups!
     SPEED_BOOST: { emoji: '⚡', type: 'speedboost', points: 5, color: '#FFD700' },
     MAGNET: { emoji: '🧲', type: 'magnet', points: 5, color: '#FF4444' },
-    DOUBLE_POINTS: { emoji: '✨', type: 'doublepoints', points: 5, color: '#FF69B4' }
+    DOUBLE_POINTS: { emoji: '✨', type: 'doublepoints', points: 5, color: '#FF69B4' },
+    // Boss battle ammo!
+    PUNCH: { emoji: '👊', type: 'punch', points: 5, color: '#FF6B35' }
 };
 
 // Game State
@@ -72,6 +76,19 @@ let currentApproachSpeed = INITIAL_APPROACH_SPEED;
 let spawnInterval = SPAWN_INTERVAL_BASE;
 let levelCompleted = false;
 let levelCompleteTime = 0;
+
+// Boss battle state
+let isBossLevel = false;
+let bossHealth = 100;
+let bossMaxHealth = 100;
+let punchesCollected = 0;
+let thrownPunches = []; // Projectiles thrown at boss
+let bossX = 0;
+let bossY = 0;
+let bossDirection = 1;
+let bossHitTime = 0;
+let bossDefeated = false;
+let bossDefeatedTime = 0;
 
 // Shield state
 let shieldActive = false;
@@ -133,9 +150,12 @@ const ACHIEVEMENTS = {
     score_1000: { name: 'High Scorer', description: 'Score 1000 points', icon: '⭐', unlocked: false },
     score_5000: { name: 'Score Legend', description: 'Score 5000 points', icon: '🌟', unlocked: false },
     daily_complete: { name: 'Daily Warrior', description: 'Complete a daily challenge', icon: '📅', unlocked: false },
-    all_skins: { name: 'Fashion Cat', description: 'Unlock all skins', icon: '🎨', unlocked: false }
+    all_skins: { name: 'Fashion Cat', description: 'Unlock all skins', icon: '🎨', unlocked: false },
+    boss_defeated: { name: 'Boss Slayer', description: 'Defeat the angry black cat boss', icon: '😼', unlocked: false },
+    boss_master: { name: 'Boss Master', description: 'Defeat 3 bosses', icon: '🏰', unlocked: false }
 };
 let totalTreatsCollected = 0;
+let totalBossesDefeated = 0;
 let levelDamageTaken = false;
 let newAchievements = []; // For showing unlock notifications
 
@@ -490,6 +510,15 @@ function startGame() {
     
     // Reset screen shake
     screenShake = { intensity: 0, duration: 0, startTime: 0 };
+    
+    // Reset boss state
+    isBossLevel = false;
+    bossHealth = 100;
+    bossMaxHealth = 100;
+    punchesCollected = 0;
+    thrownPunches = [];
+    bossDefeated = false;
+    bossDefeatedTime = 0;
 
     toby.x = CANVAS_WIDTH / 2;
     toby.targetX = CANVAS_WIDTH / 2;
@@ -507,6 +536,12 @@ function startGame() {
 function handleKeyDown(e) {
     if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = true;
     if (e.key === 'ArrowRight' || e.key === 'd') keys.right = true;
+    
+    // Space bar to throw punch during boss battle
+    if (e.key === ' ' && gameState === 'playing' && isBossLevel && !gamePaused) {
+        e.preventDefault(); // Prevent page scroll
+        throwPunch();
+    }
     
     // Pause with Escape or P
     if ((e.key === 'Escape' || e.key === 'p' || e.key === 'P') && gameState === 'playing') {
@@ -577,6 +612,7 @@ function updateMusicButton() {
 let touchStartX = 0;
 let touchStartY = 0;
 let touchActive = false;
+let lastTapTime = 0; // For double-tap detection (boss punch)
 
 function setupTouchControls() {
     const gameCanvas = document.getElementById('game-canvas');
@@ -646,6 +682,15 @@ function handleTouchStart(e) {
     touchStartX = touch.clientX;
     touchStartY = touch.clientY;
     touchActive = true;
+    
+    // Double tap detection for throwing punches during boss battle
+    const now = Date.now();
+    if (isBossLevel && now - lastTapTime < 300) {
+        throwPunch();
+        lastTapTime = 0;
+        return;
+    }
+    lastTapTime = now;
     
     // Immediate tap response - move based on which side was tapped
     const rect = canvas.getBoundingClientRect();
@@ -782,6 +827,56 @@ function update(timestamp) {
             advanceLevel();
         }
         return; // Pause gameplay during celebration
+    }
+    
+    // Boss battle logic
+    if (isBossLevel) {
+        updateBossBattle();
+        
+        // During boss battle, still update Toby movement and collisions
+        // but skip normal level progress
+        const currentTobySpeed = speedBoostActive ? toby.speed * 1.5 : toby.speed;
+        if (keys.left) {
+            toby.x -= currentTobySpeed;
+            toby.direction = -1;
+        } else if (keys.right) {
+            toby.x += currentTobySpeed;
+            toby.direction = 1;
+        } else {
+            toby.direction = 0;
+        }
+        
+        // Keep Toby in bounds
+        const minX = 80;
+        const maxX = CANVAS_WIDTH - 80;
+        toby.x = Math.max(minX, Math.min(maxX, toby.x));
+        
+        // Update approaching objects (boss hazards)
+        const diffSettings = DIFFICULTY_SETTINGS[currentDifficulty];
+        approachingObjects.forEach(obj => {
+            if (!obj.collected) {
+                obj.z += currentApproachSpeed;
+                obj.rotation += obj.rotationSpeed;
+            }
+        });
+        
+        // Check collisions with boss hazards
+        checkCollisions();
+        
+        // Remove objects that passed the player
+        approachingObjects = approachingObjects.filter(obj => obj.z < 1.2 || obj.collected);
+        
+        // Energy still decays during boss battle
+        energy -= ENERGY_DECAY_RATE * diffSettings.energyDecayMult * 0.5; // Half decay rate
+        energy = Math.max(0, energy);
+        
+        if (energy <= 0) {
+            gameOver();
+            return;
+        }
+        
+        updateHUD();
+        return;
     }
     
     // Update level progress
@@ -928,6 +1023,15 @@ function advanceLevel() {
         endDailyChallenge();
     }
     
+    // Check if this is a BOSS LEVEL!
+    if (level % BOSS_LEVEL_INTERVAL === 0) {
+        startBossBattle();
+        return;
+    }
+    
+    // Reset boss state for normal levels
+    isBossLevel = false;
+    
     // Change world every LEVELS_PER_WORLD levels
     const worldIndex = Math.floor((level - 1) / LEVELS_PER_WORLD) % 4;
     if (worldIndex === 0) {
@@ -941,6 +1045,232 @@ function advanceLevel() {
     }
     
     updateHUD();
+}
+
+// ============== BOSS BATTLE SYSTEM ==============
+
+function startBossBattle() {
+    isBossLevel = true;
+    currentWorld = WORLDS.CASTLE;
+    
+    // Boss health scales with level
+    const bossNumber = level / BOSS_LEVEL_INTERVAL;
+    bossMaxHealth = 50 + (bossNumber * 25); // 75 at level 10, 100 at level 20, etc.
+    bossHealth = bossMaxHealth;
+    
+    // Boss position
+    bossX = CANVAS_WIDTH / 2;
+    bossY = HORIZON_Y + 80;
+    bossDirection = 1;
+    bossDefeated = false;
+    bossDefeatedTime = 0;
+    bossHitTime = 0;
+    
+    // Clear any existing objects
+    approachingObjects = [];
+    sideScenery = [];
+    thrownPunches = [];
+    
+    // Give minimum punches if player has none
+    if (punchesCollected < 5) {
+        punchesCollected = 5;
+        addFloatingText('Bonus ammo!', '#FF6B35', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+    }
+    
+    // Show boss indicator
+    const bossIndicator = document.getElementById('boss-indicator');
+    if (bossIndicator) bossIndicator.classList.remove('hidden');
+    
+    if (soundEnabled) playBossMusic();
+    updateHUD();
+}
+
+function updateBossBattle() {
+    if (!isBossLevel || bossDefeated) return;
+    
+    // Boss movement (side to side)
+    const bossSpeed = 2 + (level / BOSS_LEVEL_INTERVAL);
+    bossX += bossDirection * bossSpeed;
+    
+    // Bounce off walls
+    if (bossX > CANVAS_WIDTH - 100) {
+        bossX = CANVAS_WIDTH - 100;
+        bossDirection = -1;
+    } else if (bossX < 100) {
+        bossX = 100;
+        bossDirection = 1;
+    }
+    
+    // Update thrown punches
+    for (let i = thrownPunches.length - 1; i >= 0; i--) {
+        const punch = thrownPunches[i];
+        punch.y -= 8; // Move up towards boss
+        punch.x += punch.vx; // Slight horizontal movement
+        
+        // Check collision with boss
+        const dx = punch.x - bossX;
+        const dy = punch.y - bossY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist < 60) {
+            // Hit the boss!
+            bossHealth -= 10;
+            bossHitTime = Date.now();
+            thrownPunches.splice(i, 1);
+            
+            if (soundEnabled) playBossHitSound();
+            spawnParticles(bossX, bossY, '#FF0000', 20);
+            
+            // Check if boss defeated
+            if (bossHealth <= 0) {
+                defeatBoss();
+            }
+            continue;
+        }
+        
+        // Remove punches that go off screen
+        if (punch.y < 0) {
+            thrownPunches.splice(i, 1);
+        }
+    }
+    
+    // Boss attacks - occasionally spawn hazards
+    if (Math.random() < 0.02) {
+        spawnBossHazard();
+    }
+}
+
+function spawnBossHazard() {
+    // Boss throws hairdryers at Toby!
+    const obj = {
+        laneX: (Math.random() - 0.5) * 1.6,
+        z: 0,
+        ...OBJECT_TYPES.HAIRDRYER,
+        objectType: OBJECT_TYPES.HAIRDRYER,
+        collected: false,
+        rotation: 0,
+        rotationSpeed: (Math.random() - 0.5) * 0.2
+    };
+    approachingObjects.push(obj);
+}
+
+function throwPunch() {
+    if (!isBossLevel || punchesCollected <= 0 || bossDefeated) return;
+    
+    punchesCollected--;
+    
+    // Create punch projectile
+    thrownPunches.push({
+        x: toby.x,
+        y: toby.y - 40,
+        vx: (Math.random() - 0.5) * 2 // Slight random horizontal movement
+    });
+    
+    if (soundEnabled) playPunchSound();
+    updateHUD();
+}
+
+function defeatBoss() {
+    bossDefeated = true;
+    bossDefeatedTime = Date.now();
+    
+    // Track bosses defeated
+    totalBossesDefeated++;
+    
+    // Big score bonus for defeating boss!
+    const bossBonus = 500 * (level / BOSS_LEVEL_INTERVAL);
+    score += bossBonus;
+    
+    if (soundEnabled) playBossDefeatedSound();
+    spawnParticles(bossX, bossY, '#FFD700', 50);
+    spawnParticles(bossX, bossY, '#FF6B35', 30);
+    
+    addFloatingText(`BOSS DEFEATED! +${bossBonus}`, '#FFD700', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+    
+    // Unlock boss defeat achievements
+    unlockAchievement('boss_defeated');
+    if (totalBossesDefeated >= 3) {
+        unlockAchievement('boss_master');
+    }
+    
+    // Hide boss indicator
+    const bossIndicator = document.getElementById('boss-indicator');
+    if (bossIndicator) bossIndicator.classList.add('hidden');
+    
+    // After celebration, continue to next level
+    setTimeout(() => {
+        isBossLevel = false;
+        levelCompleted = true;
+        levelCompleteTime = Date.now();
+    }, 2000);
+}
+
+function playBossMusic() {
+    // Intense boss battle music would play here
+    // For now, just a warning sound
+    if (!audioContext) return;
+    
+    const notes = [196, 233, 262, 294]; // G3, Bb3, C4, D4 - ominous
+    notes.forEach((freq, i) => {
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.1, audioContext.currentTime + i * 0.2);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + i * 0.2 + 0.3);
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        osc.start(audioContext.currentTime + i * 0.2);
+        osc.stop(audioContext.currentTime + i * 0.2 + 0.3);
+    });
+}
+
+function playBossHitSound() {
+    if (!audioContext) return;
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(200, audioContext.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.2);
+    gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    osc.start();
+    osc.stop(audioContext.currentTime + 0.2);
+}
+
+function playPunchSound() {
+    if (!audioContext) return;
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(400, audioContext.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.15, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    osc.start();
+    osc.stop(audioContext.currentTime + 0.1);
+}
+
+function playBossDefeatedSound() {
+    if (!audioContext) return;
+    // Victory fanfare!
+    const notes = [523, 659, 784, 880, 1047]; // C5, E5, G5, A5, C6
+    notes.forEach((freq, i) => {
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.type = 'square';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.2, audioContext.currentTime + i * 0.12);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + i * 0.12 + 0.5);
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        osc.start(audioContext.currentTime + i * 0.12);
+        osc.stop(audioContext.currentTime + i * 0.12 + 0.5);
+    });
 }
 
 function playLevelCompleteSound() {
@@ -995,11 +1325,14 @@ function playShieldCollectSound() {
 }
 
 function spawnObject() {
+    // Don't spawn normal objects during boss battle
+    if (isBossLevel) return;
+    
     // Get random value, use seeded random for daily challenge
     const rand = dailyChallengeActive ? seededRandom() : Math.random();
     
     const objectKeys = Object.keys(OBJECT_TYPES).filter(k => 
-        k !== 'SHIELD' && k !== 'SPEED_BOOST' && k !== 'MAGNET' && k !== 'DOUBLE_POINTS'
+        k !== 'SHIELD' && k !== 'SPEED_BOOST' && k !== 'MAGNET' && k !== 'DOUBLE_POINTS' && k !== 'PUNCH'
     );
     
     let weights;
@@ -1032,6 +1365,14 @@ function spawnObject() {
     // 3% chance for double points
     if (powerUpRand >= 0.11 && powerUpRand < 0.14 && !doublePointsActive) {
         spawnPowerUp(OBJECT_TYPES.DOUBLE_POINTS);
+        return;
+    }
+    // 4% chance for punch (boss ammo) - appears more often as you approach boss level
+    const nextBossLevel = Math.ceil(level / BOSS_LEVEL_INTERVAL) * BOSS_LEVEL_INTERVAL;
+    const levelsUntilBoss = nextBossLevel - level;
+    const punchChance = levelsUntilBoss <= 3 ? 0.08 : 0.04; // More punches close to boss
+    if (powerUpRand >= 0.14 && powerUpRand < 0.14 + punchChance) {
+        spawnPowerUp(OBJECT_TYPES.PUNCH);
         return;
     }
 
@@ -1157,6 +1498,19 @@ function handleCollision(obj) {
         tobyExpression = 'happy';
         expressionEndTime = Date.now() + 1000;
         addFloatingText('Double Points!', '#FF69B4', toby.x, toby.y - 60);
+        
+    } else if (obj.type === 'punch') {
+        // Collect punch ammo for boss battle!
+        punchesCollected++;
+        score += obj.points * level * pointMultiplier;
+        if (soundEnabled) {
+            playPowerUpSound();
+            playYeySound();
+        }
+        spawnParticles(toby.x, toby.y, '#FF6B35', 15);
+        tobyExpression = 'happy';
+        expressionEndTime = Date.now() + 1000;
+        addFloatingText(`👊 x${punchesCollected}`, '#FF6B35', toby.x, toby.y - 60);
         
     } else if (obj.type === 'treat') {
         // Combo system
@@ -1445,6 +1799,13 @@ function updateHUD() {
     } else {
         energyFill.style.background = 'linear-gradient(90deg, #ff4444 0%, #ffaa00 50%, #44ff44 100%)';
     }
+    
+    // Update punch counter if it exists
+    const punchCounter = document.getElementById('punch-counter');
+    if (punchCounter) {
+        punchCounter.textContent = `👊 x${punchesCollected}`;
+        punchCounter.style.display = punchesCollected > 0 || isBossLevel ? 'block' : 'none';
+    }
 }
 
 function gameOver() {
@@ -1460,17 +1821,80 @@ function gameOver() {
     showScreen('gameover');
 }
 
-// Leaderboard functions
+// ============== LEADERBOARD FUNCTIONS (Firebase + Local) ==============
+
+// Check if Firebase is available
+function isFirebaseAvailable() {
+    return typeof firebaseDB !== 'undefined' && firebaseDB !== null;
+}
+
 function loadLeaderboard() {
+    // Load local leaderboard first
     try {
         const saved = localStorage.getItem('tobyTrekLeaderboard');
         if (saved) {
             leaderboard = JSON.parse(saved);
         }
     } catch (e) {
-        console.error('Error loading leaderboard:', e);
+        console.error('Error loading local leaderboard:', e);
         leaderboard = [];
     }
+    
+    // Then try to load from Firebase
+    if (isFirebaseAvailable()) {
+        loadFirebaseLeaderboard();
+    } else {
+        displayLeaderboard();
+    }
+}
+
+function loadFirebaseLeaderboard() {
+    if (!isFirebaseAvailable()) return;
+    
+    try {
+        const scoresRef = firebaseDB.ref('leaderboard');
+        
+        // Listen for real-time updates!
+        scoresRef.orderByChild('score').limitToLast(10).on('value', (snapshot) => {
+            const firebaseScores = [];
+            snapshot.forEach((child) => {
+                firebaseScores.push(child.val());
+            });
+            
+            // Reverse to get highest first
+            firebaseScores.reverse();
+            
+            // Merge with local scores, remove duplicates
+            mergeLeaderboards(firebaseScores);
+            displayLeaderboard();
+        });
+        
+        console.log('Firebase leaderboard connected - real-time updates enabled!');
+    } catch (e) {
+        console.error('Error loading Firebase leaderboard:', e);
+        displayLeaderboard();
+    }
+}
+
+function mergeLeaderboards(firebaseScores) {
+    // Combine Firebase and local scores
+    const combined = [...firebaseScores];
+    
+    // Add local scores that aren't in Firebase
+    leaderboard.forEach(localScore => {
+        const isDuplicate = combined.some(fbScore => 
+            fbScore.name === localScore.name && 
+            fbScore.score === localScore.score &&
+            fbScore.level === localScore.level
+        );
+        if (!isDuplicate) {
+            combined.push(localScore);
+        }
+    });
+    
+    // Sort by score (highest first) and keep top 10
+    combined.sort((a, b) => b.score - a.score);
+    leaderboard = combined.slice(0, 10);
 }
 
 function saveLeaderboard() {
@@ -1489,16 +1913,42 @@ function saveScore(name, score, level) {
         date: new Date().toISOString()
     };
     
+    // Save to local storage
     leaderboard.push(entry);
-    
-    // Sort by score (highest first)
     leaderboard.sort((a, b) => b.score - a.score);
-    
-    // Keep only top 10
     leaderboard = leaderboard.slice(0, 10);
-    
     saveLeaderboard();
+    
+    // Save to Firebase if available
+    if (isFirebaseAvailable()) {
+        saveToFirebase(entry);
+    }
+    
     displayLeaderboard();
+}
+
+function saveToFirebase(entry) {
+    if (!isFirebaseAvailable()) return;
+    
+    try {
+        const scoresRef = firebaseDB.ref('leaderboard');
+        
+        // Push the new score
+        scoresRef.push(entry)
+            .then(() => {
+                console.log('Score saved to Firebase!');
+                
+                // Clean up old scores (keep only top 50 globally)
+                scoresRef.orderByChild('score').limitToFirst(1).once('value', (snapshot) => {
+                    // Firebase will handle the real-time update
+                });
+            })
+            .catch((error) => {
+                console.error('Error saving to Firebase:', error);
+            });
+    } catch (e) {
+        console.error('Error saving to Firebase:', e);
+    }
 }
 
 function displayLeaderboard() {
@@ -1509,13 +1959,24 @@ function displayLeaderboard() {
         return;
     }
     
-    leaderboardList.innerHTML = leaderboard.map((entry, index) => `
+    const firebaseStatus = isFirebaseAvailable() ? 
+        '<div class="firebase-status online">🌐 Global Leaderboard</div>' : 
+        '<div class="firebase-status offline">💾 Local Scores</div>';
+    
+    leaderboardList.innerHTML = firebaseStatus + leaderboard.map((entry, index) => `
         <div class="leaderboard-entry ${index === 0 ? 'first' : ''}">
             <span class="rank">${index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : (index + 1) + '.'}</span>
-            <span class="name">${entry.name}</span>
+            <span class="name">${escapeHtml(entry.name)}</span>
             <span class="score">${entry.score}</span>
         </div>
     `).join('');
+}
+
+// Prevent XSS in player names
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 function render() {
@@ -1527,7 +1988,9 @@ function render() {
     ctx.clearRect(-10, -10, CANVAS_WIDTH + 20, CANVAS_HEIGHT + 20);
 
     // Draw tunnel background based on current world
-    if (currentWorld === WORLDS.GARDEN) {
+    if (currentWorld === WORLDS.CASTLE) {
+        drawCastleTunnel();
+    } else if (currentWorld === WORLDS.GARDEN) {
         drawGardenTunnel();
     } else if (currentWorld === WORLDS.PARK) {
         drawParkTunnel();
@@ -2290,6 +2753,467 @@ function drawSnowDrifts() {
         ctx.ellipse(x, y + 5, size, size * 0.4, 0, 0, Math.PI);
         ctx.fill();
     }
+}
+
+// ============== CASTLE BOSS LEVEL DRAWING ==============
+
+function drawCastleTunnel() {
+    // Dark stormy sky gradient
+    const skyGradient = ctx.createLinearGradient(0, 0, 0, HORIZON_Y + 50);
+    skyGradient.addColorStop(0, '#1a1a2e');    // Very dark blue
+    skyGradient.addColorStop(0.3, '#2d2d44');  // Dark purple-blue
+    skyGradient.addColorStop(0.6, '#3d3d5c');  // Slightly lighter
+    skyGradient.addColorStop(1, '#4a4a70');    // Purple at horizon
+    ctx.fillStyle = skyGradient;
+    ctx.fillRect(0, 0, CANVAS_WIDTH, HORIZON_Y + 50);
+    
+    // Draw lightning occasionally
+    if (Math.random() < 0.01) {
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        const lightningX = Math.random() * CANVAS_WIDTH;
+        ctx.moveTo(lightningX, 0);
+        let y = 0;
+        while (y < HORIZON_Y) {
+            y += 20;
+            ctx.lineTo(lightningX + (Math.random() - 0.5) * 30, y);
+        }
+        ctx.stroke();
+    }
+    
+    // Draw the castle in the background
+    drawCastle();
+    
+    // Stone floor path
+    const floorGradient = ctx.createLinearGradient(0, HORIZON_Y, 0, CANVAS_HEIGHT);
+    floorGradient.addColorStop(0, '#4a4a4a');   // Dark gray at horizon
+    floorGradient.addColorStop(0.5, '#5a5a5a'); // Slightly lighter
+    floorGradient.addColorStop(1, '#6a6a6a');   // Lighter gray near player
+    
+    ctx.fillStyle = floorGradient;
+    ctx.beginPath();
+    ctx.moveTo(CANVAS_WIDTH / 2 - TUNNEL_WIDTH_AT_HORIZON / 2, HORIZON_Y);
+    ctx.lineTo(0, CANVAS_HEIGHT);
+    ctx.lineTo(CANVAS_WIDTH, CANVAS_HEIGHT);
+    ctx.lineTo(CANVAS_WIDTH / 2 + TUNNEL_WIDTH_AT_HORIZON / 2, HORIZON_Y);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Stone texture lines
+    for (let i = 0; i < 8; i++) {
+        const z = ((i * 90 + tunnelOffset) % 720) / 720;
+        if (z < 0.05) continue;
+        
+        const y = getScreenY(z);
+        const leftX = getScreenX(-0.8, z);
+        const rightX = getScreenX(0.8, z);
+        
+        ctx.globalAlpha = 0.3;
+        ctx.strokeStyle = '#3a3a3a';
+        ctx.lineWidth = 1 + z * 2;
+        ctx.beginPath();
+        ctx.moveTo(leftX, y);
+        ctx.lineTo(rightX, y);
+        ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    
+    // Castle walls on sides
+    const wallGradient = ctx.createLinearGradient(0, HORIZON_Y, 0, CANVAS_HEIGHT);
+    wallGradient.addColorStop(0, '#3a3a3a');
+    wallGradient.addColorStop(0.5, '#4a4a4a');
+    wallGradient.addColorStop(1, '#5a5a5a');
+    
+    // Left wall
+    ctx.fillStyle = wallGradient;
+    ctx.beginPath();
+    ctx.moveTo(CANVAS_WIDTH / 2 - TUNNEL_WIDTH_AT_HORIZON / 2, HORIZON_Y);
+    ctx.lineTo(0, CANVAS_HEIGHT);
+    ctx.lineTo(0, HORIZON_Y);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Right wall
+    ctx.beginPath();
+    ctx.moveTo(CANVAS_WIDTH / 2 + TUNNEL_WIDTH_AT_HORIZON / 2, HORIZON_Y);
+    ctx.lineTo(CANVAS_WIDTH, CANVAS_HEIGHT);
+    ctx.lineTo(CANVAS_WIDTH, HORIZON_Y);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Wall torches
+    drawCastleTorches();
+    
+    // Draw the angry black cat boss
+    if (!bossDefeated) {
+        drawAngryBlackCatBoss();
+    } else {
+        // Draw defeated boss
+        drawDefeatedBoss();
+    }
+    
+    // Draw thrown punches
+    drawThrownPunches();
+}
+
+function drawCastle() {
+    const castleX = CANVAS_WIDTH / 2;
+    const castleY = HORIZON_Y - 30;
+    
+    // Main castle body
+    ctx.fillStyle = '#2a2a2a';
+    ctx.fillRect(castleX - 80, castleY - 60, 160, 90);
+    
+    // Towers
+    ctx.fillStyle = '#252525';
+    // Left tower
+    ctx.fillRect(castleX - 100, castleY - 100, 40, 130);
+    // Right tower
+    ctx.fillRect(castleX + 60, castleY - 100, 40, 130);
+    
+    // Tower tops (pointed)
+    ctx.fillStyle = '#3a1a1a'; // Dark red
+    ctx.beginPath();
+    ctx.moveTo(castleX - 100, castleY - 100);
+    ctx.lineTo(castleX - 80, castleY - 140);
+    ctx.lineTo(castleX - 60, castleY - 100);
+    ctx.closePath();
+    ctx.fill();
+    
+    ctx.beginPath();
+    ctx.moveTo(castleX + 60, castleY - 100);
+    ctx.lineTo(castleX + 80, castleY - 140);
+    ctx.lineTo(castleX + 100, castleY - 100);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Battlements
+    ctx.fillStyle = '#2a2a2a';
+    for (let i = 0; i < 7; i++) {
+        ctx.fillRect(castleX - 75 + i * 25, castleY - 75, 15, 15);
+    }
+    
+    // Castle gate (arch)
+    ctx.fillStyle = '#1a1a1a';
+    ctx.beginPath();
+    ctx.arc(castleX, castleY + 30, 25, Math.PI, 0);
+    ctx.lineTo(castleX + 25, castleY + 30);
+    ctx.lineTo(castleX - 25, castleY + 30);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Windows with glowing effect
+    ctx.fillStyle = '#FF6600';
+    ctx.shadowColor = '#FF6600';
+    ctx.shadowBlur = 10;
+    // Left tower windows
+    ctx.fillRect(castleX - 88, castleY - 80, 15, 20);
+    ctx.fillRect(castleX - 88, castleY - 50, 15, 20);
+    // Right tower windows
+    ctx.fillRect(castleX + 73, castleY - 80, 15, 20);
+    ctx.fillRect(castleX + 73, castleY - 50, 15, 20);
+    ctx.shadowBlur = 0;
+}
+
+function drawCastleTorches() {
+    // Draw torches on walls with flame animation
+    const time = Date.now() / 100;
+    
+    for (let i = 0; i < 3; i++) {
+        const z = 0.3 + i * 0.25;
+        const y = getScreenY(z);
+        const leftX = getScreenX(-0.9, z);
+        const rightX = getScreenX(0.9, z);
+        const size = 5 + z * 15;
+        
+        // Left torch
+        drawTorch(leftX, y - size, size, time + i);
+        // Right torch
+        drawTorch(rightX, y - size, size, time + i + 0.5);
+    }
+}
+
+function drawTorch(x, y, size, time) {
+    // Torch holder
+    ctx.fillStyle = '#5a3a1a';
+    ctx.fillRect(x - size * 0.15, y, size * 0.3, size * 0.8);
+    
+    // Flame
+    const flicker = Math.sin(time * 5) * size * 0.1;
+    
+    // Outer flame (orange)
+    ctx.fillStyle = '#FF6600';
+    ctx.beginPath();
+    ctx.moveTo(x - size * 0.3, y);
+    ctx.quadraticCurveTo(x - size * 0.4, y - size * 0.5 + flicker, x, y - size + flicker);
+    ctx.quadraticCurveTo(x + size * 0.4, y - size * 0.5 - flicker, x + size * 0.3, y);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Inner flame (yellow)
+    ctx.fillStyle = '#FFFF00';
+    ctx.beginPath();
+    ctx.moveTo(x - size * 0.15, y);
+    ctx.quadraticCurveTo(x - size * 0.2, y - size * 0.3 - flicker, x, y - size * 0.6 + flicker);
+    ctx.quadraticCurveTo(x + size * 0.2, y - size * 0.3 + flicker, x + size * 0.15, y);
+    ctx.closePath();
+    ctx.fill();
+}
+
+function drawAngryBlackCatBoss() {
+    const hitFlash = Date.now() - bossHitTime < 200;
+    const bossScale = 1.5 + (level / BOSS_LEVEL_INTERVAL) * 0.2; // Gets bigger with each boss
+    
+    ctx.save();
+    ctx.translate(bossX, bossY);
+    ctx.scale(bossScale, bossScale);
+    
+    if (hitFlash) {
+        ctx.globalAlpha = 0.5 + Math.sin(Date.now() / 30) * 0.5;
+    }
+    
+    // Body - angry black cat
+    ctx.fillStyle = '#1a1a1a';
+    ctx.beginPath();
+    ctx.ellipse(0, 10, 35, 25, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Head
+    ctx.fillStyle = '#1a1a1a';
+    ctx.beginPath();
+    ctx.arc(0, -20, 25, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Angry ears (pointed up)
+    ctx.fillStyle = '#1a1a1a';
+    ctx.beginPath();
+    ctx.moveTo(-20, -35);
+    ctx.lineTo(-12, -55);
+    ctx.lineTo(-5, -35);
+    ctx.closePath();
+    ctx.fill();
+    
+    ctx.beginPath();
+    ctx.moveTo(20, -35);
+    ctx.lineTo(12, -55);
+    ctx.lineTo(5, -35);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Inner ears (pink, angry)
+    ctx.fillStyle = '#FF3333';
+    ctx.beginPath();
+    ctx.moveTo(-17, -37);
+    ctx.lineTo(-12, -50);
+    ctx.lineTo(-8, -37);
+    ctx.closePath();
+    ctx.fill();
+    
+    ctx.beginPath();
+    ctx.moveTo(17, -37);
+    ctx.lineTo(12, -50);
+    ctx.lineTo(8, -37);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Angry eyes (red, glowing)
+    ctx.fillStyle = '#FF0000';
+    ctx.shadowColor = '#FF0000';
+    ctx.shadowBlur = 15;
+    ctx.beginPath();
+    ctx.ellipse(-10, -22, 8, 5, -0.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(10, -22, 8, 5, 0.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    
+    // Evil pupils (slits)
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(-11, -25, 2, 6);
+    ctx.fillRect(9, -25, 2, 6);
+    
+    // Angry eyebrows
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(-18, -32);
+    ctx.lineTo(-5, -28);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(18, -32);
+    ctx.lineTo(5, -28);
+    ctx.stroke();
+    
+    // Snarling mouth with fangs
+    ctx.fillStyle = '#330000';
+    ctx.beginPath();
+    ctx.moveTo(-12, -5);
+    ctx.quadraticCurveTo(0, 5, 12, -5);
+    ctx.quadraticCurveTo(0, 10, -12, -5);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Fangs
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.moveTo(-6, -5);
+    ctx.lineTo(-4, 3);
+    ctx.lineTo(-2, -5);
+    ctx.closePath();
+    ctx.fill();
+    
+    ctx.beginPath();
+    ctx.moveTo(6, -5);
+    ctx.lineTo(4, 3);
+    ctx.lineTo(2, -5);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Whiskers (aggressive, pointing down)
+    ctx.strokeStyle = '#444444';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 3; i++) {
+        // Left whiskers
+        ctx.beginPath();
+        ctx.moveTo(-15, -10 + i * 4);
+        ctx.lineTo(-35, -5 + i * 6);
+        ctx.stroke();
+        // Right whiskers
+        ctx.beginPath();
+        ctx.moveTo(15, -10 + i * 4);
+        ctx.lineTo(35, -5 + i * 6);
+        ctx.stroke();
+    }
+    
+    // Raised paws (threatening pose)
+    ctx.fillStyle = '#1a1a1a';
+    // Left paw
+    ctx.beginPath();
+    ctx.ellipse(-30, 0, 12, 10, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+    // Right paw
+    ctx.beginPath();
+    ctx.ellipse(30, 0, 12, 10, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Claws
+    ctx.fillStyle = '#FFFFFF';
+    for (let i = 0; i < 3; i++) {
+        // Left claws
+        ctx.beginPath();
+        ctx.moveTo(-38 + i * 5, -5);
+        ctx.lineTo(-40 + i * 5, -12);
+        ctx.lineTo(-36 + i * 5, -5);
+        ctx.closePath();
+        ctx.fill();
+        // Right claws
+        ctx.beginPath();
+        ctx.moveTo(38 - i * 5, -5);
+        ctx.lineTo(40 - i * 5, -12);
+        ctx.lineTo(36 - i * 5, -5);
+        ctx.closePath();
+        ctx.fill();
+    }
+    
+    // Tail (swishing angrily)
+    const tailSwish = Math.sin(Date.now() / 100) * 15;
+    ctx.strokeStyle = '#1a1a1a';
+    ctx.lineWidth = 8;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(0, 30);
+    ctx.quadraticCurveTo(30 + tailSwish, 40, 40 + tailSwish, 20);
+    ctx.stroke();
+    
+    ctx.restore();
+    
+    // Draw boss health bar
+    drawBossHealthBar();
+}
+
+function drawBossHealthBar() {
+    const barWidth = 200;
+    const barHeight = 20;
+    const barX = CANVAS_WIDTH / 2 - barWidth / 2;
+    const barY = 50;
+    
+    // Background
+    ctx.fillStyle = '#333333';
+    ctx.fillRect(barX - 2, barY - 2, barWidth + 4, barHeight + 4);
+    
+    // Health bar
+    const healthPercent = bossHealth / bossMaxHealth;
+    const healthColor = healthPercent > 0.5 ? '#FF0000' : healthPercent > 0.25 ? '#FF6600' : '#FF0000';
+    
+    ctx.fillStyle = '#550000';
+    ctx.fillRect(barX, barY, barWidth, barHeight);
+    
+    ctx.fillStyle = healthColor;
+    ctx.fillRect(barX, barY, barWidth * healthPercent, barHeight);
+    
+    // Boss name
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('😼 ANGRY BLACK CAT 😼', CANVAS_WIDTH / 2, barY - 8);
+    
+    // Health text
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '14px Arial';
+    ctx.fillText(`${Math.ceil(bossHealth)} / ${bossMaxHealth}`, CANVAS_WIDTH / 2, barY + 15);
+}
+
+function drawDefeatedBoss() {
+    ctx.save();
+    ctx.translate(bossX, bossY + 20);
+    ctx.rotate(Math.PI / 2); // Lying down
+    ctx.globalAlpha = 0.6;
+    
+    // Simplified defeated cat
+    ctx.fillStyle = '#1a1a1a';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 30, 20, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // X eyes
+    ctx.strokeStyle = '#FF0000';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-15, -5);
+    ctx.lineTo(-7, 3);
+    ctx.moveTo(-7, -5);
+    ctx.lineTo(-15, 3);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(7, -5);
+    ctx.lineTo(15, 3);
+    ctx.moveTo(15, -5);
+    ctx.lineTo(7, 3);
+    ctx.stroke();
+    
+    ctx.restore();
+}
+
+function drawThrownPunches() {
+    thrownPunches.forEach(punch => {
+        ctx.save();
+        ctx.translate(punch.x, punch.y);
+        
+        // Punch emoji with motion blur effect
+        ctx.font = '30px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('👊', 0, 0);
+        
+        // Motion trail
+        ctx.globalAlpha = 0.3;
+        ctx.fillText('👊', 0, 15);
+        ctx.globalAlpha = 0.15;
+        ctx.fillText('👊', 0, 30);
+        
+        ctx.restore();
+    });
 }
 
 function drawSwingSet(x, y) {

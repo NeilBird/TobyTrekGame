@@ -53,8 +53,8 @@
                 </svg>
             </div>
             <h1>Toby Trek</h1>
-            <div class="version">v0.8.0</div>
-            <div class="subtitle">A 4-World Adventure</div>
+            <div class="version">v0.9.0</div>
+            <div class="subtitle">A 4-World Adventure + Boss Battles!</div>
             
             <!-- Settings Bar -->
             <div class="settings-bar">
@@ -92,11 +92,11 @@
                         <span>Hazards = AVOID!</span>
                     </div>
                     <div class="legend-item power">
-                        <span class="icon">🛡️⚡🧲✨</span>
+                        <span class="icon">🛡️⚡🧲✨👊</span>
                         <span>Power-ups!</span>
                     </div>
                 </div>
-                <p class="tip">🌿 Garden → ❄️ Snow → 🎢 Park → 🚀 Space</p>
+                <p class="tip">🌿 Garden → ❄️ Snow → 🎢 Park → 🚀 Space → 🏰 BOSS every 10 levels!</p>
             </div>
             
             <!-- Skin Selector -->
@@ -122,7 +122,7 @@
         <!-- Achievements Modal -->
         <div id="achievements-modal" class="modal hidden">
             <div class="modal-content">
-                <h2>🏆 Achievements <span id="achievements-progress">0/14</span></h2>
+                <h2>🏆 Achievements <span id="achievements-progress">0/16</span></h2>
                 <div id="achievements-list"></div>
                 <button onclick="hideAchievements()" class="game-btn">Close</button>
             </div>
@@ -139,9 +139,11 @@
                     </div>
                 </div>
                 <div id="level-display">Level: <span id="level">1</span></div>
+                <div id="punch-counter" style="display: none;">👊 x0</div>
                 <button id="pause-btn" class="hud-btn">⏸️</button>
             </div>
             <div id="speed-indicator" class="hidden">⚡ SPEED UP! ⚡</div>
+            <div id="boss-indicator" class="hidden">😼 BOSS BATTLE! Press SPACE to throw! 😼</div>
             <canvas id="game-canvas"></canvas>
             
             <!-- Pause Overlay -->
@@ -217,6 +219,37 @@
             <button id="restart-btn" class="game-btn">Run Again!</button>
         </div>
     </div>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    
+    <!-- Firebase Configuration -->
+    <script>
+        // Firebase config for TobyTrek
+        const firebaseConfig = {
+            apiKey: "AIzaSyD5JpBPBtvxX5OaPYpG0EFWKY0kpirklZ8",
+            authDomain: "tobytrek-c220f.firebaseapp.com",
+            databaseURL: "https://tobytrek-c220f-default-rtdb.firebaseio.com",
+            projectId: "tobytrek-c220f",
+            storageBucket: "tobytrek-c220f.firebasestorage.app",
+            messagingSenderId: "517568152614",
+            appId: "1:517568152614:web:b9f58d7e1822ce225452e7"
+        };
+        
+        // Initialize Firebase
+        let firebaseApp = null;
+        let firebaseDB = null;
+        
+        try {
+            firebaseApp = firebase.initializeApp(firebaseConfig);
+            firebaseDB = firebase.database();
+            console.log('Firebase initialized successfully');
+        } catch (error) {
+            console.log('Firebase not configured - using local storage only');
+        }
+    </script>
+    
     <script src="game.js"></script>
 </body>
 </html>
