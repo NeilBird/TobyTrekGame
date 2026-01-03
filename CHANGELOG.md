@@ -20,6 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Dougie (boss 4) has extra health as the "big boss"
   - Dynamic health bar shows current boss name
 
+### Improved
+- **Boss Battle Balance** ⚖️
+  - Punch power-ups now spawn during boss battles (collect more ammo while fighting!)
+  - Minimum starting punches increased from 5 to 10
+  - Makes boss battles more fair and achievable
+
 ### Fixed
 - **Boss Battle UI Bug** 🐛
   - Boss indicator message now auto-hides after 3 seconds

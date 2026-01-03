@@ -1161,9 +1161,9 @@ function startBossBattle() {
     sideScenery = [];
     thrownPunches = [];
     
-    // Give minimum punches if player has none
-    if (punchesCollected < 5) {
-        punchesCollected = 5;
+    // Give minimum punches if player has few - increased to 10 for better gameplay
+    if (punchesCollected < 10) {
+        punchesCollected = 10;
         addFloatingText('Bonus ammo!', '#FF6B35', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
     }
     
@@ -1240,6 +1240,11 @@ function updateBossBattle() {
     if (Math.random() < 0.02) {
         spawnBossHazard();
     }
+    
+    // Occasionally spawn punch power-ups so player can collect more ammo
+    if (Math.random() < 0.015) {
+        spawnBossPunch();
+    }
 }
 
 function spawnBossHazard() {
@@ -1252,6 +1257,20 @@ function spawnBossHazard() {
         collected: false,
         rotation: 0,
         rotationSpeed: (Math.random() - 0.5) * 0.2
+    };
+    approachingObjects.push(obj);
+}
+
+function spawnBossPunch() {
+    // Spawn punch power-ups during boss battle for extra ammo!
+    const obj = {
+        laneX: (Math.random() - 0.5) * 1.6,
+        z: 0,
+        ...OBJECT_TYPES.PUNCH,
+        objectType: OBJECT_TYPES.PUNCH,
+        collected: false,
+        rotation: 0,
+        rotationSpeed: (Math.random() - 0.5) * 0.1
     };
     approachingObjects.push(obj);
 }
