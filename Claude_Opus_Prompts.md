@@ -153,7 +153,7 @@ on level  6 toby is unable to move to fight the boss this is still a bug?
 
 ## 29
 
-Toby can still not move on the Boss Level, can I share Debug ouput from the Developer Tools of the web broswer on a laptop?
+Toby can still not move on the Boss Level, can I share Debug output from the Developer Tools of the web broswer on a laptop?
 
 ## 30
 
@@ -169,4 +169,8 @@ at update (game.js:933:9)
 at gameLoop (game.js:827:5)
 
 ## 31
+
+Users report that they do not have enought Fists to defeat the Bosses on the Boss Levels. During the Boss Levels, when the Hair Dryers are coming to harm Toby, should we also have a small number of Fists to collect, otherwise it is very difficult to defeat the Bosses?
+
+## 32
 
