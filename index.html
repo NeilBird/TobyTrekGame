@@ -9,69 +9,62 @@
 <body>
     <div id="game-container">
         <div id="start-screen" class="screen">
-            <div class="toby-icon">
-                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Toby's head - white with grey/black patches -->
-                    <ellipse cx="50" cy="55" rx="35" ry="30" fill="#FFFFFF" stroke="#CCCCCC" stroke-width="2"/>
-                    <!-- Black patch on head -->
-                    <ellipse cx="35" cy="45" rx="15" ry="12" fill="#333333" transform="rotate(-15 35 45)"/>
-                    <!-- Grey patch -->
-                    <ellipse cx="68" cy="60" rx="10" ry="8" fill="#888888" transform="rotate(10 68 60)"/>
-                    <!-- Left ear -->
-                    <polygon points="22,35 32,12 42,35" fill="#FFFFFF" stroke="#CCCCCC" stroke-width="2"/>
-                    <polygon points="26,32 32,18 38,32" fill="#333333"/>
-                    <polygon points="28,32 32,22 36,32" fill="#FFB6C1"/>
-                    <!-- Right ear -->
-                    <polygon points="58,35 68,12 78,35" fill="#FFFFFF" stroke="#CCCCCC" stroke-width="2"/>
-                    <polygon points="62,32 68,18 74,32" fill="#666666"/>
-                    <polygon points="64,32 68,22 72,32" fill="#FFB6C1"/>
-                    <!-- Eyes with yellow/green gradient -->
-                    <defs>
-                        <radialGradient id="eyeGradient" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#9ACD32" />
-                            <stop offset="50%" style="stop-color:#7CB342" />
-                            <stop offset="100%" style="stop-color:#558B2F" />
-                        </radialGradient>
-                    </defs>
-                    <ellipse cx="38" cy="55" rx="7" ry="8" fill="url(#eyeGradient)"/>
-                    <ellipse cx="62" cy="55" rx="7" ry="8" fill="url(#eyeGradient)"/>
-                    <ellipse cx="38" cy="56" rx="2" ry="5" fill="#000000"/>
-                    <ellipse cx="62" cy="56" rx="2" ry="5" fill="#000000"/>
-                    <circle cx="36" cy="52" r="2" fill="#FFFFFF"/>
-                    <circle cx="60" cy="52" r="2" fill="#FFFFFF"/>
-                    <!-- Nose -->
-                    <polygon points="50,65 46,72 54,72" fill="#FF69B4"/>
-                    <!-- Mouth -->
-                    <path d="M42,78 Q50,85 58,78" stroke="#333" stroke-width="2" fill="none"/>
-                    <!-- Whiskers -->
-                    <line x1="30" y1="68" x2="8" y2="62" stroke="#555" stroke-width="1.5"/>
-                    <line x1="30" y1="72" x2="8" y2="72" stroke="#555" stroke-width="1.5"/>
-                    <line x1="30" y1="76" x2="8" y2="82" stroke="#555" stroke-width="1.5"/>
-                    <line x1="70" y1="68" x2="92" y2="62" stroke="#555" stroke-width="1.5"/>
-                    <line x1="70" y1="72" x2="92" y2="72" stroke="#555" stroke-width="1.5"/>
-                    <line x1="70" y1="76" x2="92" y2="82" stroke="#555" stroke-width="1.5"/>
-                </svg>
-            </div>
-            <h1>Toby Trek</h1>
-            <div class="version">v0.9.0</div>
-            <div class="subtitle">A 4-World Adventure + Boss Battles!</div>
-            
-            <!-- Settings Bar -->
-            <div class="settings-bar">
-                <button id="sound-toggle" class="settings-btn" title="Toggle Sound">🔊</button>
-                <button id="music-toggle" class="settings-btn" title="Toggle Music">🎵</button>
-                <button id="achievements-btn" class="settings-btn" title="Achievements">🏆</button>
+            <div class="hero-section">
+                <div class="toby-icon">
+                    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Toby's head - white with grey/black patches -->
+                        <ellipse cx="50" cy="55" rx="35" ry="30" fill="#FFFFFF" stroke="#CCCCCC" stroke-width="2"/>
+                        <!-- Black patch on head -->
+                        <ellipse cx="35" cy="45" rx="15" ry="12" fill="#333333" transform="rotate(-15 35 45)"/>
+                        <!-- Grey patch -->
+                        <ellipse cx="68" cy="60" rx="10" ry="8" fill="#888888" transform="rotate(10 68 60)"/>
+                        <!-- Left ear -->
+                        <polygon points="22,35 32,12 42,35" fill="#FFFFFF" stroke="#CCCCCC" stroke-width="2"/>
+                        <polygon points="26,32 32,18 38,32" fill="#333333"/>
+                        <polygon points="28,32 32,22 36,32" fill="#FFB6C1"/>
+                        <!-- Right ear -->
+                        <polygon points="58,35 68,12 78,35" fill="#FFFFFF" stroke="#CCCCCC" stroke-width="2"/>
+                        <polygon points="62,32 68,18 74,32" fill="#666666"/>
+                        <polygon points="64,32 68,22 72,32" fill="#FFB6C1"/>
+                        <!-- Eyes with yellow/green gradient -->
+                        <defs>
+                            <radialGradient id="eyeGradient" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" style="stop-color:#9ACD32" />
+                                <stop offset="50%" style="stop-color:#7CB342" />
+                                <stop offset="100%" style="stop-color:#558B2F" />
+                            </radialGradient>
+                        </defs>
+                        <ellipse cx="38" cy="55" rx="7" ry="8" fill="url(#eyeGradient)"/>
+                        <ellipse cx="62" cy="55" rx="7" ry="8" fill="url(#eyeGradient)"/>
+                        <ellipse cx="38" cy="56" rx="2" ry="5" fill="#000000"/>
+                        <ellipse cx="62" cy="56" rx="2" ry="5" fill="#000000"/>
+                        <circle cx="36" cy="52" r="2" fill="#FFFFFF"/>
+                        <circle cx="60" cy="52" r="2" fill="#FFFFFF"/>
+                        <!-- Nose -->
+                        <polygon points="50,65 46,72 54,72" fill="#FF69B4"/>
+                        <!-- Mouth -->
+                        <path d="M42,78 Q50,85 58,78" stroke="#333" stroke-width="2" fill="none"/>
+                        <!-- Whiskers -->
+                        <line x1="30" y1="68" x2="8" y2="62" stroke="#555" stroke-width="1.5"/>
+                        <line x1="30" y1="72" x2="8" y2="72" stroke="#555" stroke-width="1.5"/>
+                        <line x1="30" y1="76" x2="8" y2="82" stroke="#555" stroke-width="1.5"/>
+                        <line x1="70" y1="68" x2="92" y2="62" stroke="#555" stroke-width="1.5"/>
+                        <line x1="70" y1="72" x2="92" y2="72" stroke="#555" stroke-width="1.5"/>
+                        <line x1="70" y1="76" x2="92" y2="82" stroke="#555" stroke-width="1.5"/>
+                    </svg>
+                </div>
+                <h1>Toby Trek</h1>
+                <div class="version">v0.9.3</div>
             </div>
             
-            <!-- Player Name Input -->
-            <div class="player-name-section">
-                <label for="player-name">Enter Your Name:</label>
-                <input type="text" id="player-name" maxlength="15" placeholder="Player 1">
-            </div>
+            <!-- Kitty Coins Display -->
+            <div id="kitty-coins-display" class="kitty-coins">🪙 0</div>
             
-            <!-- Difficulty Selection -->
-            <div class="difficulty-section">
-                <span>Difficulty:</span>
+            <!-- Quick Setup Row -->
+            <div class="setup-row">
+                <div class="player-name-section">
+                    <input type="text" id="player-name" maxlength="15" placeholder="Enter your name">
+                </div>
                 <div class="difficulty-buttons">
                     <button class="difficulty-btn" data-difficulty="easy">Easy</button>
                     <button class="difficulty-btn active" data-difficulty="normal">Normal</button>
@@ -79,43 +72,60 @@
                 </div>
             </div>
             
-            <div class="instructions">
-                <p>Help Toby run through 4 worlds!</p>
-                <p>Use <span class="key">←</span> <span class="key">→</span> keys or tap screen | Press <span class="key">P</span> to pause</p>
-                <div class="legend">
-                    <div class="legend-item good">
-                        <span class="icon">🍗 🥫</span>
-                        <span>Treats = Yummy!</span>
-                    </div>
-                    <div class="legend-item bad">
-                        <span class="icon">💨 💧</span>
-                        <span>Hazards = AVOID!</span>
-                    </div>
-                    <div class="legend-item power">
-                        <span class="icon">🛡️⚡🧲✨👊</span>
-                        <span>Power-ups!</span>
-                    </div>
+            <!-- Main Action Buttons -->
+            <div class="main-buttons">
+                <button id="start-btn" class="game-btn primary">▶ Play</button>
+                <button id="daily-challenge-btn" class="game-btn secondary">📅 Daily Challenge</button>
+            </div>
+            
+            <!-- Bottom Row: Quick Actions -->
+            <div class="quick-actions">
+                <button id="how-to-play-btn" class="action-btn">❓ How to Play</button>
+                <button id="achievements-btn" class="action-btn">🏆 Achievements</button>
+                <button id="skins-btn" class="action-btn">🎨 Shop</button>
+            </div>
+            
+            <!-- Settings Icons -->
+            <div class="settings-bar">
+                <button id="sound-toggle" class="settings-btn" title="Toggle Sound">🔊</button>
+                <button id="music-toggle" class="settings-btn" title="Toggle Music">🎵</button>
+            </div>
+            
+            <!-- Collapsible How to Play Panel -->
+            <div id="how-to-play-panel" class="panel hidden">
+                <div class="panel-header">
+                    <h3>How to Play</h3>
+                    <button class="close-panel-btn" onclick="togglePanel('how-to-play-panel')">✕</button>
                 </div>
-                <p class="tip">🌿 Garden → ❄️ Snow → 🎢 Park → 🚀 Space → 🏰 BOSS every 10 levels!</p>
+                <div class="panel-content">
+                    <p><span class="key">←</span> <span class="key">→</span> or tap to move | <span class="key">P</span> pause | <span class="key">SPACE</span> throw punch</p>
+                    <div class="legend">
+                        <div class="legend-item good"><span class="icon">🍗 🥫</span> Treats = Energy!</div>
+                        <div class="legend-item bad"><span class="icon">💨 💧</span> Hazards = Avoid!</div>
+                        <div class="legend-item power"><span class="icon">🛡️⚡🧲✨👊</span> Power-ups!</div>
+                    </div>
+                    <p class="worlds">🌿 Garden → ❄️ Snow → 🎢 Park → 🚀 Space → 😼 BOSS every 10 levels!</p>
+                </div>
             </div>
             
-            <!-- Skin Selector -->
-            <div class="skin-section">
-                <span>Choose Skin:</span>
-                <div id="skin-selector" class="skin-selector"></div>
+            <!-- Collapsible Shop Panel -->
+            <div id="skins-panel" class="panel shop-panel hidden">
+                <div class="panel-header">
+                    <h3>🏪 Kitty Shop</h3>
+                    <button class="close-panel-btn" onclick="togglePanel('skins-panel')">✕</button>
+                </div>
+                <div class="panel-content">
+                    <p class="shop-info">Earn 🪙 Kitty Coins by collecting treats, completing levels, and defeating bosses!</p>
+                    <div id="skin-selector" class="skin-selector"></div>
+                </div>
             </div>
             
-            <!-- Leaderboard -->
+            <!-- Leaderboard (always visible but compact) -->
             <div class="leaderboard">
                 <h3>🏆 Top Scores</h3>
                 <div id="leaderboard-list">
                     <p class="no-scores">No scores yet - be the first!</p>
                 </div>
-            </div>
-            
-            <div class="button-row">
-                <button id="start-btn" class="game-btn">Start Running!</button>
-                <button id="daily-challenge-btn" class="game-btn daily-btn">📅 Daily Challenge</button>
             </div>
         </div>
         

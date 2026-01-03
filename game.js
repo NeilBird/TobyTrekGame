@@ -1,5 +1,5 @@
 // Game Version
-const GAME_VERSION = '0.9.1';
+const GAME_VERSION = '0.9.3';
 
 // Game Constants
 const CANVAS_WIDTH = 800;
@@ -125,13 +125,22 @@ let gamePaused = false;
 let dailyChallengeActive = false;
 let dailyChallengeSeed = 0;
 
-// Character skins
+// Kitty Coins Currency System
+let kittyCoins = 0;
+const COINS_PER_TREAT = 1;      // Earn 1 coin per treat collected
+const COINS_PER_LEVEL = 10;    // Earn 10 coins per level completed
+const COINS_PER_BOSS = 50;     // Earn 50 coins for defeating a boss
+
+// Character skins with prices
 const TOBY_SKINS = {
-    default: { name: 'Classic Toby', unlocked: true, bodyColor: '#FFFFFF', patchColor: '#333333' },
-    golden: { name: 'Golden Toby', unlocked: false, bodyColor: '#FFD700', patchColor: '#B8860B' },
-    midnight: { name: 'Midnight Toby', unlocked: false, bodyColor: '#2C3E50', patchColor: '#1A252F' },
-    rainbow: { name: 'Rainbow Toby', unlocked: false, bodyColor: '#FF69B4', patchColor: '#9B59B6' },
-    space: { name: 'Space Toby', unlocked: false, bodyColor: '#4A0080', patchColor: '#00CED1' }
+    default: { name: 'Classic Toby', unlocked: true, price: 0, bodyColor: '#FFFFFF', patchColor: '#333333' },
+    golden: { name: 'Golden Toby', unlocked: false, price: 100, bodyColor: '#FFD700', patchColor: '#B8860B' },
+    midnight: { name: 'Midnight Toby', unlocked: false, price: 150, bodyColor: '#2C3E50', patchColor: '#1A252F' },
+    rainbow: { name: 'Rainbow Toby', unlocked: false, price: 200, bodyColor: '#FF69B4', patchColor: '#9B59B6' },
+    space: { name: 'Space Toby', unlocked: false, price: 250, bodyColor: '#4A0080', patchColor: '#00CED1' },
+    tiger: { name: 'Tiger Toby', unlocked: false, price: 300, bodyColor: '#FF8C00', patchColor: '#8B4513' },
+    ghost: { name: 'Ghost Toby', unlocked: false, price: 350, bodyColor: '#E8E8E8', patchColor: '#C0C0C0' },
+    neon: { name: 'Neon Toby', unlocked: false, price: 400, bodyColor: '#00FF00', patchColor: '#FF00FF' }
 };
 let currentSkin = 'default';
 
@@ -242,6 +251,7 @@ function init() {
     loadLeaderboard();
     loadAchievements();
     loadSkins();
+    loadKittyCoins();
     loadSettings();
     displayLeaderboard();
 
@@ -999,6 +1009,10 @@ function update(timestamp) {
 }
 
 function advanceLevel() {
+    // Award Kitty Coins for completing the level!
+    earnKittyCoins(COINS_PER_LEVEL);
+    addFloatingText(`+${COINS_PER_LEVEL} 🪙`, '#FFD700', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 50);
+    
     level++;
     levelProgress = 0;
     levelStartTime = Date.now();
@@ -1181,11 +1195,15 @@ function defeatBoss() {
     const bossBonus = 500 * (level / BOSS_LEVEL_INTERVAL);
     score += bossBonus;
     
+    // Big Kitty Coins bonus for defeating boss!
+    earnKittyCoins(COINS_PER_BOSS);
+    
     if (soundEnabled) playBossDefeatedSound();
     spawnParticles(bossX, bossY, '#FFD700', 50);
     spawnParticles(bossX, bossY, '#FF6B35', 30);
     
     addFloatingText(`BOSS DEFEATED! +${bossBonus}`, '#FFD700', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+    addFloatingText(`+${COINS_PER_BOSS} 🪙`, '#FFD700', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 40);
     
     // Unlock boss defeat achievements
     unlockAchievement('boss_defeated');
@@ -1526,6 +1544,9 @@ function handleCollision(obj) {
         // Track total treats for achievements
         totalTreatsCollected++;
         checkTreatAchievements();
+        
+        // Earn Kitty Coins!
+        earnKittyCoins(COINS_PER_TREAT);
         
         if (soundEnabled) {
             playCollectSound();
@@ -4804,6 +4825,63 @@ function unlockSkin(skinId) {
     }
 }
 
+// ============== KITTY COINS SYSTEM ==============
+
+function earnKittyCoins(amount) {
+    kittyCoins += amount;
+    saveKittyCoins();
+    updateCoinDisplay();
+}
+
+function spendKittyCoins(amount) {
+    if (kittyCoins >= amount) {
+        kittyCoins -= amount;
+        saveKittyCoins();
+        updateCoinDisplay();
+        return true;
+    }
+    return false;
+}
+
+function saveKittyCoins() {
+    localStorage.setItem('tobyTrekKittyCoins', kittyCoins.toString());
+}
+
+function loadKittyCoins() {
+    const saved = localStorage.getItem('tobyTrekKittyCoins');
+    if (saved) {
+        kittyCoins = parseInt(saved) || 0;
+    }
+    updateCoinDisplay();
+}
+
+function updateCoinDisplay() {
+    const coinDisplay = document.getElementById('kitty-coins-display');
+    if (coinDisplay) {
+        coinDisplay.textContent = `🪙 ${kittyCoins}`;
+    }
+}
+
+function purchaseSkin(skinId) {
+    const skin = TOBY_SKINS[skinId];
+    if (!skin || skin.unlocked) return false;
+    
+    if (spendKittyCoins(skin.price)) {
+        unlockSkin(skinId);
+        if (soundEnabled) playCollectSound();
+        addFloatingText(`Unlocked ${skin.name}!`, '#FFD700', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+        updateSkinDisplay();
+        
+        // Check if all skins unlocked
+        const allUnlocked = Object.values(TOBY_SKINS).every(s => s.unlocked);
+        if (allUnlocked) {
+            unlockAchievement('all_skins');
+        }
+        return true;
+    }
+    return false;
+}
+
 function updateSkinDisplay() {
     const container = document.getElementById('skin-selector');
     if (!container) return;
@@ -4811,17 +4889,38 @@ function updateSkinDisplay() {
     container.innerHTML = Object.entries(TOBY_SKINS).map(([id, skin]) => {
         const isSelected = id === currentSkin;
         const isLocked = !skin.unlocked;
+        const canAfford = kittyCoins >= skin.price;
+        
+        let onClick = '';
+        let statusText = '';
+        
+        if (isLocked) {
+            if (canAfford) {
+                onClick = `purchaseSkin('${id}')`;
+                statusText = `<span class="skin-price affordable">🪙 ${skin.price}</span>`;
+            } else {
+                statusText = `<span class="skin-price">🪙 ${skin.price}</span>`;
+            }
+        } else {
+            onClick = `selectSkin('${id}')`;
+            statusText = isSelected ? '<span class="skin-equipped">✓ Equipped</span>' : '<span class="skin-owned">Owned</span>';
+        }
+        
         return `
-            <div class="skin-option ${isSelected ? 'selected' : ''} ${isLocked ? 'locked' : ''}" 
-                 onclick="${isLocked ? '' : `selectSkin('${id}')`}">
+            <div class="skin-option ${isSelected ? 'selected' : ''} ${isLocked ? 'locked' : ''} ${isLocked && canAfford ? 'can-afford' : ''}" 
+                 onclick="${onClick}">
                 <div class="skin-preview" style="background: ${skin.bodyColor}; border-color: ${skin.patchColor}">
                     ${isLocked ? '🔒' : ''}
                 </div>
                 <span class="skin-name">${skin.name}</span>
+                ${statusText}
             </div>
         `;
     }).join('');
 }
+
+// Make purchaseSkin available globally
+window.purchaseSkin = purchaseSkin;
 
 // ============== SETTINGS SYSTEM ==============
 
@@ -4892,7 +4991,36 @@ function setupSettingsControls() {
     if (achievementsBtn) {
         achievementsBtn.addEventListener('click', showAchievements);
     }
+    
+    // How to Play button
+    const howToPlayBtn = document.getElementById('how-to-play-btn');
+    if (howToPlayBtn) {
+        howToPlayBtn.addEventListener('click', () => togglePanel('how-to-play-panel'));
+    }
+    
+    // Skins button
+    const skinsBtn = document.getElementById('skins-btn');
+    if (skinsBtn) {
+        skinsBtn.addEventListener('click', () => togglePanel('skins-panel'));
+    }
 }
+
+// Panel toggle function
+function togglePanel(panelId) {
+    const panel = document.getElementById(panelId);
+    if (panel) {
+        // Close other panels first
+        document.querySelectorAll('.panel').forEach(p => {
+            if (p.id !== panelId) {
+                p.classList.add('hidden');
+            }
+        });
+        panel.classList.toggle('hidden');
+    }
+}
+
+// Make togglePanel available globally for inline onclick
+window.togglePanel = togglePanel;
 
 function setDifficulty(diff) {
     if (DIFFICULTY_SETTINGS[diff]) {

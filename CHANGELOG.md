@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.9.3] - 2026-01-03
+
+### Added
+- **Kitty Coins Currency System** 🪙
+  - Earn coins by collecting treats (1 coin each)
+  - Earn coins for completing levels (10 coins each)
+  - Earn coins for defeating bosses (50 coins each)
+  - Coins persist between sessions
+  - Coin display on home screen
+
+- **Kitty Shop** 🏪
+  - Purchase skins with Kitty Coins
+  - 8 unique skins with different prices (100-400 coins)
+  - Visual feedback for affordable vs locked skins
+  - New skins: Tiger Toby, Ghost Toby, Neon Toby
+
+### Changed
+- "Skins" button renamed to "Shop"
+- Skins panel redesigned as a proper shop interface
+- Skin cards now show prices, owned status, or equipped status
+
+---
+
+## [0.9.2] - 2026-01-03
+
+### Changed
+- **Modern Home Screen Redesign** - Cleaner, less cluttered interface
+  - Dark elegant theme with glassmorphism effects
+  - Collapsible "How to Play" panel (hidden by default)
+  - Collapsible "Skins" panel
+  - Streamlined setup row (name + difficulty in one line)
+  - Larger, more prominent Play button
+  - Quick action buttons for Help, Achievements, Skins
+  - Settings icons moved to top-right corner
+  - Compact leaderboard with modern styling
+
+---
+
 ## [0.9.1] - 2026-01-03
 
 ### Added

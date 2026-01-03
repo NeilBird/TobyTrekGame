@@ -106,3 +106,34 @@ do you need to update the README.md? - We are publishing the web page using GitH
 
 ## 21
 
+About the Shared Leaderboard
+Would you like me to implement Firebase for a global leaderboard? Here's what you'd need to do:
+
+Create a free Firebase project at firebase.google.com
+Enable Realtime Database (free tier: 1GB storage, 10GB/month transfer)
+Copy your Firebase config to the game
+If you want to proceed, let me know and I'll:
+
+Add the Firebase SDK
+Create functions to save/load scores globally
+Update the leaderboard display to show all players' scores
+Add real-time updates so you see new scores appear!
+The free tier is more than enough for a game like this. Would you like me to implement it? 🏆
+
+yes, I will create a Firebase project now.
+
+## 22
+
+Using the instructions provided by Claude, we setup a Google Firebase Realtime database using this endpoint: https://console.firebase.google.com/
+And secured the database with simple Rules, to prevent garbage being written into the database.
+
+## 23
+
+Can we update the Home screen of the web page to make it simpler and more modern, as it is very cluttered and looks old school. Could we have a button for "Game rules" or instructions, so that they are not always shown?
+
+## 24
+
+How does the Coins / Points / Currency work to get new skins? Is there a shop interface? Can we call the currency for the skins and mods, "Kitty Coins" please?
+
+## 25
+
