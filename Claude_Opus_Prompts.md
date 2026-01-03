@@ -133,3 +133,7 @@ Can we update the Home screen of the web page to make it simpler and more modern
 
 ## 24
 
+How does the Coins / Points / Currency work to get new skins? Is there a shop interface? Can we call the currency for the skins and mods, "Kitty Coins" please?
+
+## 25
+

@@ -54,8 +54,11 @@
                     </svg>
                 </div>
                 <h1>Toby Trek</h1>
-                <div class="version">v0.9.1</div>
+                <div class="version">v0.9.3</div>
             </div>
+            
+            <!-- Kitty Coins Display -->
+            <div id="kitty-coins-display" class="kitty-coins">🪙 0</div>
             
             <!-- Quick Setup Row -->
             <div class="setup-row">
@@ -79,7 +82,7 @@
             <div class="quick-actions">
                 <button id="how-to-play-btn" class="action-btn">❓ How to Play</button>
                 <button id="achievements-btn" class="action-btn">🏆 Achievements</button>
-                <button id="skins-btn" class="action-btn">🎨 Skins</button>
+                <button id="skins-btn" class="action-btn">🎨 Shop</button>
             </div>
             
             <!-- Settings Icons -->
@@ -105,13 +108,14 @@
                 </div>
             </div>
             
-            <!-- Collapsible Skins Panel -->
-            <div id="skins-panel" class="panel hidden">
+            <!-- Collapsible Shop Panel -->
+            <div id="skins-panel" class="panel shop-panel hidden">
                 <div class="panel-header">
-                    <h3>Choose Skin</h3>
+                    <h3>🏪 Kitty Shop</h3>
                     <button class="close-panel-btn" onclick="togglePanel('skins-panel')">✕</button>
                 </div>
                 <div class="panel-content">
+                    <p class="shop-info">Earn 🪙 Kitty Coins by collecting treats, completing levels, and defeating bosses!</p>
                     <div id="skin-selector" class="skin-selector"></div>
                 </div>
             </div>
