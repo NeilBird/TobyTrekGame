@@ -182,7 +182,3 @@ Can you check that the "Skins" are working in the shop? - A user told me they bo
 
 ## 34
 
-Can we make the player name mandatory, and remove the default "Player 1" text?
-
-## 35
-
