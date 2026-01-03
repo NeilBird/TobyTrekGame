@@ -89,6 +89,16 @@ let bossDirection = 1;
 let bossHitTime = 0;
 let bossDefeated = false;
 let bossDefeatedTime = 0;
+let bossBattleStartTime = 0;
+let currentBossType = 0; // 0=Dave, 1=Hoover, 2=Cucumber, 3=Dougie
+
+// Boss types
+const BOSS_TYPES = {
+    DAVE: { name: 'Dave the Angry Cat', emoji: '😼', color: '#1a1a1a' },
+    HOOVER: { name: 'Big Bad Hoover', emoji: '🧹', color: '#4a4a4a' },
+    CUCUMBER: { name: 'Creepy Crazy Cucumber', emoji: '🥒', color: '#228B22' },
+    DOUGIE: { name: 'Dangerous Dougie the Dog', emoji: '🐕', color: '#8B4513' }
+};
 
 // Shield state
 let shieldActive = false;
@@ -1115,10 +1125,16 @@ function advanceLevel() {
 function startBossBattle() {
     isBossLevel = true;
     currentWorld = WORLDS.CASTLE;
+    bossBattleStartTime = Date.now();
     
-    // Boss health scales with level
+    // Determine which boss based on boss number (cycles through 4 bosses)
     const bossNumber = level / BOSS_LEVEL_INTERVAL;
-    bossMaxHealth = 50 + (bossNumber * 25); // 75 at level 10, 100 at level 20, etc.
+    currentBossType = (bossNumber - 1) % 4; // 0=Dave, 1=Hoover, 2=Cucumber, 3=Dougie
+    
+    // Boss health scales with level and boss type
+    // Dougie (final boss) is tougher
+    const baseHealth = currentBossType === 3 ? 75 : 50;
+    bossMaxHealth = baseHealth + (bossNumber * 25);
     bossHealth = bossMaxHealth;
     
     // Boss position
@@ -1140,9 +1156,17 @@ function startBossBattle() {
         addFloatingText('Bonus ammo!', '#FF6B35', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
     }
     
-    // Show boss indicator
+    // Show boss indicator (will auto-hide after 3 seconds)
     const bossIndicator = document.getElementById('boss-indicator');
-    if (bossIndicator) bossIndicator.classList.remove('hidden');
+    if (bossIndicator) {
+        bossIndicator.classList.remove('hidden');
+        // Auto-hide after 3 seconds
+        setTimeout(() => {
+            if (isBossLevel && !bossDefeated) {
+                bossIndicator.classList.add('hidden');
+            }
+        }, 3000);
+    }
     
     // Show mobile punch button
     const touchPunch = document.getElementById('touch-punch');
@@ -2923,9 +2947,9 @@ function drawCastleTunnel() {
     // Wall torches
     drawCastleTorches();
     
-    // Draw the angry black cat boss
+    // Draw the current boss
     if (!bossDefeated) {
-        drawAngryBlackCatBoss();
+        drawCurrentBoss();
     } else {
         // Draw defeated boss
         drawDefeatedBoss();
@@ -3039,7 +3063,28 @@ function drawTorch(x, y, size, time) {
     ctx.fill();
 }
 
-function drawAngryBlackCatBoss() {
+// Draw the current boss based on boss type
+function drawCurrentBoss() {
+    switch (currentBossType) {
+        case 0:
+            drawDaveTheAngryCat();
+            break;
+        case 1:
+            drawBigBadHoover();
+            break;
+        case 2:
+            drawCreepyCrazyCucumber();
+            break;
+        case 3:
+            drawDangerousDougieTheDog();
+            break;
+        default:
+            drawDaveTheAngryCat();
+    }
+}
+
+// Boss 1: Dave the Angry Cat (original boss)
+function drawDaveTheAngryCat() {
     const hitFlash = Date.now() - bossHitTime < 200;
     const bossScale = 1.5 + (level / BOSS_LEVEL_INTERVAL) * 0.2; // Gets bigger with each boss
     
@@ -3211,6 +3256,400 @@ function drawAngryBlackCatBoss() {
     drawBossHealthBar();
 }
 
+// Boss 2: Big Bad Hoover - A menacing vacuum cleaner
+function drawBigBadHoover() {
+    const hitFlash = Date.now() - bossHitTime < 200;
+    const bossScale = 1.5 + (level / BOSS_LEVEL_INTERVAL) * 0.2;
+    const wobble = Math.sin(Date.now() / 150) * 5;
+    
+    ctx.save();
+    ctx.translate(bossX, bossY);
+    ctx.scale(bossScale, bossScale);
+    
+    if (hitFlash) {
+        ctx.globalAlpha = 0.5 + Math.sin(Date.now() / 30) * 0.5;
+    }
+    
+    // Vacuum body (cylinder)
+    const gradient = ctx.createLinearGradient(-30, 0, 30, 0);
+    gradient.addColorStop(0, '#2a2a2a');
+    gradient.addColorStop(0.5, '#4a4a4a');
+    gradient.addColorStop(1, '#2a2a2a');
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.ellipse(0, 10, 35, 25, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Vacuum head (angry face area)
+    ctx.fillStyle = '#3a3a3a';
+    ctx.beginPath();
+    ctx.arc(0, -15, 30, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Red angry "power" button (like an eye)
+    ctx.fillStyle = '#FF0000';
+    ctx.shadowColor = '#FF0000';
+    ctx.shadowBlur = 20;
+    ctx.beginPath();
+    ctx.arc(0, -20, 12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    
+    // Inner red glow
+    ctx.fillStyle = '#FF6666';
+    ctx.beginPath();
+    ctx.arc(-3, -23, 4, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Angry eyes (headlights)
+    ctx.fillStyle = '#FFFF00';
+    ctx.shadowColor = '#FFFF00';
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.ellipse(-18, -10, 6, 4, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(18, -10, 6, 4, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    
+    // Angry eyebrows (vents)
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(-25, -18, 12, 3);
+    ctx.fillRect(13, -18, 12, 3);
+    
+    // Suction mouth (scary opening)
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    ctx.ellipse(0, 5 + wobble, 20, 15, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Swirling suction effect
+    ctx.strokeStyle = '#333333';
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 3; i++) {
+        const angle = Date.now() / 200 + i * (Math.PI * 2 / 3);
+        ctx.beginPath();
+        ctx.arc(0, 5 + wobble, 10 - i * 3, angle, angle + Math.PI);
+        ctx.stroke();
+    }
+    
+    // Hose arm (threatening)
+    ctx.strokeStyle = '#2a2a2a';
+    ctx.lineWidth = 12;
+    ctx.lineCap = 'round';
+    const hoseSwing = Math.sin(Date.now() / 200) * 20;
+    ctx.beginPath();
+    ctx.moveTo(-30, 15);
+    ctx.quadraticCurveTo(-50 + hoseSwing, 0, -60 + hoseSwing, -20);
+    ctx.stroke();
+    
+    // Hose nozzle
+    ctx.fillStyle = '#1a1a1a';
+    ctx.beginPath();
+    ctx.ellipse(-60 + hoseSwing, -20, 10, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Wheels
+    ctx.fillStyle = '#1a1a1a';
+    ctx.beginPath();
+    ctx.ellipse(-25, 35, 8, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(25, 35, 8, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.restore();
+    drawBossHealthBar();
+}
+
+// Boss 3: Creepy Crazy Cucumber - An evil sentient cucumber
+function drawCreepyCrazyCucumber() {
+    const hitFlash = Date.now() - bossHitTime < 200;
+    const bossScale = 1.5 + (level / BOSS_LEVEL_INTERVAL) * 0.2;
+    const squish = Math.sin(Date.now() / 200) * 3;
+    
+    ctx.save();
+    ctx.translate(bossX, bossY);
+    ctx.scale(bossScale, bossScale);
+    
+    if (hitFlash) {
+        ctx.globalAlpha = 0.5 + Math.sin(Date.now() / 30) * 0.5;
+    }
+    
+    // Cucumber body (elongated oval)
+    const cucumberGradient = ctx.createLinearGradient(-35, 0, 35, 0);
+    cucumberGradient.addColorStop(0, '#1B5E20');
+    cucumberGradient.addColorStop(0.3, '#2E7D32');
+    cucumberGradient.addColorStop(0.5, '#43A047');
+    cucumberGradient.addColorStop(0.7, '#2E7D32');
+    cucumberGradient.addColorStop(1, '#1B5E20');
+    ctx.fillStyle = cucumberGradient;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 40 + squish, 25 - squish, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Cucumber bumps/texture
+    ctx.fillStyle = '#1B5E20';
+    for (let i = 0; i < 8; i++) {
+        const bx = -30 + i * 9 + Math.sin(i) * 3;
+        const by = Math.sin(i * 1.5) * 15;
+        ctx.beginPath();
+        ctx.arc(bx, by, 3, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    // Crazy spiral eyes
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.ellipse(-15, -8, 10, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(15, -8, 10, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Spiral pupils (crazy!)
+    ctx.strokeStyle = '#FF0000';
+    ctx.lineWidth = 2;
+    const spiralRotation = Date.now() / 100;
+    for (let eye = -1; eye <= 1; eye += 2) {
+        ctx.beginPath();
+        for (let t = 0; t < Math.PI * 4; t += 0.1) {
+            const r = t * 1.2;
+            const x = eye * 15 + Math.cos(t + spiralRotation * eye) * r * 0.5;
+            const y = -8 + Math.sin(t + spiralRotation * eye) * r * 0.5;
+            if (t === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+    }
+    
+    // Evil grin
+    ctx.fillStyle = '#1B5E20';
+    ctx.beginPath();
+    ctx.arc(0, 10, 20, 0, Math.PI);
+    ctx.fill();
+    
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    ctx.arc(0, 10, 18, 0.1, Math.PI - 0.1);
+    ctx.fill();
+    
+    // Sharp teeth
+    ctx.fillStyle = '#FFFFFF';
+    for (let i = 0; i < 7; i++) {
+        const tx = -14 + i * 5;
+        ctx.beginPath();
+        ctx.moveTo(tx - 2, 10);
+        ctx.lineTo(tx, 20);
+        ctx.lineTo(tx + 2, 10);
+        ctx.closePath();
+        ctx.fill();
+    }
+    
+    // Vine arms (threatening)
+    ctx.strokeStyle = '#1B5E20';
+    ctx.lineWidth = 6;
+    ctx.lineCap = 'round';
+    const vineSwing = Math.sin(Date.now() / 150) * 15;
+    
+    // Left vine
+    ctx.beginPath();
+    ctx.moveTo(-35, 0);
+    ctx.quadraticCurveTo(-55, -10 + vineSwing, -60, -30 + vineSwing);
+    ctx.stroke();
+    
+    // Right vine  
+    ctx.beginPath();
+    ctx.moveTo(35, 0);
+    ctx.quadraticCurveTo(55, -10 - vineSwing, 60, -30 - vineSwing);
+    ctx.stroke();
+    
+    // Leaves on vines
+    ctx.fillStyle = '#2E7D32';
+    ctx.beginPath();
+    ctx.ellipse(-58, -25 + vineSwing, 8, 4, -0.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(58, -25 - vineSwing, 8, 4, 0.5, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.restore();
+    drawBossHealthBar();
+}
+
+// Boss 4: Dangerous Dougie the Dog - The final cute but deadly puppy boss
+function drawDangerousDougieTheDog() {
+    const hitFlash = Date.now() - bossHitTime < 200;
+    const bossScale = 1.8 + (level / BOSS_LEVEL_INTERVAL) * 0.2; // Bigger final boss!
+    const bounce = Math.abs(Math.sin(Date.now() / 200)) * 5;
+    const tailWag = Math.sin(Date.now() / 80) * 20;
+    
+    ctx.save();
+    ctx.translate(bossX, bossY - bounce);
+    ctx.scale(bossScale, bossScale);
+    
+    if (hitFlash) {
+        ctx.globalAlpha = 0.5 + Math.sin(Date.now() / 30) * 0.5;
+    }
+    
+    // Body (fluffy brown)
+    const bodyGradient = ctx.createRadialGradient(0, 10, 0, 0, 10, 40);
+    bodyGradient.addColorStop(0, '#A0522D');
+    bodyGradient.addColorStop(1, '#8B4513');
+    ctx.fillStyle = bodyGradient;
+    ctx.beginPath();
+    ctx.ellipse(0, 10, 35, 28, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Fluffy chest (cream colored)
+    ctx.fillStyle = '#F5DEB3';
+    ctx.beginPath();
+    ctx.ellipse(0, 20, 20, 15, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Head
+    ctx.fillStyle = '#A0522D';
+    ctx.beginPath();
+    ctx.arc(0, -18, 28, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Snout
+    ctx.fillStyle = '#F5DEB3';
+    ctx.beginPath();
+    ctx.ellipse(0, -8, 15, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Big cute but menacing eyes
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.ellipse(-12, -22, 10, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(12, -22, 10, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Red glowing pupils (danger!)
+    ctx.fillStyle = '#8B0000';
+    ctx.shadowColor = '#FF0000';
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.ellipse(-12, -20, 5, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(12, -20, 5, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    
+    // Evil glint in eyes
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.arc(-10, -23, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(14, -23, 2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Nose
+    ctx.fillStyle = '#1a1a1a';
+    ctx.beginPath();
+    ctx.ellipse(0, -5, 6, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.ellipse(-2, -7, 2, 1.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Snarling mouth with teeth
+    ctx.fillStyle = '#330000';
+    ctx.beginPath();
+    ctx.moveTo(-12, 3);
+    ctx.quadraticCurveTo(0, 15, 12, 3);
+    ctx.quadraticCurveTo(0, 20, -12, 3);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Sharp teeth
+    ctx.fillStyle = '#FFFFFF';
+    for (let i = 0; i < 5; i++) {
+        ctx.beginPath();
+        ctx.moveTo(-8 + i * 4, 5);
+        ctx.lineTo(-6 + i * 4, 12);
+        ctx.lineTo(-4 + i * 4, 5);
+        ctx.closePath();
+        ctx.fill();
+    }
+    
+    // Tongue
+    ctx.fillStyle = '#FF6B6B';
+    ctx.beginPath();
+    ctx.ellipse(0, 14, 6, 4, 0, 0, Math.PI);
+    ctx.fill();
+    
+    // Floppy ears
+    ctx.fillStyle = '#8B4513';
+    // Left ear (floppy)
+    ctx.beginPath();
+    ctx.ellipse(-25, -15, 12, 20, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+    // Right ear
+    ctx.beginPath();
+    ctx.ellipse(25, -15, 12, 20, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Paws (ready to pounce)
+    ctx.fillStyle = '#A0522D';
+    ctx.beginPath();
+    ctx.ellipse(-28, 30, 12, 8, -0.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(28, 30, 12, 8, 0.2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Paw pads
+    ctx.fillStyle = '#DEB887';
+    ctx.beginPath();
+    ctx.ellipse(-28, 32, 6, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(28, 32, 6, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Wagging tail
+    ctx.strokeStyle = '#8B4513';
+    ctx.lineWidth = 10;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(0, 35);
+    ctx.quadraticCurveTo(25 + tailWag, 45, 35 + tailWag, 25);
+    ctx.stroke();
+    
+    // Fluffy tail tip
+    ctx.fillStyle = '#F5DEB3';
+    ctx.beginPath();
+    ctx.arc(35 + tailWag, 22, 8, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Collar (danger sign)
+    ctx.fillStyle = '#FF0000';
+    ctx.fillRect(-18, -2, 36, 6);
+    ctx.fillStyle = '#FFD700';
+    ctx.beginPath();
+    ctx.arc(0, 1, 5, 0, Math.PI * 2);
+    ctx.fill();
+    // Skull on collar tag
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.arc(0, 0, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(-1.5, -1, 1, 1);
+    ctx.fillRect(0.5, -1, 1, 1);
+    
+    ctx.restore();
+    drawBossHealthBar();
+}
+
 function drawBossHealthBar() {
     const barWidth = 200;
     const barHeight = 20;
@@ -3231,11 +3670,17 @@ function drawBossHealthBar() {
     ctx.fillStyle = healthColor;
     ctx.fillRect(barX, barY, barWidth * healthPercent, barHeight);
     
-    // Boss name
+    // Boss name based on current boss type
+    const bossNames = [
+        '😼 DAVE THE ANGRY CAT 😼',
+        '🧹 BIG BAD HOOVER 🧹',
+        '🥒 CREEPY CRAZY CUCUMBER 🥒',
+        '🐕 DANGEROUS DOUGIE 🐕'
+    ];
     ctx.fillStyle = '#FFFFFF';
     ctx.font = 'bold 16px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('😼 ANGRY BLACK CAT 😼', CANVAS_WIDTH / 2, barY - 8);
+    ctx.fillText(bossNames[currentBossType] || bossNames[0], CANVAS_WIDTH / 2, barY - 8);
     
     // Health text
     ctx.fillStyle = '#FFFFFF';
