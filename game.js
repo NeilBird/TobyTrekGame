@@ -202,7 +202,7 @@ let expressionEndTime = 0;
 let floatingTexts = []; // For "Yum yum" text
 
 // Player name and leaderboard
-let playerName = 'Player 1';
+let playerName = '';
 let leaderboard = [];
 
 // Side scenery (moving objects on the sides)
@@ -303,8 +303,8 @@ function playBackgroundMusic() {
     if (!audioContext || musicPlaying) return;
     musicPlaying = true;
     
-    // Create smooth, pleasant game music with proper filtering
-    const playNote = (freq, startTime, duration, type = 'sine', volume = 0.05) => {
+    // Classic arcade style music with square waves and arpeggios
+    const playNote = (freq, startTime, duration, type = 'square', volume = 0.04) => {
         const osc = audioContext.createOscillator();
         const gain = audioContext.createGain();
         const filter = audioContext.createBiquadFilter();
@@ -312,15 +312,15 @@ function playBackgroundMusic() {
         osc.type = type;
         osc.frequency.value = freq;
         
-        // Smooth low-pass filter to remove harshness
+        // Classic arcade low-pass filter
         filter.type = 'lowpass';
-        filter.frequency.value = 1200;
-        filter.Q.value = 0.5;
+        filter.frequency.value = 2000;
+        filter.Q.value = 1;
         
-        // Smooth envelope
+        // Punchy arcade envelope
         gain.gain.setValueAtTime(0, startTime);
-        gain.gain.linearRampToValueAtTime(volume, startTime + 0.1);
-        gain.gain.setValueAtTime(volume * 0.8, startTime + duration * 0.7);
+        gain.gain.linearRampToValueAtTime(volume, startTime + 0.02);
+        gain.gain.setValueAtTime(volume * 0.7, startTime + duration * 0.3);
         gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
         
         osc.connect(filter);
@@ -330,161 +330,281 @@ function playBackgroundMusic() {
         osc.stop(startTime + duration);
     };
     
-    // Play a chord (multiple notes together)
-    const playChord = (notes, startTime, duration, volume = 0.03) => {
-        notes.forEach(note => {
-            playNote(note, startTime, duration, 'sine', volume);
+    // Play arpeggio (notes in quick succession - classic arcade style)
+    const playArpeggio = (notes, startTime, noteLength = 0.1, volume = 0.035) => {
+        notes.forEach((note, i) => {
+            playNote(note, startTime + (i * noteLength), noteLength * 0.9, 'square', volume);
         });
     };
 
-    // Pleasant major/minor progressions for each world
+    // Classic arcade music patterns for each world
     const getWorldMusic = () => {
         if (currentWorld === WORLDS.GARDEN) {
-            // Peaceful C major - happy garden vibes
+            // Upbeat, bouncy arcade tune (think Bubble Bobble)
             return {
-                chords: [
-                    { notes: [262, 330, 392], time: 0, dur: 2.0 },     // C major
-                    { notes: [294, 370, 440], time: 2.2, dur: 1.8 },   // D minor  
-                    { notes: [262, 330, 392], time: 4.2, dur: 1.8 },   // C major
-                    { notes: [247, 311, 370], time: 6.2, dur: 1.8 },   // G major
+                arpeggios: [
+                    { notes: [262, 330, 392, 523], time: 0 },
+                    { notes: [294, 370, 440, 587], time: 0.5 },
+                    { notes: [262, 330, 392, 523], time: 1.0 },
+                    { notes: [247, 311, 392, 494], time: 1.5 },
+                    { notes: [220, 277, 330, 440], time: 2.0 },
+                    { notes: [247, 311, 392, 494], time: 2.5 },
+                    { notes: [262, 330, 392, 523], time: 3.0 },
+                    { notes: [294, 370, 440, 587], time: 3.5 },
                 ],
                 melody: [
-                    { note: 523, time: 0.5, dur: 0.4 },
-                    { note: 494, time: 1.0, dur: 0.4 },
-                    { note: 440, time: 1.5, dur: 0.6 },
-                    { note: 392, time: 2.5, dur: 0.8 },
-                    { note: 440, time: 4.0, dur: 0.5 },
-                    { note: 494, time: 5.0, dur: 0.5 },
-                    { note: 523, time: 6.0, dur: 1.0 },
+                    { note: 784, time: 0, dur: 0.15 },
+                    { note: 659, time: 0.2, dur: 0.15 },
+                    { note: 523, time: 0.4, dur: 0.2 },
+                    { note: 659, time: 0.7, dur: 0.15 },
+                    { note: 784, time: 1.0, dur: 0.3 },
+                    { note: 659, time: 1.5, dur: 0.15 },
+                    { note: 523, time: 1.7, dur: 0.15 },
+                    { note: 440, time: 2.0, dur: 0.3 },
+                    { note: 523, time: 2.5, dur: 0.15 },
+                    { note: 659, time: 2.7, dur: 0.15 },
+                    { note: 784, time: 3.0, dur: 0.2 },
+                    { note: 880, time: 3.3, dur: 0.3 },
                 ],
                 bass: [
-                    { note: 131, time: 0, dur: 2.0 },
-                    { note: 147, time: 2.2, dur: 1.8 },
-                    { note: 131, time: 4.2, dur: 1.8 },
-                    { note: 98, time: 6.2, dur: 1.8 },
+                    { note: 131, time: 0, dur: 0.2 },
+                    { note: 131, time: 0.25, dur: 0.15 },
+                    { note: 147, time: 0.5, dur: 0.2 },
+                    { note: 147, time: 0.75, dur: 0.15 },
+                    { note: 131, time: 1.0, dur: 0.2 },
+                    { note: 131, time: 1.25, dur: 0.15 },
+                    { note: 98, time: 1.5, dur: 0.2 },
+                    { note: 98, time: 1.75, dur: 0.15 },
+                    { note: 110, time: 2.0, dur: 0.2 },
+                    { note: 110, time: 2.25, dur: 0.15 },
+                    { note: 98, time: 2.5, dur: 0.2 },
+                    { note: 98, time: 2.75, dur: 0.15 },
+                    { note: 131, time: 3.0, dur: 0.2 },
+                    { note: 147, time: 3.25, dur: 0.15 },
+                    { note: 165, time: 3.5, dur: 0.2 },
+                    { note: 147, time: 3.75, dur: 0.15 },
                 ]
             };
         } else if (currentWorld === WORLDS.SNOW) {
-            // Peaceful, crystalline winter melody
+            // Slightly slower, mysterious arcade tune
             return {
-                chords: [
-                    { notes: [220, 277, 330], time: 0, dur: 2.5 },     // A minor
-                    { notes: [196, 247, 294], time: 2.7, dur: 2.3 },   // G major
-                    { notes: [175, 220, 262], time: 5.2, dur: 2.5 },   // F major
-                    { notes: [196, 247, 294], time: 7.9, dur: 2.1 },   // G major
+                arpeggios: [
+                    { notes: [220, 262, 330, 440], time: 0 },
+                    { notes: [196, 247, 294, 392], time: 0.6 },
+                    { notes: [175, 220, 262, 349], time: 1.2 },
+                    { notes: [196, 247, 294, 392], time: 1.8 },
+                    { notes: [220, 262, 330, 440], time: 2.4 },
+                    { notes: [247, 311, 370, 494], time: 3.0 },
+                    { notes: [262, 330, 392, 523], time: 3.6 },
+                    { notes: [247, 311, 370, 494], time: 4.2 },
                 ],
                 melody: [
-                    { note: 659, time: 0, dur: 1.0 },
-                    { note: 587, time: 1.2, dur: 0.8 },
-                    { note: 523, time: 2.2, dur: 1.2 },
-                    { note: 494, time: 4.0, dur: 0.8 },
-                    { note: 440, time: 5.0, dur: 1.5 },
-                    { note: 494, time: 7.0, dur: 0.8 },
-                    { note: 523, time: 8.2, dur: 1.5 },
+                    { note: 659, time: 0, dur: 0.25 },
+                    { note: 587, time: 0.3, dur: 0.2 },
+                    { note: 523, time: 0.6, dur: 0.3 },
+                    { note: 494, time: 1.2, dur: 0.2 },
+                    { note: 440, time: 1.5, dur: 0.4 },
+                    { note: 392, time: 2.1, dur: 0.2 },
+                    { note: 440, time: 2.4, dur: 0.25 },
+                    { note: 523, time: 2.8, dur: 0.3 },
+                    { note: 587, time: 3.3, dur: 0.2 },
+                    { note: 659, time: 3.6, dur: 0.4 },
+                    { note: 587, time: 4.2, dur: 0.3 },
                 ],
                 bass: [
-                    { note: 110, time: 0, dur: 2.5 },
-                    { note: 98, time: 2.7, dur: 2.3 },
-                    { note: 87, time: 5.2, dur: 2.5 },
-                    { note: 98, time: 7.9, dur: 2.1 },
+                    { note: 110, time: 0, dur: 0.25 },
+                    { note: 110, time: 0.3, dur: 0.2 },
+                    { note: 98, time: 0.6, dur: 0.25 },
+                    { note: 98, time: 0.9, dur: 0.2 },
+                    { note: 87, time: 1.2, dur: 0.25 },
+                    { note: 87, time: 1.5, dur: 0.2 },
+                    { note: 98, time: 1.8, dur: 0.25 },
+                    { note: 98, time: 2.1, dur: 0.2 },
+                    { note: 110, time: 2.4, dur: 0.25 },
+                    { note: 123, time: 2.7, dur: 0.2 },
+                    { note: 131, time: 3.0, dur: 0.25 },
+                    { note: 131, time: 3.3, dur: 0.2 },
+                    { note: 123, time: 3.6, dur: 0.25 },
+                    { note: 110, time: 3.9, dur: 0.2 },
+                    { note: 98, time: 4.2, dur: 0.25 },
                 ]
             };
         } else if (currentWorld === WORLDS.PARK) {
-            // Playful, bouncy adventure tune
+            // Fast, energetic arcade action (think Pac-Man intermission)
             return {
-                chords: [
-                    { notes: [262, 330, 392], time: 0, dur: 1.5 },     // C major
-                    { notes: [220, 277, 330], time: 1.7, dur: 1.5 },   // A minor
-                    { notes: [175, 220, 262], time: 3.4, dur: 1.5 },   // F major
-                    { notes: [196, 247, 294], time: 5.1, dur: 1.5 },   // G major
+                arpeggios: [
+                    { notes: [262, 330, 392, 523], time: 0 },
+                    { notes: [220, 277, 330, 440], time: 0.4 },
+                    { notes: [175, 220, 262, 349], time: 0.8 },
+                    { notes: [196, 247, 294, 392], time: 1.2 },
+                    { notes: [262, 330, 392, 523], time: 1.6 },
+                    { notes: [294, 370, 440, 587], time: 2.0 },
+                    { notes: [330, 415, 494, 659], time: 2.4 },
+                    { notes: [294, 370, 440, 587], time: 2.8 },
                 ],
                 melody: [
-                    { note: 392, time: 0, dur: 0.3 },
-                    { note: 440, time: 0.4, dur: 0.3 },
-                    { note: 494, time: 0.8, dur: 0.5 },
-                    { note: 523, time: 1.5, dur: 0.6 },
-                    { note: 440, time: 2.5, dur: 0.4 },
-                    { note: 392, time: 3.2, dur: 0.6 },
-                    { note: 349, time: 4.2, dur: 0.5 },
-                    { note: 392, time: 5.0, dur: 0.8 },
+                    { note: 523, time: 0, dur: 0.1 },
+                    { note: 587, time: 0.12, dur: 0.1 },
+                    { note: 659, time: 0.24, dur: 0.1 },
+                    { note: 784, time: 0.4, dur: 0.2 },
+                    { note: 659, time: 0.7, dur: 0.1 },
+                    { note: 523, time: 0.85, dur: 0.15 },
+                    { note: 440, time: 1.1, dur: 0.2 },
+                    { note: 523, time: 1.4, dur: 0.1 },
+                    { note: 659, time: 1.55, dur: 0.1 },
+                    { note: 784, time: 1.7, dur: 0.15 },
+                    { note: 880, time: 1.9, dur: 0.2 },
+                    { note: 784, time: 2.2, dur: 0.1 },
+                    { note: 659, time: 2.35, dur: 0.1 },
+                    { note: 523, time: 2.5, dur: 0.2 },
+                    { note: 659, time: 2.8, dur: 0.15 },
                 ],
                 bass: [
-                    { note: 131, time: 0, dur: 1.5 },
-                    { note: 110, time: 1.7, dur: 1.5 },
-                    { note: 87, time: 3.4, dur: 1.5 },
-                    { note: 98, time: 5.1, dur: 1.5 },
+                    { note: 131, time: 0, dur: 0.15 },
+                    { note: 165, time: 0.2, dur: 0.1 },
+                    { note: 131, time: 0.35, dur: 0.1 },
+                    { note: 110, time: 0.5, dur: 0.15 },
+                    { note: 131, time: 0.7, dur: 0.1 },
+                    { note: 110, time: 0.85, dur: 0.1 },
+                    { note: 87, time: 1.0, dur: 0.15 },
+                    { note: 110, time: 1.2, dur: 0.1 },
+                    { note: 87, time: 1.35, dur: 0.1 },
+                    { note: 98, time: 1.5, dur: 0.15 },
+                    { note: 123, time: 1.7, dur: 0.1 },
+                    { note: 98, time: 1.85, dur: 0.1 },
+                    { note: 131, time: 2.0, dur: 0.15 },
+                    { note: 147, time: 2.2, dur: 0.1 },
+                    { note: 165, time: 2.4, dur: 0.15 },
+                    { note: 147, time: 2.6, dur: 0.1 },
+                    { note: 131, time: 2.8, dur: 0.15 },
                 ]
             };
         } else if (currentWorld === WORLDS.SPACE) {
-            // Cosmic, dreamy ambient - SLOWER and more relaxed
+            // Cosmic but still arcade-y (think Galaga)
             return {
-                chords: [
-                    { notes: [165, 220, 262], time: 0, dur: 3.5 },     // E minor spread
-                    { notes: [147, 196, 247], time: 4.0, dur: 3.5 },   // D minor spread
-                    { notes: [131, 175, 220], time: 8.0, dur: 3.5 },   // C minor spread
+                arpeggios: [
+                    { notes: [165, 220, 262, 330], time: 0 },
+                    { notes: [147, 196, 247, 294], time: 0.8 },
+                    { notes: [131, 175, 220, 262], time: 1.6 },
+                    { notes: [147, 196, 247, 294], time: 2.4 },
+                    { notes: [165, 220, 262, 330], time: 3.2 },
+                    { notes: [175, 220, 277, 349], time: 4.0 },
+                    { notes: [165, 220, 262, 330], time: 4.8 },
+                    { notes: [147, 196, 247, 294], time: 5.6 },
                 ],
                 melody: [
-                    { note: 330, time: 1.0, dur: 1.5 },
-                    { note: 294, time: 3.0, dur: 1.5 },
-                    { note: 262, time: 5.5, dur: 2.0 },
-                    { note: 294, time: 8.5, dur: 1.5 },
-                    { note: 330, time: 10.5, dur: 1.5 },
+                    { note: 659, time: 0, dur: 0.3 },
+                    { note: 587, time: 0.4, dur: 0.2 },
+                    { note: 523, time: 0.7, dur: 0.3 },
+                    { note: 440, time: 1.2, dur: 0.4 },
+                    { note: 392, time: 1.8, dur: 0.3 },
+                    { note: 349, time: 2.3, dur: 0.4 },
+                    { note: 392, time: 3.0, dur: 0.3 },
+                    { note: 440, time: 3.5, dur: 0.3 },
+                    { note: 523, time: 4.0, dur: 0.4 },
+                    { note: 587, time: 4.6, dur: 0.3 },
+                    { note: 659, time: 5.1, dur: 0.4 },
+                    { note: 587, time: 5.7, dur: 0.3 },
                 ],
                 bass: [
-                    { note: 82, time: 0, dur: 4.0 },
-                    { note: 73, time: 4.0, dur: 4.0 },
-                    { note: 65, time: 8.0, dur: 4.0 },
+                    { note: 82, time: 0, dur: 0.3 },
+                    { note: 82, time: 0.4, dur: 0.25 },
+                    { note: 73, time: 0.8, dur: 0.3 },
+                    { note: 73, time: 1.2, dur: 0.25 },
+                    { note: 65, time: 1.6, dur: 0.3 },
+                    { note: 65, time: 2.0, dur: 0.25 },
+                    { note: 73, time: 2.4, dur: 0.3 },
+                    { note: 73, time: 2.8, dur: 0.25 },
+                    { note: 82, time: 3.2, dur: 0.3 },
+                    { note: 87, time: 3.6, dur: 0.25 },
+                    { note: 82, time: 4.0, dur: 0.3 },
+                    { note: 82, time: 4.4, dur: 0.25 },
+                    { note: 82, time: 4.8, dur: 0.3 },
+                    { note: 73, time: 5.2, dur: 0.25 },
+                    { note: 73, time: 5.6, dur: 0.3 },
                 ]
             };
         } else {
-            // Castle/Boss - dramatic but not harsh
+            // Castle/Boss - intense arcade boss music (think Mega Man boss)
             return {
-                chords: [
-                    { notes: [147, 175, 220], time: 0, dur: 2.0 },     // D minor
-                    { notes: [131, 165, 196], time: 2.2, dur: 2.0 },   // C minor
-                    { notes: [147, 175, 220], time: 4.4, dur: 2.0 },   // D minor
-                    { notes: [165, 196, 247], time: 6.6, dur: 2.0 },   // E diminished
+                arpeggios: [
+                    { notes: [147, 175, 220, 294], time: 0 },
+                    { notes: [131, 165, 196, 262], time: 0.35 },
+                    { notes: [147, 175, 220, 294], time: 0.7 },
+                    { notes: [165, 196, 247, 330], time: 1.05 },
+                    { notes: [147, 175, 220, 294], time: 1.4 },
+                    { notes: [131, 165, 196, 262], time: 1.75 },
+                    { notes: [123, 147, 175, 247], time: 2.1 },
+                    { notes: [131, 165, 196, 262], time: 2.45 },
                 ],
                 melody: [
-                    { note: 440, time: 0, dur: 0.5 },
-                    { note: 392, time: 0.6, dur: 0.5 },
-                    { note: 349, time: 1.2, dur: 0.8 },
-                    { note: 330, time: 2.5, dur: 0.8 },
-                    { note: 349, time: 4.0, dur: 0.5 },
-                    { note: 392, time: 5.0, dur: 0.5 },
-                    { note: 440, time: 6.0, dur: 1.0 },
+                    { note: 587, time: 0, dur: 0.12 },
+                    { note: 523, time: 0.15, dur: 0.12 },
+                    { note: 440, time: 0.3, dur: 0.15 },
+                    { note: 523, time: 0.5, dur: 0.12 },
+                    { note: 587, time: 0.65, dur: 0.2 },
+                    { note: 659, time: 0.9, dur: 0.15 },
+                    { note: 587, time: 1.1, dur: 0.12 },
+                    { note: 523, time: 1.25, dur: 0.12 },
+                    { note: 440, time: 1.4, dur: 0.2 },
+                    { note: 392, time: 1.65, dur: 0.15 },
+                    { note: 440, time: 1.85, dur: 0.12 },
+                    { note: 523, time: 2.0, dur: 0.15 },
+                    { note: 587, time: 2.2, dur: 0.2 },
+                    { note: 523, time: 2.45, dur: 0.15 },
                 ],
                 bass: [
-                    { note: 73, time: 0, dur: 2.0 },
-                    { note: 65, time: 2.2, dur: 2.0 },
-                    { note: 73, time: 4.4, dur: 2.0 },
-                    { note: 82, time: 6.6, dur: 2.0 },
+                    { note: 73, time: 0, dur: 0.12 },
+                    { note: 98, time: 0.15, dur: 0.1 },
+                    { note: 73, time: 0.3, dur: 0.12 },
+                    { note: 65, time: 0.45, dur: 0.1 },
+                    { note: 87, time: 0.6, dur: 0.12 },
+                    { note: 65, time: 0.75, dur: 0.1 },
+                    { note: 73, time: 0.9, dur: 0.12 },
+                    { note: 98, time: 1.05, dur: 0.1 },
+                    { note: 73, time: 1.2, dur: 0.12 },
+                    { note: 65, time: 1.35, dur: 0.1 },
+                    { note: 55, time: 1.5, dur: 0.12 },
+                    { note: 65, time: 1.65, dur: 0.1 },
+                    { note: 73, time: 1.8, dur: 0.12 },
+                    { note: 87, time: 1.95, dur: 0.1 },
+                    { note: 73, time: 2.1, dur: 0.12 },
+                    { note: 65, time: 2.25, dur: 0.1 },
+                    { note: 73, time: 2.4, dur: 0.15 },
                 ]
             };
         }
     };
 
-    const loopDuration = currentWorld === WORLDS.SPACE ? 12 : 8;
+    // Loop duration varies by world
+    const getLoopDuration = () => {
+        if (currentWorld === WORLDS.GARDEN) return 4;
+        if (currentWorld === WORLDS.SNOW) return 4.8;
+        if (currentWorld === WORLDS.PARK) return 3.2;
+        if (currentWorld === WORLDS.SPACE) return 6.4;
+        return 2.8; // Castle/Boss - faster loop for intensity
+    };
     
     function scheduleLoop() {
         if (!musicPlaying || gameState !== 'playing') return;
         
         const now = audioContext.currentTime;
         const music = getWorldMusic();
+        const loopDuration = getLoopDuration();
         
-        // Play smooth chords
-        music.chords.forEach(({ notes, time, dur }) => {
-            playChord(notes, now + time, dur, 0.025);
+        // Play arpeggios (classic arcade signature)
+        music.arpeggios.forEach(({ notes, time }) => {
+            playArpeggio(notes, now + time, 0.08, 0.03);
         });
         
-        // Play gentle melody
+        // Play melody with square wave
         music.melody.forEach(({ note, time, dur }) => {
-            playNote(note, now + time, dur, 'sine', 0.04);
+            playNote(note, now + time, dur, 'square', 0.045);
         });
         
-        // Play warm bass
+        // Play bass with triangle wave (warmer low end)
         music.bass.forEach(({ note, time, dur }) => {
-            playNote(note, now + time, dur, 'triangle', 0.05);
+            playNote(note, now + time, dur, 'triangle', 0.06);
         });
         
         setTimeout(scheduleLoop, loopDuration * 1000);
@@ -518,9 +638,16 @@ function showScreen(screen) {
 function startGame() {
     initAudio();
     
-    // Get player name (default to "Player 1" if empty)
+    // Get player name - required field
     if (playerNameInput) {
-        playerName = playerNameInput.value.trim() || 'Player 1';
+        playerName = playerNameInput.value.trim();
+        if (!playerName) {
+            playerNameInput.focus();
+            playerNameInput.classList.add('input-error');
+            addFloatingText('Please enter your name!', '#FF6B6B', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+            setTimeout(() => playerNameInput.classList.remove('input-error'), 2000);
+            return; // Don't start game without a name
+        }
     }
     
     gameState = 'playing';
