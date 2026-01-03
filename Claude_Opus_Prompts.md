@@ -170,7 +170,11 @@ at gameLoop (game.js:827:5)
 
 ## 31
 
-Users report that they do not have enought Fists to defeat the Bosses on the Boss Levels. During the Boss Levels, when the Hair Dryers are coming to harm Toby, should we also have a small number of Fists to collect, otherwise it is very difficult to defeat the Bosses?
+Users report that they do not have enough Fists to defeat the Bosses on the Boss Levels. During the Boss Levels, when the Hair Dryers are coming to harm Toby, should we also have a small number of Fists to collect, otherwise it is very difficult to defeat the Bosses?
 
 ## 32
+
+I don't think the Leaderboard is working, there is still no data in the Realtime database?
+
+## 33
 

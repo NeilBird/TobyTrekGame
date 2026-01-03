@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.9.7] - 2026-01-03
+
+### Improved
+- **Firebase Debug Logging** 🔧
+  - Added verbose console logging for Firebase leaderboard saves
+  - Helps diagnose connectivity and permission issues
+  - Logs: function calls, push attempts, success/error messages
+
+---
+
 ## [0.9.6] - 2026-01-03
 
 ### Added
