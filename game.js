@@ -1,5 +1,5 @@
 // Game Version
-const GAME_VERSION = '0.9.3';
+const GAME_VERSION = '0.9.7';
 
 // Game Constants
 const CANVAS_WIDTH = 800;
