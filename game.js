@@ -1,5 +1,5 @@
 // Game Version
-const GAME_VERSION = '0.9.1';
+const GAME_VERSION = '0.9.2';
 
 // Game Constants
 const CANVAS_WIDTH = 800;
@@ -4892,7 +4892,36 @@ function setupSettingsControls() {
     if (achievementsBtn) {
         achievementsBtn.addEventListener('click', showAchievements);
     }
+    
+    // How to Play button
+    const howToPlayBtn = document.getElementById('how-to-play-btn');
+    if (howToPlayBtn) {
+        howToPlayBtn.addEventListener('click', () => togglePanel('how-to-play-panel'));
+    }
+    
+    // Skins button
+    const skinsBtn = document.getElementById('skins-btn');
+    if (skinsBtn) {
+        skinsBtn.addEventListener('click', () => togglePanel('skins-panel'));
+    }
 }
+
+// Panel toggle function
+function togglePanel(panelId) {
+    const panel = document.getElementById(panelId);
+    if (panel) {
+        // Close other panels first
+        document.querySelectorAll('.panel').forEach(p => {
+            if (p.id !== panelId) {
+                p.classList.add('hidden');
+            }
+        });
+        panel.classList.toggle('hidden');
+    }
+}
+
+// Make togglePanel available globally for inline onclick
+window.togglePanel = togglePanel;
 
 function setDifficulty(diff) {
     if (DIFFICULTY_SETTINGS[diff]) {

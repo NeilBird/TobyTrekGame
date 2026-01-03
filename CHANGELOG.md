@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.9.2] - 2026-01-03
+
+### Changed
+- **Modern Home Screen Redesign** - Cleaner, less cluttered interface
+  - Dark elegant theme with glassmorphism effects
+  - Collapsible "How to Play" panel (hidden by default)
+  - Collapsible "Skins" panel
+  - Streamlined setup row (name + difficulty in one line)
+  - Larger, more prominent Play button
+  - Quick action buttons for Help, Achievements, Skins
+  - Settings icons moved to top-right corner
+  - Compact leaderboard with modern styling
+
+---
+
 ## [0.9.1] - 2026-01-03
 
 ### Added
