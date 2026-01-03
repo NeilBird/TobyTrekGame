@@ -145,3 +145,7 @@ Would it be possible to make Toby more animated, so that the game play makes it 
 
 ## 27
 
+In the Boss Battle, the "BOSS BATTLE! Press SPACE or tap 👊 to throw!" prompt is shown, but there appears to be no way to remove that message and fight the boss? Is this a bug in the UI? As I am unable to fight Dave the Boss? - For the second Boss, can you make this the "Big Bad Hoover" please, then the third boss can be the "Creepy Crazy Cucumber" please, then the final "big boss" can be the cute puppy "Dangerous Dougie the Dog" ?
+
+## 28
+

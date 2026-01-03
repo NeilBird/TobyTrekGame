@@ -25,7 +25,11 @@ Simply open `index.html` in any modern web browser to play! Works on desktop and
   - 🚀 **Space** (Levels 7-8): Deep space with stars, planets, and nebulae
 
 - **🏰 Boss Battles Every 6 Levels!**
-  - Face the **Angry Black Cat** in a dark, stormy castle
+  - Face **4 different bosses** in a dark, stormy castle:
+    - 😼 **Dave the Angry Cat** - The original fierce feline
+    - 🧹 **Big Bad Hoover** - A menacing vacuum cleaner
+    - 🥒 **Creepy Crazy Cucumber** - An evil sentient vegetable
+    - 🐕 **Dangerous Dougie the Dog** - The final "big boss" puppy!
   - Collect 👊 punch power-ups during normal levels
   - Throw punches to defeat the boss and earn big bonus points!
   - Earn **50 Kitty Coins** per boss defeated!
@@ -54,8 +58,16 @@ Simply open `index.html` in any modern web browser to play! Works on desktop and
 | 💨 Hair Dryer | Hazard | -10 points, drains energy |
 | 💧 Puddle | Hazard | -10 points, drains energy |
 
-### 😼 Boss Battles
-Every 6 levels (6, 12, 18...), Toby faces an **Angry Black Cat** boss in a spooky castle!
+### � Boss Battles
+Every 6 levels (6, 12, 18...), Toby faces one of **4 rotating bosses** in a spooky castle!
+
+| Boss | Name | Description |
+|------|------|-------------|
+| 😼 | Dave the Angry Cat | The original fierce feline with sharp claws |
+| 🧹 | Big Bad Hoover | A menacing vacuum with glowing red eyes |
+| 🥒 | Creepy Crazy Cucumber | An evil veggie with spinning spiral eyes |
+| 🐕 | Dangerous Dougie | The "big boss" puppy with extra health! |
+
 - Boss has a health bar that increases with each encounter
 - Press **SPACE** to throw collected punches
 - Dodge the hairdryers the boss throws at you
@@ -133,6 +145,7 @@ Toby was a white cat with grey and black markings, featuring distinctive yellow-
 
 ## 📜 Version History
 
+- **v0.9.6** - Multiple Bosses: 4 unique boss types (Dave, Hoover, Cucumber, Dougie), boss indicator auto-hide fix
 - **v0.9.5** - Running Animation: Animated legs, body bobbing, tail wagging, whisker wiggle
 - **v0.9.4** - Gameplay Fixes: Improved music, easier difficulty, boss every 6 levels, mobile energy bar fix, mobile punch button
 - **v0.9.3** - Kitty Coins: Currency system, shop interface, 3 new skins (Tiger, Ghost, Neon)
@@ -161,7 +174,7 @@ Created with ❤️ in memory of Toby (2026)
 
 MIT License
 
-Copyright (c) 2026 Emily Bird
+Copyright (c) 2026 - Jessica, Emily and Abigail Bird
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

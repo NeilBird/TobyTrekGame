@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.9.6] - 2026-01-03
+
+### Added
+- **Four Different Boss Types** 👹
+  - Bosses now cycle through 4 unique characters:
+    1. **Dave the Angry Cat** 😼 - The original angry black cat
+    2. **Big Bad Hoover** 🧹 - A menacing vacuum cleaner with glowing red eyes
+    3. **Creepy Crazy Cucumber** 🥒 - An evil sentient cucumber with spiral eyes
+    4. **Dangerous Dougie the Dog** 🐕 - The final big boss puppy with red glowing eyes
+  - Each boss has unique animations and appearances
+  - Dougie (boss 4) has extra health as the "big boss"
+  - Dynamic health bar shows current boss name
+
+### Fixed
+- **Boss Battle UI Bug** 🐛
+  - Boss indicator message now auto-hides after 3 seconds
+  - Previously the "BOSS BATTLE!" prompt would block the screen
+
+---
+
 ## [0.9.5] - 2026-01-03
 
 ### Added
