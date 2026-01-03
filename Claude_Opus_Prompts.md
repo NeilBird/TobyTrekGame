@@ -149,3 +149,7 @@ In the Boss Battle, the "BOSS BATTLE! Press SPACE or tap 👊 to throw!" prompt 
 
 ## 28
 
+on level  6 toby is unable to move to fight the boss this is still a bug?
+
+## 29
+
