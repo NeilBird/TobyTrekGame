@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Boss Battle UI Bug** 🐛
   - Boss indicator message now auto-hides after 3 seconds
   - Previously the "BOSS BATTLE!" prompt would block the screen
+  - Added `pointer-events: none` to indicator overlays to prevent touch blocking
 
 ---
 

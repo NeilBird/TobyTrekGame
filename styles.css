@@ -642,6 +642,7 @@ body {
     z-index: 20;
     box-shadow: 0 0 30px rgba(255, 100, 0, 0.6);
     border: 2px solid #ff8800;
+    pointer-events: none;
 }
 
 @keyframes pulse {
@@ -671,6 +672,7 @@ body {
     box-shadow: 0 0 30px rgba(150, 0, 100, 0.6);
     border: 2px solid #FF0000;
     text-shadow: 0 0 10px #FF0000;
+    pointer-events: none;
 }
 
 @keyframes boss-pulse {
