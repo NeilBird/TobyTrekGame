@@ -1,5 +1,5 @@
 // Game Version
-const GAME_VERSION = '0.9.7';
+const GAME_VERSION = '0.9.8';
 
 // Game Constants
 const CANVAS_WIDTH = 800;
@@ -91,6 +91,7 @@ let bossDefeated = false;
 let bossDefeatedTime = 0;
 let bossBattleStartTime = 0;
 let currentBossType = 0; // 0=Dave, 1=Hoover, 2=Cucumber, 3=Dougie
+let bossShieldSpawned = false; // Track if 50% shield has been given
 
 // Boss types
 const BOSS_TYPES = {
@@ -141,6 +142,23 @@ const COINS_PER_TREAT = 1;      // Earn 1 coin per treat collected
 const COINS_PER_LEVEL = 10;    // Earn 10 coins per level completed
 const COINS_PER_BOSS = 50;     // Earn 50 coins for defeating a boss
 
+// Helper functions for color manipulation (used for skin rendering)
+function lightenColor(hex, percent) {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const r = Math.min(255, Math.floor((num >> 16) + (255 - (num >> 16)) * percent));
+    const g = Math.min(255, Math.floor(((num >> 8) & 0x00FF) + (255 - ((num >> 8) & 0x00FF)) * percent));
+    const b = Math.min(255, Math.floor((num & 0x0000FF) + (255 - (num & 0x0000FF)) * percent));
+    return '#' + (0x1000000 + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+}
+
+function darkenColor(hex, percent) {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const r = Math.max(0, Math.floor((num >> 16) * (1 - percent)));
+    const g = Math.max(0, Math.floor(((num >> 8) & 0x00FF) * (1 - percent)));
+    const b = Math.max(0, Math.floor((num & 0x0000FF) * (1 - percent)));
+    return '#' + (0x1000000 + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+}
+
 // Character skins with prices
 const TOBY_SKINS = {
     default: { name: 'Classic Toby', unlocked: true, price: 0, bodyColor: '#FFFFFF', patchColor: '#333333' },
@@ -184,7 +202,7 @@ let expressionEndTime = 0;
 let floatingTexts = []; // For "Yum yum" text
 
 // Player name and leaderboard
-let playerName = 'Player 1';
+let playerName = '';
 let leaderboard = [];
 
 // Side scenery (moving objects on the sides)
@@ -285,8 +303,8 @@ function playBackgroundMusic() {
     if (!audioContext || musicPlaying) return;
     musicPlaying = true;
     
-    // Create smooth, pleasant game music with proper filtering
-    const playNote = (freq, startTime, duration, type = 'sine', volume = 0.05) => {
+    // Classic arcade style music with square waves and arpeggios
+    const playNote = (freq, startTime, duration, type = 'square', volume = 0.04) => {
         const osc = audioContext.createOscillator();
         const gain = audioContext.createGain();
         const filter = audioContext.createBiquadFilter();
@@ -294,15 +312,15 @@ function playBackgroundMusic() {
         osc.type = type;
         osc.frequency.value = freq;
         
-        // Smooth low-pass filter to remove harshness
+        // Classic arcade low-pass filter
         filter.type = 'lowpass';
-        filter.frequency.value = 1200;
-        filter.Q.value = 0.5;
+        filter.frequency.value = 2000;
+        filter.Q.value = 1;
         
-        // Smooth envelope
+        // Punchy arcade envelope
         gain.gain.setValueAtTime(0, startTime);
-        gain.gain.linearRampToValueAtTime(volume, startTime + 0.1);
-        gain.gain.setValueAtTime(volume * 0.8, startTime + duration * 0.7);
+        gain.gain.linearRampToValueAtTime(volume, startTime + 0.02);
+        gain.gain.setValueAtTime(volume * 0.7, startTime + duration * 0.3);
         gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
         
         osc.connect(filter);
@@ -312,161 +330,281 @@ function playBackgroundMusic() {
         osc.stop(startTime + duration);
     };
     
-    // Play a chord (multiple notes together)
-    const playChord = (notes, startTime, duration, volume = 0.03) => {
-        notes.forEach(note => {
-            playNote(note, startTime, duration, 'sine', volume);
+    // Play arpeggio (notes in quick succession - classic arcade style)
+    const playArpeggio = (notes, startTime, noteLength = 0.1, volume = 0.035) => {
+        notes.forEach((note, i) => {
+            playNote(note, startTime + (i * noteLength), noteLength * 0.9, 'square', volume);
         });
     };
 
-    // Pleasant major/minor progressions for each world
+    // Classic arcade music patterns for each world
     const getWorldMusic = () => {
         if (currentWorld === WORLDS.GARDEN) {
-            // Peaceful C major - happy garden vibes
+            // Upbeat, bouncy arcade tune (think Bubble Bobble)
             return {
-                chords: [
-                    { notes: [262, 330, 392], time: 0, dur: 2.0 },     // C major
-                    { notes: [294, 370, 440], time: 2.2, dur: 1.8 },   // D minor  
-                    { notes: [262, 330, 392], time: 4.2, dur: 1.8 },   // C major
-                    { notes: [247, 311, 370], time: 6.2, dur: 1.8 },   // G major
+                arpeggios: [
+                    { notes: [262, 330, 392, 523], time: 0 },
+                    { notes: [294, 370, 440, 587], time: 0.5 },
+                    { notes: [262, 330, 392, 523], time: 1.0 },
+                    { notes: [247, 311, 392, 494], time: 1.5 },
+                    { notes: [220, 277, 330, 440], time: 2.0 },
+                    { notes: [247, 311, 392, 494], time: 2.5 },
+                    { notes: [262, 330, 392, 523], time: 3.0 },
+                    { notes: [294, 370, 440, 587], time: 3.5 },
                 ],
                 melody: [
-                    { note: 523, time: 0.5, dur: 0.4 },
-                    { note: 494, time: 1.0, dur: 0.4 },
-                    { note: 440, time: 1.5, dur: 0.6 },
-                    { note: 392, time: 2.5, dur: 0.8 },
-                    { note: 440, time: 4.0, dur: 0.5 },
-                    { note: 494, time: 5.0, dur: 0.5 },
-                    { note: 523, time: 6.0, dur: 1.0 },
+                    { note: 784, time: 0, dur: 0.15 },
+                    { note: 659, time: 0.2, dur: 0.15 },
+                    { note: 523, time: 0.4, dur: 0.2 },
+                    { note: 659, time: 0.7, dur: 0.15 },
+                    { note: 784, time: 1.0, dur: 0.3 },
+                    { note: 659, time: 1.5, dur: 0.15 },
+                    { note: 523, time: 1.7, dur: 0.15 },
+                    { note: 440, time: 2.0, dur: 0.3 },
+                    { note: 523, time: 2.5, dur: 0.15 },
+                    { note: 659, time: 2.7, dur: 0.15 },
+                    { note: 784, time: 3.0, dur: 0.2 },
+                    { note: 880, time: 3.3, dur: 0.3 },
                 ],
                 bass: [
-                    { note: 131, time: 0, dur: 2.0 },
-                    { note: 147, time: 2.2, dur: 1.8 },
-                    { note: 131, time: 4.2, dur: 1.8 },
-                    { note: 98, time: 6.2, dur: 1.8 },
+                    { note: 131, time: 0, dur: 0.2 },
+                    { note: 131, time: 0.25, dur: 0.15 },
+                    { note: 147, time: 0.5, dur: 0.2 },
+                    { note: 147, time: 0.75, dur: 0.15 },
+                    { note: 131, time: 1.0, dur: 0.2 },
+                    { note: 131, time: 1.25, dur: 0.15 },
+                    { note: 98, time: 1.5, dur: 0.2 },
+                    { note: 98, time: 1.75, dur: 0.15 },
+                    { note: 110, time: 2.0, dur: 0.2 },
+                    { note: 110, time: 2.25, dur: 0.15 },
+                    { note: 98, time: 2.5, dur: 0.2 },
+                    { note: 98, time: 2.75, dur: 0.15 },
+                    { note: 131, time: 3.0, dur: 0.2 },
+                    { note: 147, time: 3.25, dur: 0.15 },
+                    { note: 165, time: 3.5, dur: 0.2 },
+                    { note: 147, time: 3.75, dur: 0.15 },
                 ]
             };
         } else if (currentWorld === WORLDS.SNOW) {
-            // Peaceful, crystalline winter melody
+            // Slightly slower, mysterious arcade tune
             return {
-                chords: [
-                    { notes: [220, 277, 330], time: 0, dur: 2.5 },     // A minor
-                    { notes: [196, 247, 294], time: 2.7, dur: 2.3 },   // G major
-                    { notes: [175, 220, 262], time: 5.2, dur: 2.5 },   // F major
-                    { notes: [196, 247, 294], time: 7.9, dur: 2.1 },   // G major
+                arpeggios: [
+                    { notes: [220, 262, 330, 440], time: 0 },
+                    { notes: [196, 247, 294, 392], time: 0.6 },
+                    { notes: [175, 220, 262, 349], time: 1.2 },
+                    { notes: [196, 247, 294, 392], time: 1.8 },
+                    { notes: [220, 262, 330, 440], time: 2.4 },
+                    { notes: [247, 311, 370, 494], time: 3.0 },
+                    { notes: [262, 330, 392, 523], time: 3.6 },
+                    { notes: [247, 311, 370, 494], time: 4.2 },
                 ],
                 melody: [
-                    { note: 659, time: 0, dur: 1.0 },
-                    { note: 587, time: 1.2, dur: 0.8 },
-                    { note: 523, time: 2.2, dur: 1.2 },
-                    { note: 494, time: 4.0, dur: 0.8 },
-                    { note: 440, time: 5.0, dur: 1.5 },
-                    { note: 494, time: 7.0, dur: 0.8 },
-                    { note: 523, time: 8.2, dur: 1.5 },
+                    { note: 659, time: 0, dur: 0.25 },
+                    { note: 587, time: 0.3, dur: 0.2 },
+                    { note: 523, time: 0.6, dur: 0.3 },
+                    { note: 494, time: 1.2, dur: 0.2 },
+                    { note: 440, time: 1.5, dur: 0.4 },
+                    { note: 392, time: 2.1, dur: 0.2 },
+                    { note: 440, time: 2.4, dur: 0.25 },
+                    { note: 523, time: 2.8, dur: 0.3 },
+                    { note: 587, time: 3.3, dur: 0.2 },
+                    { note: 659, time: 3.6, dur: 0.4 },
+                    { note: 587, time: 4.2, dur: 0.3 },
                 ],
                 bass: [
-                    { note: 110, time: 0, dur: 2.5 },
-                    { note: 98, time: 2.7, dur: 2.3 },
-                    { note: 87, time: 5.2, dur: 2.5 },
-                    { note: 98, time: 7.9, dur: 2.1 },
+                    { note: 110, time: 0, dur: 0.25 },
+                    { note: 110, time: 0.3, dur: 0.2 },
+                    { note: 98, time: 0.6, dur: 0.25 },
+                    { note: 98, time: 0.9, dur: 0.2 },
+                    { note: 87, time: 1.2, dur: 0.25 },
+                    { note: 87, time: 1.5, dur: 0.2 },
+                    { note: 98, time: 1.8, dur: 0.25 },
+                    { note: 98, time: 2.1, dur: 0.2 },
+                    { note: 110, time: 2.4, dur: 0.25 },
+                    { note: 123, time: 2.7, dur: 0.2 },
+                    { note: 131, time: 3.0, dur: 0.25 },
+                    { note: 131, time: 3.3, dur: 0.2 },
+                    { note: 123, time: 3.6, dur: 0.25 },
+                    { note: 110, time: 3.9, dur: 0.2 },
+                    { note: 98, time: 4.2, dur: 0.25 },
                 ]
             };
         } else if (currentWorld === WORLDS.PARK) {
-            // Playful, bouncy adventure tune
+            // Fast, energetic arcade action (think Pac-Man intermission)
             return {
-                chords: [
-                    { notes: [262, 330, 392], time: 0, dur: 1.5 },     // C major
-                    { notes: [220, 277, 330], time: 1.7, dur: 1.5 },   // A minor
-                    { notes: [175, 220, 262], time: 3.4, dur: 1.5 },   // F major
-                    { notes: [196, 247, 294], time: 5.1, dur: 1.5 },   // G major
+                arpeggios: [
+                    { notes: [262, 330, 392, 523], time: 0 },
+                    { notes: [220, 277, 330, 440], time: 0.4 },
+                    { notes: [175, 220, 262, 349], time: 0.8 },
+                    { notes: [196, 247, 294, 392], time: 1.2 },
+                    { notes: [262, 330, 392, 523], time: 1.6 },
+                    { notes: [294, 370, 440, 587], time: 2.0 },
+                    { notes: [330, 415, 494, 659], time: 2.4 },
+                    { notes: [294, 370, 440, 587], time: 2.8 },
                 ],
                 melody: [
-                    { note: 392, time: 0, dur: 0.3 },
-                    { note: 440, time: 0.4, dur: 0.3 },
-                    { note: 494, time: 0.8, dur: 0.5 },
-                    { note: 523, time: 1.5, dur: 0.6 },
-                    { note: 440, time: 2.5, dur: 0.4 },
-                    { note: 392, time: 3.2, dur: 0.6 },
-                    { note: 349, time: 4.2, dur: 0.5 },
-                    { note: 392, time: 5.0, dur: 0.8 },
+                    { note: 523, time: 0, dur: 0.1 },
+                    { note: 587, time: 0.12, dur: 0.1 },
+                    { note: 659, time: 0.24, dur: 0.1 },
+                    { note: 784, time: 0.4, dur: 0.2 },
+                    { note: 659, time: 0.7, dur: 0.1 },
+                    { note: 523, time: 0.85, dur: 0.15 },
+                    { note: 440, time: 1.1, dur: 0.2 },
+                    { note: 523, time: 1.4, dur: 0.1 },
+                    { note: 659, time: 1.55, dur: 0.1 },
+                    { note: 784, time: 1.7, dur: 0.15 },
+                    { note: 880, time: 1.9, dur: 0.2 },
+                    { note: 784, time: 2.2, dur: 0.1 },
+                    { note: 659, time: 2.35, dur: 0.1 },
+                    { note: 523, time: 2.5, dur: 0.2 },
+                    { note: 659, time: 2.8, dur: 0.15 },
                 ],
                 bass: [
-                    { note: 131, time: 0, dur: 1.5 },
-                    { note: 110, time: 1.7, dur: 1.5 },
-                    { note: 87, time: 3.4, dur: 1.5 },
-                    { note: 98, time: 5.1, dur: 1.5 },
+                    { note: 131, time: 0, dur: 0.15 },
+                    { note: 165, time: 0.2, dur: 0.1 },
+                    { note: 131, time: 0.35, dur: 0.1 },
+                    { note: 110, time: 0.5, dur: 0.15 },
+                    { note: 131, time: 0.7, dur: 0.1 },
+                    { note: 110, time: 0.85, dur: 0.1 },
+                    { note: 87, time: 1.0, dur: 0.15 },
+                    { note: 110, time: 1.2, dur: 0.1 },
+                    { note: 87, time: 1.35, dur: 0.1 },
+                    { note: 98, time: 1.5, dur: 0.15 },
+                    { note: 123, time: 1.7, dur: 0.1 },
+                    { note: 98, time: 1.85, dur: 0.1 },
+                    { note: 131, time: 2.0, dur: 0.15 },
+                    { note: 147, time: 2.2, dur: 0.1 },
+                    { note: 165, time: 2.4, dur: 0.15 },
+                    { note: 147, time: 2.6, dur: 0.1 },
+                    { note: 131, time: 2.8, dur: 0.15 },
                 ]
             };
         } else if (currentWorld === WORLDS.SPACE) {
-            // Cosmic, dreamy ambient - SLOWER and more relaxed
+            // Cosmic but still arcade-y (think Galaga)
             return {
-                chords: [
-                    { notes: [165, 220, 262], time: 0, dur: 3.5 },     // E minor spread
-                    { notes: [147, 196, 247], time: 4.0, dur: 3.5 },   // D minor spread
-                    { notes: [131, 175, 220], time: 8.0, dur: 3.5 },   // C minor spread
+                arpeggios: [
+                    { notes: [165, 220, 262, 330], time: 0 },
+                    { notes: [147, 196, 247, 294], time: 0.8 },
+                    { notes: [131, 175, 220, 262], time: 1.6 },
+                    { notes: [147, 196, 247, 294], time: 2.4 },
+                    { notes: [165, 220, 262, 330], time: 3.2 },
+                    { notes: [175, 220, 277, 349], time: 4.0 },
+                    { notes: [165, 220, 262, 330], time: 4.8 },
+                    { notes: [147, 196, 247, 294], time: 5.6 },
                 ],
                 melody: [
-                    { note: 330, time: 1.0, dur: 1.5 },
-                    { note: 294, time: 3.0, dur: 1.5 },
-                    { note: 262, time: 5.5, dur: 2.0 },
-                    { note: 294, time: 8.5, dur: 1.5 },
-                    { note: 330, time: 10.5, dur: 1.5 },
+                    { note: 659, time: 0, dur: 0.3 },
+                    { note: 587, time: 0.4, dur: 0.2 },
+                    { note: 523, time: 0.7, dur: 0.3 },
+                    { note: 440, time: 1.2, dur: 0.4 },
+                    { note: 392, time: 1.8, dur: 0.3 },
+                    { note: 349, time: 2.3, dur: 0.4 },
+                    { note: 392, time: 3.0, dur: 0.3 },
+                    { note: 440, time: 3.5, dur: 0.3 },
+                    { note: 523, time: 4.0, dur: 0.4 },
+                    { note: 587, time: 4.6, dur: 0.3 },
+                    { note: 659, time: 5.1, dur: 0.4 },
+                    { note: 587, time: 5.7, dur: 0.3 },
                 ],
                 bass: [
-                    { note: 82, time: 0, dur: 4.0 },
-                    { note: 73, time: 4.0, dur: 4.0 },
-                    { note: 65, time: 8.0, dur: 4.0 },
+                    { note: 82, time: 0, dur: 0.3 },
+                    { note: 82, time: 0.4, dur: 0.25 },
+                    { note: 73, time: 0.8, dur: 0.3 },
+                    { note: 73, time: 1.2, dur: 0.25 },
+                    { note: 65, time: 1.6, dur: 0.3 },
+                    { note: 65, time: 2.0, dur: 0.25 },
+                    { note: 73, time: 2.4, dur: 0.3 },
+                    { note: 73, time: 2.8, dur: 0.25 },
+                    { note: 82, time: 3.2, dur: 0.3 },
+                    { note: 87, time: 3.6, dur: 0.25 },
+                    { note: 82, time: 4.0, dur: 0.3 },
+                    { note: 82, time: 4.4, dur: 0.25 },
+                    { note: 82, time: 4.8, dur: 0.3 },
+                    { note: 73, time: 5.2, dur: 0.25 },
+                    { note: 73, time: 5.6, dur: 0.3 },
                 ]
             };
         } else {
-            // Castle/Boss - dramatic but not harsh
+            // Castle/Boss - intense arcade boss music (think Mega Man boss)
             return {
-                chords: [
-                    { notes: [147, 175, 220], time: 0, dur: 2.0 },     // D minor
-                    { notes: [131, 165, 196], time: 2.2, dur: 2.0 },   // C minor
-                    { notes: [147, 175, 220], time: 4.4, dur: 2.0 },   // D minor
-                    { notes: [165, 196, 247], time: 6.6, dur: 2.0 },   // E diminished
+                arpeggios: [
+                    { notes: [147, 175, 220, 294], time: 0 },
+                    { notes: [131, 165, 196, 262], time: 0.35 },
+                    { notes: [147, 175, 220, 294], time: 0.7 },
+                    { notes: [165, 196, 247, 330], time: 1.05 },
+                    { notes: [147, 175, 220, 294], time: 1.4 },
+                    { notes: [131, 165, 196, 262], time: 1.75 },
+                    { notes: [123, 147, 175, 247], time: 2.1 },
+                    { notes: [131, 165, 196, 262], time: 2.45 },
                 ],
                 melody: [
-                    { note: 440, time: 0, dur: 0.5 },
-                    { note: 392, time: 0.6, dur: 0.5 },
-                    { note: 349, time: 1.2, dur: 0.8 },
-                    { note: 330, time: 2.5, dur: 0.8 },
-                    { note: 349, time: 4.0, dur: 0.5 },
-                    { note: 392, time: 5.0, dur: 0.5 },
-                    { note: 440, time: 6.0, dur: 1.0 },
+                    { note: 587, time: 0, dur: 0.12 },
+                    { note: 523, time: 0.15, dur: 0.12 },
+                    { note: 440, time: 0.3, dur: 0.15 },
+                    { note: 523, time: 0.5, dur: 0.12 },
+                    { note: 587, time: 0.65, dur: 0.2 },
+                    { note: 659, time: 0.9, dur: 0.15 },
+                    { note: 587, time: 1.1, dur: 0.12 },
+                    { note: 523, time: 1.25, dur: 0.12 },
+                    { note: 440, time: 1.4, dur: 0.2 },
+                    { note: 392, time: 1.65, dur: 0.15 },
+                    { note: 440, time: 1.85, dur: 0.12 },
+                    { note: 523, time: 2.0, dur: 0.15 },
+                    { note: 587, time: 2.2, dur: 0.2 },
+                    { note: 523, time: 2.45, dur: 0.15 },
                 ],
                 bass: [
-                    { note: 73, time: 0, dur: 2.0 },
-                    { note: 65, time: 2.2, dur: 2.0 },
-                    { note: 73, time: 4.4, dur: 2.0 },
-                    { note: 82, time: 6.6, dur: 2.0 },
+                    { note: 73, time: 0, dur: 0.12 },
+                    { note: 98, time: 0.15, dur: 0.1 },
+                    { note: 73, time: 0.3, dur: 0.12 },
+                    { note: 65, time: 0.45, dur: 0.1 },
+                    { note: 87, time: 0.6, dur: 0.12 },
+                    { note: 65, time: 0.75, dur: 0.1 },
+                    { note: 73, time: 0.9, dur: 0.12 },
+                    { note: 98, time: 1.05, dur: 0.1 },
+                    { note: 73, time: 1.2, dur: 0.12 },
+                    { note: 65, time: 1.35, dur: 0.1 },
+                    { note: 55, time: 1.5, dur: 0.12 },
+                    { note: 65, time: 1.65, dur: 0.1 },
+                    { note: 73, time: 1.8, dur: 0.12 },
+                    { note: 87, time: 1.95, dur: 0.1 },
+                    { note: 73, time: 2.1, dur: 0.12 },
+                    { note: 65, time: 2.25, dur: 0.1 },
+                    { note: 73, time: 2.4, dur: 0.15 },
                 ]
             };
         }
     };
 
-    const loopDuration = currentWorld === WORLDS.SPACE ? 12 : 8;
+    // Loop duration varies by world
+    const getLoopDuration = () => {
+        if (currentWorld === WORLDS.GARDEN) return 4;
+        if (currentWorld === WORLDS.SNOW) return 4.8;
+        if (currentWorld === WORLDS.PARK) return 3.2;
+        if (currentWorld === WORLDS.SPACE) return 6.4;
+        return 2.8; // Castle/Boss - faster loop for intensity
+    };
     
     function scheduleLoop() {
         if (!musicPlaying || gameState !== 'playing') return;
         
         const now = audioContext.currentTime;
         const music = getWorldMusic();
+        const loopDuration = getLoopDuration();
         
-        // Play smooth chords
-        music.chords.forEach(({ notes, time, dur }) => {
-            playChord(notes, now + time, dur, 0.025);
+        // Play arpeggios (classic arcade signature)
+        music.arpeggios.forEach(({ notes, time }) => {
+            playArpeggio(notes, now + time, 0.08, 0.03);
         });
         
-        // Play gentle melody
+        // Play melody with square wave
         music.melody.forEach(({ note, time, dur }) => {
-            playNote(note, now + time, dur, 'sine', 0.04);
+            playNote(note, now + time, dur, 'square', 0.045);
         });
         
-        // Play warm bass
+        // Play bass with triangle wave (warmer low end)
         music.bass.forEach(({ note, time, dur }) => {
-            playNote(note, now + time, dur, 'triangle', 0.05);
+            playNote(note, now + time, dur, 'triangle', 0.06);
         });
         
         setTimeout(scheduleLoop, loopDuration * 1000);
@@ -500,9 +638,16 @@ function showScreen(screen) {
 function startGame() {
     initAudio();
     
-    // Get player name (default to "Player 1" if empty)
+    // Get player name - required field
     if (playerNameInput) {
-        playerName = playerNameInput.value.trim() || 'Player 1';
+        playerName = playerNameInput.value.trim();
+        if (!playerName) {
+            playerNameInput.focus();
+            playerNameInput.classList.add('input-error');
+            addFloatingText('Please enter your name!', '#FF6B6B', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+            setTimeout(() => playerNameInput.classList.remove('input-error'), 2000);
+            return; // Don't start game without a name
+        }
     }
     
     gameState = 'playing';
@@ -1155,6 +1300,7 @@ function startBossBattle() {
     bossDefeated = false;
     bossDefeatedTime = 0;
     bossHitTime = 0;
+    bossShieldSpawned = false; // Reset shield spawn flag for new boss
     
     // Clear any existing objects
     approachingObjects = [];
@@ -1223,6 +1369,12 @@ function updateBossBattle() {
             if (soundEnabled) playBossHitSound();
             spawnParticles(bossX, bossY, '#FF0000', 20);
             
+            // Spawn a shield at 50% health to help block hair dryers
+            if (!bossShieldSpawned && bossHealth <= bossMaxHealth * 0.5) {
+                spawnBossShield();
+                bossShieldSpawned = true;
+            }
+            
             // Check if boss defeated
             if (bossHealth <= 0) {
                 defeatBoss();
@@ -1273,6 +1425,21 @@ function spawnBossPunch() {
         rotationSpeed: (Math.random() - 0.5) * 0.1
     };
     approachingObjects.push(obj);
+}
+
+function spawnBossShield() {
+    // Spawn a single shield at 50% boss health to help player block hair dryers
+    const obj = {
+        laneX: 0, // Spawn in center for visibility
+        z: 0,
+        ...OBJECT_TYPES.SHIELD,
+        objectType: OBJECT_TYPES.SHIELD,
+        collected: false,
+        rotation: 0,
+        rotationSpeed: 0.05
+    };
+    approachingObjects.push(obj);
+    addFloatingText('🛡️ Shield incoming!', '#00BFFF', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 50);
 }
 
 function throwPunch() {
@@ -2060,22 +2227,16 @@ function saveScore(name, score, level) {
 }
 
 function saveToFirebase(entry) {
-    console.log('saveToFirebase called with:', entry);
-    
     if (!isFirebaseAvailable()) {
-        console.log('Firebase not available, skipping save');
         return;
     }
     
     try {
         const scoresRef = firebaseDB.ref('leaderboard');
-        console.log('Attempting to push to Firebase leaderboard...');
         
         // Push the new score
         scoresRef.push(entry)
             .then(() => {
-                console.log('Score saved to Firebase successfully!');
-                
                 // Clean up old scores (keep only top 50 globally)
                 scoresRef.orderByChild('score').limitToFirst(1).once('value', (snapshot) => {
                     // Firebase will handle the real-time update
@@ -2083,8 +2244,6 @@ function saveToFirebase(entry) {
             })
             .catch((error) => {
                 console.error('Error saving to Firebase:', error);
-                console.error('Error code:', error.code);
-                console.error('Error message:', error.message);
             });
     } catch (e) {
         console.error('Exception in saveToFirebase:', e);
@@ -4951,6 +5110,15 @@ function drawTunaCan(size) {
 function drawToby() {
     ctx.save();
     
+    // Get current skin colors
+    const skin = TOBY_SKINS[currentSkin] || TOBY_SKINS.default;
+    const bodyColor = skin.bodyColor;
+    const patchColor = skin.patchColor;
+    // Derive secondary colors from skin
+    const bodyLighter = lightenColor(bodyColor, 0.1);
+    const bodyDarker = darkenColor(bodyColor, 0.15);
+    const patchLighter = lightenColor(patchColor, 0.2);
+    
     // Apply body bob for running animation
     ctx.translate(toby.x, toby.y + toby.bobOffset);
 
@@ -4973,8 +5141,8 @@ function drawToby() {
     ctx.save();
     
     // Back left leg (further back, darker)
-    ctx.fillStyle = '#E8E8E8';
-    ctx.strokeStyle = '#BBBBBB';
+    ctx.fillStyle = bodyDarker;
+    ctx.strokeStyle = darkenColor(bodyColor, 0.25);
     ctx.lineWidth = 1;
     
     // Upper back leg
@@ -4995,7 +5163,7 @@ function drawToby() {
     ctx.fill();
     ctx.stroke();
     // Paw
-    ctx.fillStyle = '#E8E8E8';
+    ctx.fillStyle = bodyDarker;
     ctx.beginPath();
     ctx.ellipse(0, 18, 7, 4, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -5019,7 +5187,7 @@ function drawToby() {
     ctx.ellipse(0, 8, 5, 10, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
-    ctx.fillStyle = '#E8E8E8';
+    ctx.fillStyle = bodyDarker;
     ctx.beginPath();
     ctx.ellipse(0, 18, 7, 4, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -5034,8 +5202,8 @@ function drawToby() {
     ctx.translate(22, 10);
     ctx.rotate(tailWag * 0.02);
     
-    // Tail - white with grey/black
-    ctx.fillStyle = '#FFFFFF';
+    // Tail - uses skin body color
+    ctx.fillStyle = bodyColor;
     ctx.beginPath();
     ctx.moveTo(0, 5);
     ctx.quadraticCurveTo(18 + tailWag * 0.3, 0, 23 + tailWag * 0.5, -15);
@@ -5043,12 +5211,12 @@ function drawToby() {
     ctx.quadraticCurveTo(13, -5, 0, 12);
     ctx.closePath();
     ctx.fill();
-    ctx.strokeStyle = '#CCCCCC';
+    ctx.strokeStyle = bodyDarker;
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    // Tail stripes - grey/black
-    ctx.fillStyle = '#666666';
+    // Tail stripes - uses skin patch color
+    ctx.fillStyle = patchLighter;
     ctx.beginPath();
     ctx.moveTo(6, -2);
     ctx.quadraticCurveTo(13 + tailWag * 0.2, -5, 16 + tailWag * 0.3, -10);
@@ -5056,7 +5224,7 @@ function drawToby() {
     ctx.closePath();
     ctx.fill();
 
-    ctx.fillStyle = '#333333';
+    ctx.fillStyle = patchColor;
     ctx.beginPath();
     ctx.moveTo(16 + tailWag * 0.3, -12);
     ctx.quadraticCurveTo(23 + tailWag * 0.4, -18, 22 + tailWag * 0.4, -22);
@@ -5066,27 +5234,27 @@ function drawToby() {
     ctx.restore();
 
     // ===== BODY =====
-    ctx.fillStyle = '#FFFFFF';
+    ctx.fillStyle = bodyColor;
     ctx.beginPath();
     ctx.ellipse(0, 10, 28, 22, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = '#CCCCCC';
+    ctx.strokeStyle = bodyDarker;
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    // Body patches - grey
-    ctx.fillStyle = '#888888';
+    // Body patches - uses skin patch colors
+    ctx.fillStyle = patchLighter;
     ctx.beginPath();
     ctx.ellipse(-10, 5, 12, 10, 0.3, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = '#666666';
+    ctx.fillStyle = patchColor;
     ctx.beginPath();
     ctx.ellipse(12, 12, 8, 7, -0.2, 0, Math.PI * 2);
     ctx.fill();
 
     // ===== FRONT LEGS (in front of body) =====
-    ctx.fillStyle = '#FFFFFF';
-    ctx.strokeStyle = '#CCCCCC';
+    ctx.fillStyle = bodyColor;
+    ctx.strokeStyle = bodyDarker;
     ctx.lineWidth = 1;
     
     // Front left leg
@@ -5123,7 +5291,7 @@ function drawToby() {
     ctx.save();
     ctx.translate(15, 22);
     ctx.rotate(legSwingBack * 0.04);
-    ctx.fillStyle = '#FFFFFF';
+    ctx.fillStyle = bodyColor;
     ctx.beginPath();
     ctx.ellipse(0, 6, 6, 10, -0.1, 0, Math.PI * 2);
     ctx.fill();
@@ -5150,28 +5318,28 @@ function drawToby() {
     ctx.save();
     ctx.translate(0, headBob);
     
-    // Head - white
-    ctx.fillStyle = '#FFFFFF';
+    // Head - uses skin body color
+    ctx.fillStyle = bodyColor;
     ctx.beginPath();
     ctx.arc(0, -15, 22, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = '#CCCCCC';
+    ctx.strokeStyle = bodyDarker;
     ctx.stroke();
 
-    // Head patch - black
-    ctx.fillStyle = '#333333';
+    // Head patch - uses skin patch color
+    ctx.fillStyle = patchColor;
     ctx.beginPath();
     ctx.ellipse(-8, -22, 10, 8, 0.3, 0, Math.PI * 2);
     ctx.fill();
 
-    // Ears - white with black tips
-    ctx.fillStyle = '#FFFFFF';
+    // Ears - uses skin body color with patch tips
+    ctx.fillStyle = bodyColor;
     ctx.beginPath();
     ctx.moveTo(-17, -32);
     ctx.lineTo(-12, -45);
     ctx.lineTo(-5, -32);
     ctx.fill();
-    ctx.strokeStyle = '#CCCCCC';
+    ctx.strokeStyle = bodyDarker;
     ctx.stroke();
     
     ctx.beginPath();
@@ -5181,15 +5349,15 @@ function drawToby() {
     ctx.fill();
     ctx.stroke();
 
-    // Black ear tips
-    ctx.fillStyle = '#333333';
+    // Ear tips - uses skin patch color
+    ctx.fillStyle = patchColor;
     ctx.beginPath();
     ctx.moveTo(-14, -38);
     ctx.lineTo(-12, -45);
     ctx.lineTo(-10, -38);
     ctx.fill();
 
-    ctx.fillStyle = '#666666';
+    ctx.fillStyle = patchLighter;
     ctx.beginPath();
     ctx.moveTo(10, -38);
     ctx.lineTo(12, -45);

@@ -178,3 +178,11 @@ I don't think the Leaderboard is working, there is still no data in the Realtime
 
 ## 33
 
+Can you check that the "Skins" are working in the shop? - A user told me they bought a skin, and it showed "Equipped" but when they started a new game Toby looked the same?
+
+## 34
+
+Can we make the player name mandatory, and remove the default "Player 1" text?
+
+## 35
+
