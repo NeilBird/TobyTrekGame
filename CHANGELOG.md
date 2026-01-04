@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.7] - 2026-01-04
+
+### Fixed
+
+- **iOS Safari Layout Improvements** 📱
+  - Fixed sponsors section positioning on iOS Safari
+  - Added GPU acceleration for smoother rendering
+  - Improved mobile touch controls placement
+  - Touch controls now properly overlap the bottom of the game canvas
+
+---
+
 ## [1.0.6] - 2026-01-04
 
 ### Added

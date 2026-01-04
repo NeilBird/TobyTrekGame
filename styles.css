@@ -862,7 +862,7 @@ body {
     display: none;
     position: absolute;
     bottom: auto;
-    top: calc(100vw * 9 / 16 + 10px); /* Position directly below 16:9 canvas */
+    top: calc(100vw * 9 / 16 - 35px); /* Position overlapping bottom of canvas */
     left: 0;
     right: 0;
     justify-content: space-between;
@@ -957,6 +957,7 @@ body {
     display: none; /* Hidden by default, shown during gameplay */
     position: fixed;
     bottom: 5px;
+    top: auto !important; /* Ensure bottom positioning */
     left: 0;
     right: 0;
     text-align: center;
@@ -980,6 +981,15 @@ body {
 @media (hover: none) and (pointer: coarse) {
     #touch-controls {
         display: flex;
+    }
+    
+    /* Fix iOS Safari sponsors positioning */
+    #sponsors {
+        position: fixed;
+        bottom: 5px;
+        top: auto !important;
+        -webkit-transform: translateZ(0); /* Force GPU acceleration on iOS */
+        transform: translateZ(0);
     }
     
     /* Fix iOS Safari energy bar visibility - pin below HUD at top of screen */
