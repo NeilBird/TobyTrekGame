@@ -989,6 +989,12 @@ body {
         height: 14px;
     }
     
+    /* Move indicators below energy bar on mobile */
+    #speed-indicator,
+    #boss-indicator {
+        top: 110px; /* Below the energy bar */
+    }
+    
     #hud {
         flex-wrap: wrap;
         gap: 5px 10px;

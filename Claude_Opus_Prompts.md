@@ -256,4 +256,7 @@ this is looking good, on Safari on iOS, the buttons for navigation could still b
 
 ## 50
 
+Also the box that shows "SPEED UP" and other infomration could be a little lower on iOS, as it overlaps Toby's energy.
+
+## 51
 
