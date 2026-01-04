@@ -1,5 +1,5 @@
 // Game Version
-const GAME_VERSION = '1.0.2';
+const GAME_VERSION = '1.0.3';
 
 // Game Constants
 const CANVAS_WIDTH = 800;
@@ -5209,6 +5209,181 @@ function drawPuddle(size) {
     ctx.restore();
 }
 
+// Draw accessory on Toby's head
+function drawAccessory(ctx) {
+    if (!currentAccessory || currentAccessory === 'none') return;
+    
+    switch(currentAccessory) {
+        case 'crown':
+            // Royal Crown - gold crown on top of head
+            ctx.fillStyle = '#FFD700';
+            ctx.strokeStyle = '#B8860B';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(-12, -42);
+            ctx.lineTo(-15, -52);
+            ctx.lineTo(-8, -47);
+            ctx.lineTo(0, -58);
+            ctx.lineTo(8, -47);
+            ctx.lineTo(15, -52);
+            ctx.lineTo(12, -42);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            // Crown jewels
+            ctx.fillStyle = '#FF0000';
+            ctx.beginPath();
+            ctx.arc(0, -50, 3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#0000FF';
+            ctx.beginPath();
+            ctx.arc(-8, -46, 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(8, -46, 2, 0, Math.PI * 2);
+            ctx.fill();
+            break;
+            
+        case 'bow':
+            // Cute Bow - pink bow between ears
+            ctx.fillStyle = '#FF69B4';
+            ctx.strokeStyle = '#FF1493';
+            ctx.lineWidth = 1;
+            // Left loop
+            ctx.beginPath();
+            ctx.ellipse(-8, -40, 8, 5, -0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            // Right loop
+            ctx.beginPath();
+            ctx.ellipse(8, -40, 8, 5, 0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            // Center knot
+            ctx.fillStyle = '#FF1493';
+            ctx.beginPath();
+            ctx.ellipse(0, -40, 4, 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+            // Ribbon tails
+            ctx.fillStyle = '#FF69B4';
+            ctx.beginPath();
+            ctx.moveTo(-2, -37);
+            ctx.quadraticCurveTo(-5, -30, -8, -28);
+            ctx.quadraticCurveTo(-4, -32, -2, -37);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(2, -37);
+            ctx.quadraticCurveTo(5, -30, 8, -28);
+            ctx.quadraticCurveTo(4, -32, 2, -37);
+            ctx.fill();
+            break;
+            
+        case 'hat':
+            // Top Hat - black top hat
+            ctx.fillStyle = '#1a1a1a';
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 1;
+            // Brim
+            ctx.beginPath();
+            ctx.ellipse(0, -38, 18, 5, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            // Top cylinder
+            ctx.fillStyle = '#222222';
+            ctx.fillRect(-10, -62, 20, 24);
+            ctx.strokeRect(-10, -62, 20, 24);
+            // Hat top
+            ctx.beginPath();
+            ctx.ellipse(0, -62, 10, 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            // Red ribbon
+            ctx.fillStyle = '#8B0000';
+            ctx.fillRect(-10, -45, 20, 4);
+            break;
+            
+        case 'glasses':
+            // Cool Shades - dark sunglasses
+            ctx.fillStyle = '#1a1a1a';
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 1.5;
+            // Left lens
+            ctx.beginPath();
+            ctx.roundRect(-15, -22, 12, 8, 2);
+            ctx.fill();
+            ctx.stroke();
+            // Right lens
+            ctx.beginPath();
+            ctx.roundRect(3, -22, 12, 8, 2);
+            ctx.fill();
+            ctx.stroke();
+            // Bridge
+            ctx.strokeStyle = '#333333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(-3, -18);
+            ctx.lineTo(3, -18);
+            ctx.stroke();
+            // Lens shine
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.beginPath();
+            ctx.ellipse(-11, -20, 3, 2, -0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(7, -20, 3, 2, -0.3, 0, Math.PI * 2);
+            ctx.fill();
+            break;
+            
+        case 'flower':
+            // Flower Crown - ring of flowers
+            const flowerColors = ['#FF69B4', '#FFB6C1', '#FF1493', '#FFC0CB', '#FF69B4'];
+            ctx.strokeStyle = '#228B22';
+            ctx.lineWidth = 3;
+            // Green vine base
+            ctx.beginPath();
+            ctx.arc(0, -35, 14, Math.PI * 0.8, Math.PI * 2.2);
+            ctx.stroke();
+            // Flowers around the crown
+            for (let i = 0; i < 5; i++) {
+                const angle = Math.PI * 0.8 + (i * Math.PI * 0.35);
+                const fx = Math.cos(angle) * 14;
+                const fy = -35 + Math.sin(angle) * 14;
+                ctx.fillStyle = flowerColors[i];
+                // Petals
+                for (let p = 0; p < 5; p++) {
+                    const pAngle = (p * Math.PI * 2) / 5;
+                    ctx.beginPath();
+                    ctx.ellipse(fx + Math.cos(pAngle) * 3, fy + Math.sin(pAngle) * 3, 3, 2, pAngle, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                // Center
+                ctx.fillStyle = '#FFD700';
+                ctx.beginPath();
+                ctx.arc(fx, fy, 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            break;
+            
+        case 'halo':
+            // Angel Halo - glowing golden ring above head
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 4;
+            ctx.shadowColor = '#FFD700';
+            ctx.shadowBlur = 15;
+            ctx.beginPath();
+            ctx.ellipse(0, -52, 16, 5, 0, 0, Math.PI * 2);
+            ctx.stroke();
+            // Inner glow
+            ctx.strokeStyle = '#FFFACD';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(0, -52, 14, 4, 0, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+            break;
+    }
+}
+
 function drawToby() {
     ctx.save();
     
@@ -5610,6 +5785,9 @@ function drawToby() {
     ctx.moveTo(12, 0);
     ctx.lineTo(30, 4 + whiskerWiggle);
     ctx.stroke();
+    
+    // ===== DRAW ACCESSORY =====
+    drawAccessory(ctx);
     
     ctx.restore(); // End head transform
 

@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.3] - 2026-01-04
+
+### Fixed
+- **Accessories Now Visible on Toby!** 🎩
+  - Shop accessories (Crown, Bow, Top Hat, Glasses, Flower Crown, Halo) now actually render on Toby
+  - Each accessory has unique custom graphics:
+    - 👑 **Royal Crown** - Gold crown with red and blue jewels
+    - 🎀 **Cute Bow** - Pink bow with ribbon tails
+    - 🎩 **Top Hat** - Classic black top hat with red ribbon
+    - 😎 **Cool Shades** - Dark sunglasses with lens shine
+    - 🌸 **Flower Crown** - Ring of colorful flowers
+    - 😇 **Angel Halo** - Glowing golden halo above head
+  - Accessories properly follow Toby's head movement and animations
+
+---
+
 ## [1.0.2] - 2026-01-04
 
 ### Fixed
