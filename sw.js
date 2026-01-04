@@ -1,5 +1,5 @@
 // Toby Trek Service Worker - Offline Support
-const CACHE_NAME = 'toby-trek-v1.1.2';
+const CACHE_NAME = 'toby-trek-v1.1.3';
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
