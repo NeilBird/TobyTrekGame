@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.6] - 2026-01-04
+
+### Added
+
+- **Sponsors Section** 🎉
+  - Added sponsors below the gameplay area
+  - [Caterpillar Catering Ltd](https://www.caterpillarcatering.co.uk)
+  - [Beat-Herder Festival](https://beatherder.co.uk)
+  - Subtle styling with clickable links
+
+---
+
 ## [1.0.5] - 2026-01-04
 
 ### Added

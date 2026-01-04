@@ -952,6 +952,30 @@ body {
     display: block;
 }
 
+/* Sponsors section */
+#sponsors {
+    display: none; /* Hidden by default, shown during gameplay */
+    position: fixed;
+    bottom: 5px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+    padding: 8px;
+    z-index: 1000;
+}
+
+#sponsors a {
+    color: rgba(255, 200, 100, 0.8);
+    text-decoration: none;
+}
+
+#sponsors a:hover {
+    color: #FFD700;
+    text-decoration: underline;
+}
+
 /* Show touch controls on touch devices */
 @media (hover: none) and (pointer: coarse) {
     #touch-controls {

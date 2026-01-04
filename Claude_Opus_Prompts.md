@@ -232,3 +232,7 @@ On the BOSS levels, the Boss's energy is not visible, only Toby's energy can be 
 
 ## 44
 
+During game play, please can you add "Sponsors: Caterpillar Catering Ltd and Beat-Herder Festival" in small text, centered below the game play, use the hyper link "https://www.caterpillarcatering.co.uk" for the Caterpillar Catering company name and "https://beatherder.co.uk" for Beat-Herder
+
+## 45
+
