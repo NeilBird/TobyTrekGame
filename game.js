@@ -1,5 +1,5 @@
 // Game Version
-const GAME_VERSION = '1.0.3';
+const GAME_VERSION = '1.0.4';
 
 // Game Constants
 const CANVAS_WIDTH = 800;
@@ -190,6 +190,14 @@ const SHOP_POWERUPS = {
     headStart: { name: 'Head Start', price: 75, icon: '🚀', description: 'Start at level 2', isNew: true, owned: 0 },
     coinMagnet: { name: 'Coin Magnet', price: 100, icon: '🧲', description: 'Double coin earnings', isNew: false, owned: 0 },
     luckyCharm: { name: 'Lucky Charm', price: 125, icon: '🍀', description: 'More power-up spawns', isNew: true, owned: 0 }
+};
+
+// Active boost flags for current game session
+let activeBoosts = {
+    extraLife: false,
+    headStart: false,
+    coinMagnet: false,
+    luckyCharm: false
 };
 
 // Current shop category
@@ -677,11 +685,46 @@ function startGame() {
         }
     }
     
+    // Reset active boosts
+    activeBoosts = {
+        extraLife: false,
+        headStart: false,
+        coinMagnet: false,
+        luckyCharm: false
+    };
+    
+    // Consume owned power-up boosts
+    if (SHOP_POWERUPS.extraLife.owned > 0) {
+        SHOP_POWERUPS.extraLife.owned--;
+        activeBoosts.extraLife = true;
+        savePowerups();
+    }
+    if (SHOP_POWERUPS.headStart.owned > 0) {
+        SHOP_POWERUPS.headStart.owned--;
+        activeBoosts.headStart = true;
+        savePowerups();
+    }
+    if (SHOP_POWERUPS.coinMagnet.owned > 0) {
+        SHOP_POWERUPS.coinMagnet.owned--;
+        activeBoosts.coinMagnet = true;
+        savePowerups();
+    }
+    if (SHOP_POWERUPS.luckyCharm.owned > 0) {
+        SHOP_POWERUPS.luckyCharm.owned--;
+        activeBoosts.luckyCharm = true;
+        savePowerups();
+    }
+    
     gameState = 'playing';
     score = 0;
-    energy = 100;
-    level = 1;
-    currentWorld = WORLDS.GARDEN;
+    
+    // Apply Extra Life boost: +20 energy at start
+    energy = activeBoosts.extraLife ? 120 : 100;
+    
+    // Apply Head Start boost: Start at level 2
+    level = activeBoosts.headStart ? 2 : 1;
+    currentWorld = activeBoosts.headStart ? WORLDS.GARDEN : WORLDS.GARDEN; // Still garden for level 2
+    
     levelProgress = 0;
     levelStartTime = Date.now();
     gameStartTime = Date.now();
@@ -1670,31 +1713,35 @@ function spawnObject() {
     // Small chance to spawn power-ups
     const powerUpRand = dailyChallengeActive ? seededRandom() : Math.random();
     
-    // 5% chance for shield
-    if (powerUpRand < 0.05 && !shieldActive) {
+    // Lucky Charm boost doubles power-up spawn chances
+    const luckyMult = activeBoosts.luckyCharm ? 2.0 : 1.0;
+    
+    // 5% chance for shield (10% with lucky charm)
+    if (powerUpRand < 0.05 * luckyMult && !shieldActive) {
         spawnPowerUp(OBJECT_TYPES.SHIELD);
         return;
     }
-    // 3% chance for speed boost
-    if (powerUpRand >= 0.05 && powerUpRand < 0.08 && !speedBoostActive) {
+    // 3% chance for speed boost (6% with lucky charm)
+    if (powerUpRand >= 0.05 * luckyMult && powerUpRand < 0.08 * luckyMult && !speedBoostActive) {
         spawnPowerUp(OBJECT_TYPES.SPEED_BOOST);
         return;
     }
-    // 3% chance for magnet
-    if (powerUpRand >= 0.08 && powerUpRand < 0.11 && !magnetActive) {
+    // 3% chance for magnet (6% with lucky charm)
+    if (powerUpRand >= 0.08 * luckyMult && powerUpRand < 0.11 * luckyMult && !magnetActive) {
         spawnPowerUp(OBJECT_TYPES.MAGNET);
         return;
     }
-    // 3% chance for double points
-    if (powerUpRand >= 0.11 && powerUpRand < 0.14 && !doublePointsActive) {
+    // 3% chance for double points (6% with lucky charm)
+    if (powerUpRand >= 0.11 * luckyMult && powerUpRand < 0.14 * luckyMult && !doublePointsActive) {
         spawnPowerUp(OBJECT_TYPES.DOUBLE_POINTS);
         return;
     }
     // 4% chance for punch (boss ammo) - appears more often as you approach boss level
     const nextBossLevel = Math.ceil(level / BOSS_LEVEL_INTERVAL) * BOSS_LEVEL_INTERVAL;
     const levelsUntilBoss = nextBossLevel - level;
-    const punchChance = levelsUntilBoss <= 3 ? 0.08 : 0.04; // More punches close to boss
-    if (powerUpRand >= 0.14 && powerUpRand < 0.14 + punchChance) {
+    const basePunchChance = levelsUntilBoss <= 3 ? 0.08 : 0.04;
+    const punchChance = basePunchChance * luckyMult; // More punches with lucky charm
+    if (powerUpRand >= 0.14 * luckyMult && powerUpRand < 0.14 * luckyMult + punchChance) {
         spawnPowerUp(OBJECT_TYPES.PUNCH);
         return;
     }
@@ -5938,7 +5985,9 @@ function unlockSkin(skinId) {
 // ============== KITTY COINS SYSTEM ==============
 
 function earnKittyCoins(amount) {
-    kittyCoins += amount;
+    // Double coins if Coin Magnet boost is active
+    const finalAmount = activeBoosts.coinMagnet ? amount * 2 : amount;
+    kittyCoins += finalAmount;
     saveKittyCoins();
     updateCoinDisplay();
 }
