@@ -240,3 +240,7 @@ The sponsors alignment text does not work on mobile, using Apple iOS, the text a
 
 ## 46
 
+The Sponsors are now visible in v1.0.8, but are too low, can they be shown below the box that the game is played inside?
+
+## 47
+
