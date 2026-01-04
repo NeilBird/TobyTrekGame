@@ -954,11 +954,15 @@ body {
 
 /* Sponsors section */
 #sponsors {
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    right: 0;
     text-align: center;
     font-size: 11px;
     color: rgba(255, 255, 255, 0.6);
     padding: 8px;
-    margin-top: 5px;
+    z-index: 50;
 }
 
 #sponsors a {
