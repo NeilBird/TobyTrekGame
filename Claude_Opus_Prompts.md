@@ -220,8 +220,11 @@ Users report that when playing the game on mobile, in portrait mode, the screen 
 
 ## 41
 
-The changes to the navigation buttons and energy bar, have resulted in the engery bar blocking the view of Toby. Can we pin the Energy bar below the bar that shows the time, score and level? The mobile experience is not great. I am testing using Safari on an Apple iOS device (iPhone 16 Pro).
+The changes to the navigation buttons and energy bar, have resulted in the energy bar blocking the view of Toby. Can we pin the Energy bar below the bar that shows the time, score and level? The mobile experience is not great. I am testing using Safari on an Apple iOS device (iPhone 16 Pro).
 
 ## 42
 
- 
+A user reported that they purchased a Top Hat in the store, and it showed "Equipped" but Toby was not wearing it, do all of the items that can be purchased in the shop work?
+
+## 43
+

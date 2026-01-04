@@ -1,5 +1,5 @@
 // Game Version
-const GAME_VERSION = '1.0.2';
+const GAME_VERSION = '1.0.4';
 
 // Game Constants
 const CANVAS_WIDTH = 800;
@@ -190,6 +190,14 @@ const SHOP_POWERUPS = {
     headStart: { name: 'Head Start', price: 75, icon: '🚀', description: 'Start at level 2', isNew: true, owned: 0 },
     coinMagnet: { name: 'Coin Magnet', price: 100, icon: '🧲', description: 'Double coin earnings', isNew: false, owned: 0 },
     luckyCharm: { name: 'Lucky Charm', price: 125, icon: '🍀', description: 'More power-up spawns', isNew: true, owned: 0 }
+};
+
+// Active boost flags for current game session
+let activeBoosts = {
+    extraLife: false,
+    headStart: false,
+    coinMagnet: false,
+    luckyCharm: false
 };
 
 // Current shop category
@@ -677,11 +685,46 @@ function startGame() {
         }
     }
     
+    // Reset active boosts
+    activeBoosts = {
+        extraLife: false,
+        headStart: false,
+        coinMagnet: false,
+        luckyCharm: false
+    };
+    
+    // Consume owned power-up boosts
+    if (SHOP_POWERUPS.extraLife.owned > 0) {
+        SHOP_POWERUPS.extraLife.owned--;
+        activeBoosts.extraLife = true;
+        savePowerups();
+    }
+    if (SHOP_POWERUPS.headStart.owned > 0) {
+        SHOP_POWERUPS.headStart.owned--;
+        activeBoosts.headStart = true;
+        savePowerups();
+    }
+    if (SHOP_POWERUPS.coinMagnet.owned > 0) {
+        SHOP_POWERUPS.coinMagnet.owned--;
+        activeBoosts.coinMagnet = true;
+        savePowerups();
+    }
+    if (SHOP_POWERUPS.luckyCharm.owned > 0) {
+        SHOP_POWERUPS.luckyCharm.owned--;
+        activeBoosts.luckyCharm = true;
+        savePowerups();
+    }
+    
     gameState = 'playing';
     score = 0;
-    energy = 100;
-    level = 1;
-    currentWorld = WORLDS.GARDEN;
+    
+    // Apply Extra Life boost: +20 energy at start
+    energy = activeBoosts.extraLife ? 120 : 100;
+    
+    // Apply Head Start boost: Start at level 2
+    level = activeBoosts.headStart ? 2 : 1;
+    currentWorld = activeBoosts.headStart ? WORLDS.GARDEN : WORLDS.GARDEN; // Still garden for level 2
+    
     levelProgress = 0;
     levelStartTime = Date.now();
     gameStartTime = Date.now();
@@ -1670,31 +1713,35 @@ function spawnObject() {
     // Small chance to spawn power-ups
     const powerUpRand = dailyChallengeActive ? seededRandom() : Math.random();
     
-    // 5% chance for shield
-    if (powerUpRand < 0.05 && !shieldActive) {
+    // Lucky Charm boost doubles power-up spawn chances
+    const luckyMult = activeBoosts.luckyCharm ? 2.0 : 1.0;
+    
+    // 5% chance for shield (10% with lucky charm)
+    if (powerUpRand < 0.05 * luckyMult && !shieldActive) {
         spawnPowerUp(OBJECT_TYPES.SHIELD);
         return;
     }
-    // 3% chance for speed boost
-    if (powerUpRand >= 0.05 && powerUpRand < 0.08 && !speedBoostActive) {
+    // 3% chance for speed boost (6% with lucky charm)
+    if (powerUpRand >= 0.05 * luckyMult && powerUpRand < 0.08 * luckyMult && !speedBoostActive) {
         spawnPowerUp(OBJECT_TYPES.SPEED_BOOST);
         return;
     }
-    // 3% chance for magnet
-    if (powerUpRand >= 0.08 && powerUpRand < 0.11 && !magnetActive) {
+    // 3% chance for magnet (6% with lucky charm)
+    if (powerUpRand >= 0.08 * luckyMult && powerUpRand < 0.11 * luckyMult && !magnetActive) {
         spawnPowerUp(OBJECT_TYPES.MAGNET);
         return;
     }
-    // 3% chance for double points
-    if (powerUpRand >= 0.11 && powerUpRand < 0.14 && !doublePointsActive) {
+    // 3% chance for double points (6% with lucky charm)
+    if (powerUpRand >= 0.11 * luckyMult && powerUpRand < 0.14 * luckyMult && !doublePointsActive) {
         spawnPowerUp(OBJECT_TYPES.DOUBLE_POINTS);
         return;
     }
     // 4% chance for punch (boss ammo) - appears more often as you approach boss level
     const nextBossLevel = Math.ceil(level / BOSS_LEVEL_INTERVAL) * BOSS_LEVEL_INTERVAL;
     const levelsUntilBoss = nextBossLevel - level;
-    const punchChance = levelsUntilBoss <= 3 ? 0.08 : 0.04; // More punches close to boss
-    if (powerUpRand >= 0.14 && powerUpRand < 0.14 + punchChance) {
+    const basePunchChance = levelsUntilBoss <= 3 ? 0.08 : 0.04;
+    const punchChance = basePunchChance * luckyMult; // More punches with lucky charm
+    if (powerUpRand >= 0.14 * luckyMult && powerUpRand < 0.14 * luckyMult + punchChance) {
         spawnPowerUp(OBJECT_TYPES.PUNCH);
         return;
     }
@@ -5209,6 +5256,181 @@ function drawPuddle(size) {
     ctx.restore();
 }
 
+// Draw accessory on Toby's head
+function drawAccessory(ctx) {
+    if (!currentAccessory || currentAccessory === 'none') return;
+    
+    switch(currentAccessory) {
+        case 'crown':
+            // Royal Crown - gold crown on top of head
+            ctx.fillStyle = '#FFD700';
+            ctx.strokeStyle = '#B8860B';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(-12, -42);
+            ctx.lineTo(-15, -52);
+            ctx.lineTo(-8, -47);
+            ctx.lineTo(0, -58);
+            ctx.lineTo(8, -47);
+            ctx.lineTo(15, -52);
+            ctx.lineTo(12, -42);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            // Crown jewels
+            ctx.fillStyle = '#FF0000';
+            ctx.beginPath();
+            ctx.arc(0, -50, 3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#0000FF';
+            ctx.beginPath();
+            ctx.arc(-8, -46, 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(8, -46, 2, 0, Math.PI * 2);
+            ctx.fill();
+            break;
+            
+        case 'bow':
+            // Cute Bow - pink bow between ears
+            ctx.fillStyle = '#FF69B4';
+            ctx.strokeStyle = '#FF1493';
+            ctx.lineWidth = 1;
+            // Left loop
+            ctx.beginPath();
+            ctx.ellipse(-8, -40, 8, 5, -0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            // Right loop
+            ctx.beginPath();
+            ctx.ellipse(8, -40, 8, 5, 0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            // Center knot
+            ctx.fillStyle = '#FF1493';
+            ctx.beginPath();
+            ctx.ellipse(0, -40, 4, 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+            // Ribbon tails
+            ctx.fillStyle = '#FF69B4';
+            ctx.beginPath();
+            ctx.moveTo(-2, -37);
+            ctx.quadraticCurveTo(-5, -30, -8, -28);
+            ctx.quadraticCurveTo(-4, -32, -2, -37);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(2, -37);
+            ctx.quadraticCurveTo(5, -30, 8, -28);
+            ctx.quadraticCurveTo(4, -32, 2, -37);
+            ctx.fill();
+            break;
+            
+        case 'hat':
+            // Top Hat - black top hat
+            ctx.fillStyle = '#1a1a1a';
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 1;
+            // Brim
+            ctx.beginPath();
+            ctx.ellipse(0, -38, 18, 5, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            // Top cylinder
+            ctx.fillStyle = '#222222';
+            ctx.fillRect(-10, -62, 20, 24);
+            ctx.strokeRect(-10, -62, 20, 24);
+            // Hat top
+            ctx.beginPath();
+            ctx.ellipse(0, -62, 10, 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            // Red ribbon
+            ctx.fillStyle = '#8B0000';
+            ctx.fillRect(-10, -45, 20, 4);
+            break;
+            
+        case 'glasses':
+            // Cool Shades - dark sunglasses
+            ctx.fillStyle = '#1a1a1a';
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 1.5;
+            // Left lens
+            ctx.beginPath();
+            ctx.roundRect(-15, -22, 12, 8, 2);
+            ctx.fill();
+            ctx.stroke();
+            // Right lens
+            ctx.beginPath();
+            ctx.roundRect(3, -22, 12, 8, 2);
+            ctx.fill();
+            ctx.stroke();
+            // Bridge
+            ctx.strokeStyle = '#333333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(-3, -18);
+            ctx.lineTo(3, -18);
+            ctx.stroke();
+            // Lens shine
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.beginPath();
+            ctx.ellipse(-11, -20, 3, 2, -0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(7, -20, 3, 2, -0.3, 0, Math.PI * 2);
+            ctx.fill();
+            break;
+            
+        case 'flower':
+            // Flower Crown - ring of flowers
+            const flowerColors = ['#FF69B4', '#FFB6C1', '#FF1493', '#FFC0CB', '#FF69B4'];
+            ctx.strokeStyle = '#228B22';
+            ctx.lineWidth = 3;
+            // Green vine base
+            ctx.beginPath();
+            ctx.arc(0, -35, 14, Math.PI * 0.8, Math.PI * 2.2);
+            ctx.stroke();
+            // Flowers around the crown
+            for (let i = 0; i < 5; i++) {
+                const angle = Math.PI * 0.8 + (i * Math.PI * 0.35);
+                const fx = Math.cos(angle) * 14;
+                const fy = -35 + Math.sin(angle) * 14;
+                ctx.fillStyle = flowerColors[i];
+                // Petals
+                for (let p = 0; p < 5; p++) {
+                    const pAngle = (p * Math.PI * 2) / 5;
+                    ctx.beginPath();
+                    ctx.ellipse(fx + Math.cos(pAngle) * 3, fy + Math.sin(pAngle) * 3, 3, 2, pAngle, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                // Center
+                ctx.fillStyle = '#FFD700';
+                ctx.beginPath();
+                ctx.arc(fx, fy, 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            break;
+            
+        case 'halo':
+            // Angel Halo - glowing golden ring above head
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 4;
+            ctx.shadowColor = '#FFD700';
+            ctx.shadowBlur = 15;
+            ctx.beginPath();
+            ctx.ellipse(0, -52, 16, 5, 0, 0, Math.PI * 2);
+            ctx.stroke();
+            // Inner glow
+            ctx.strokeStyle = '#FFFACD';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(0, -52, 14, 4, 0, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+            break;
+    }
+}
+
 function drawToby() {
     ctx.save();
     
@@ -5611,6 +5833,9 @@ function drawToby() {
     ctx.lineTo(30, 4 + whiskerWiggle);
     ctx.stroke();
     
+    // ===== DRAW ACCESSORY =====
+    drawAccessory(ctx);
+    
     ctx.restore(); // End head transform
 
     ctx.restore(); // End main transform
@@ -5760,7 +5985,9 @@ function unlockSkin(skinId) {
 // ============== KITTY COINS SYSTEM ==============
 
 function earnKittyCoins(amount) {
-    kittyCoins += amount;
+    // Double coins if Coin Magnet boost is active
+    const finalAmount = activeBoosts.coinMagnet ? amount * 2 : amount;
+    kittyCoins += finalAmount;
     saveKittyCoins();
     updateCoinDisplay();
 }
