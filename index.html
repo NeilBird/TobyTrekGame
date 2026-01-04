@@ -340,6 +340,21 @@
         }
     </script>
     
+    <!-- Service Worker Registration for Offline Support -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registered successfully');
+                    })
+                    .catch(function(error) {
+                        console.log('ServiceWorker registration failed:', error);
+                    });
+            });
+        }
+    </script>
+    
     <script src="game.js"></script>
 </body>
 </html>
