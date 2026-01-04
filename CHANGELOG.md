@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.1] - 2026-01-04
+
+### Improved
+- **Mobile Portrait Mode Layout** 📱
+  - Moved navigation buttons (←/→) and energy bar higher on screen
+  - Controls now positioned directly below gameplay canvas with minimal gap
+  - Prevents accidental browser tab closing when playing near screen bottom
+  - Better ergonomic positioning for portrait orientation play
+
+---
+
 ## [1.0.0] - 2026-01-06
 
 ### 🎉 First Major Release!

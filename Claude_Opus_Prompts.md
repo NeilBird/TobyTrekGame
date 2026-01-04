@@ -212,3 +212,8 @@ A user has reported that when you play the game using Safari on an Apple iOS dev
 
 ## 39
 
+can you make the puddle look more like a puddle and not a water drop?
+
+## 40
+
+Users report that when playing the game on mobile, in portrait mode, that the screen layout is not ideal. 

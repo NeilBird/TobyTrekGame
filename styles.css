@@ -861,7 +861,8 @@ body {
 #touch-controls {
     display: none;
     position: absolute;
-    bottom: 20px;
+    bottom: auto;
+    top: calc(100vw * 9 / 16 + 10px); /* Position directly below 16:9 canvas */
     left: 0;
     right: 0;
     justify-content: space-between;
@@ -939,10 +940,11 @@ body {
         display: flex;
     }
     
-    /* Fix iOS Safari energy bar visibility */
+    /* Fix iOS Safari energy bar visibility - position above touch controls */
     #energy-container {
         position: fixed;
-        bottom: 120px;
+        bottom: auto;
+        top: calc(100vw * 9 / 16 + 100px); /* Below canvas, above touch buttons */
         left: 50%;
         transform: translateX(-50%);
         background: rgba(0, 0, 0, 0.7);
@@ -982,10 +984,11 @@ body {
         align-items: stretch;
     }
     
-    /* Ensure energy bar is visible on mobile */
+    /* Ensure energy bar is visible on mobile - positioned below canvas */
     #energy-container {
         position: fixed;
-        bottom: 120px;
+        bottom: auto;
+        top: calc(100vw * 9 / 16 + 100px); /* Below canvas, above touch buttons */
         left: 50%;
         transform: translateX(-50%);
         background: rgba(0, 0, 0, 0.7);
