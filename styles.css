@@ -1545,3 +1545,90 @@ body {
 .easy-mode-btn:hover {
     background: linear-gradient(180deg, #58d68d 0%, #2ecc71 100%);
 }
+
+/* Landscape Mode Support for Mobile */
+@media (max-width: 850px) and (orientation: landscape) {
+    #game-container {
+        max-height: 100vh;
+        overflow-y: auto;
+    }
+    
+    #start-screen {
+        padding: 10px;
+    }
+    
+    #start-screen h1 {
+        font-size: 24px;
+        margin-bottom: 5px;
+    }
+    
+    .toby-icon svg {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .version-row {
+        margin-bottom: 5px;
+    }
+    
+    .setup-row {
+        padding: 8px 15px;
+    }
+    
+    .quick-actions {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .action-btn {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+    
+    #touch-controls {
+        top: auto;
+        bottom: 10px;
+    }
+    
+    .touch-btn {
+        width: 60px;
+        height: 60px;
+        font-size: 28px;
+    }
+    
+    #sponsors {
+        font-size: 10px;
+        padding: 5px;
+    }
+    
+    /* Compact game over screen in landscape */
+    #game-over-screen {
+        padding: 10px;
+    }
+    
+    #game-over-screen h1 {
+        font-size: 20px;
+        margin-bottom: 5px;
+    }
+    
+    #game-over-screen .toby-icon svg {
+        width: 40px;
+        height: 40px;
+    }
+    
+    #final-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+    }
+    
+    #final-stats p {
+        margin: 0;
+        font-size: 14px;
+    }
+    
+    .game-over-buttons {
+        margin-top: 10px;
+    }
+}
