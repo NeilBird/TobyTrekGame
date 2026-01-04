@@ -1,5 +1,5 @@
 // Game Version
-const GAME_VERSION = '1.0.9';
+const GAME_VERSION = '1.1.0';
 
 // Game Constants
 const CANVAS_WIDTH = 800;
@@ -258,12 +258,7 @@ let toby = {
     targetX: CANVAS_WIDTH / 2,
     // Animation state
     runCycle: 0,       // Animation frame counter (0 to 2π)
-    bobOffset: 0,      // Vertical bobbing offset
-    // Jump state
-    isJumping: false,
-    jumpHeight: 0,
-    jumpVelocity: 0,
-    jumpStartTime: 0
+    bobOffset: 0       // Vertical bobbing offset
 };
 
 // Approaching objects (3D perspective)
@@ -789,16 +784,9 @@ function startGame() {
     bossDefeated = false;
     bossDefeatedTime = 0;
     
-    // Reset jump state
-    toby.isJumping = false;
-    toby.jumpHeight = 0;
-    toby.jumpVelocity = 0;
-    
-    // Show jump button, hide punch button for normal gameplay
+    // Show punch button for boss battles only
     const touchPunch = document.getElementById('touch-punch');
-    const touchJump = document.getElementById('touch-jump');
     if (touchPunch) touchPunch.classList.remove('visible');
-    if (touchJump) touchJump.classList.add('visible');
 
     toby.x = CANVAS_WIDTH / 2;
     toby.targetX = CANVAS_WIDTH / 2;
@@ -817,14 +805,11 @@ function handleKeyDown(e) {
     if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = true;
     if (e.key === 'ArrowRight' || e.key === 'd') keys.right = true;
     
-    // Space bar - throw punch during boss battle, OR jump during normal levels
+    // Space bar - throw punch during boss battle
     if (e.key === ' ' && gameState === 'playing' && !gamePaused) {
         e.preventDefault(); // Prevent page scroll
         if (isBossLevel) {
             throwPunch();
-        } else {
-            // Jump during normal gameplay
-            triggerJump();
         }
     }
     
@@ -973,22 +958,6 @@ function setupTouchControls() {
             }
         });
     }
-    
-    // Jump button for mobile normal gameplay
-    const touchJump = document.getElementById('touch-jump');
-    if (touchJump) {
-        touchJump.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            if (!isBossLevel && gameState === 'playing' && !gamePaused) {
-                triggerJump();
-            }
-        }, { passive: false });
-        touchJump.addEventListener('click', () => {
-            if (!isBossLevel && gameState === 'playing' && !gamePaused) {
-                triggerJump();
-            }
-        });
-    }
 }
 
 function handleTouchStart(e) {
@@ -1092,9 +1061,6 @@ function update(timestamp) {
     toby.runCycle += animSpeed;
     if (toby.runCycle > Math.PI * 2) toby.runCycle -= Math.PI * 2;
     toby.bobOffset = Math.sin(toby.runCycle * 2) * 3; // Body bobbing
-    
-    // Update jump physics
-    updateJump();
     
     // Check expression expiration
     if (tobyExpression !== 'normal' && Date.now() > expressionEndTime) {
@@ -1437,11 +1403,9 @@ function startBossBattle() {
         }, 3000);
     }
     
-    // Show mobile punch button, hide jump button during boss battle
+    // Show mobile punch button during boss battle
     const touchPunch = document.getElementById('touch-punch');
-    const touchJump = document.getElementById('touch-jump');
     if (touchPunch) touchPunch.classList.add('visible');
-    if (touchJump) touchJump.classList.remove('visible');
     
     if (soundEnabled) playBossMusic();
     updateHUD();
@@ -1575,66 +1539,6 @@ function throwPunch() {
     
     if (soundEnabled) playPunchSound();
     updateHUD();
-}
-
-// ============== JUMP SYSTEM ==============
-const JUMP_VELOCITY = 15;      // Initial upward velocity
-const GRAVITY = 0.8;           // Gravity pulling Toby down
-const JUMP_DURATION = 500;     // Max jump duration in ms
-
-function triggerJump() {
-    // Can only jump during normal gameplay, not during boss battles
-    if (isBossLevel || toby.isJumping || gameState !== 'playing') return;
-    
-    toby.isJumping = true;
-    toby.jumpVelocity = JUMP_VELOCITY;
-    toby.jumpStartTime = Date.now();
-    toby.jumpHeight = 0;
-    
-    if (soundEnabled) playJumpSound();
-    addFloatingText('🦘 Jump!', '#00FF00', toby.x, toby.y - 60);
-}
-
-function updateJump() {
-    if (!toby.isJumping) return;
-    
-    // Apply velocity and gravity
-    toby.jumpHeight += toby.jumpVelocity;
-    toby.jumpVelocity -= GRAVITY;
-    
-    // Check if landed
-    if (toby.jumpHeight <= 0) {
-        toby.isJumping = false;
-        toby.jumpHeight = 0;
-        toby.jumpVelocity = 0;
-    }
-    
-    // Safety timeout - force land after max duration
-    if (Date.now() - toby.jumpStartTime > JUMP_DURATION) {
-        toby.isJumping = false;
-        toby.jumpHeight = 0;
-        toby.jumpVelocity = 0;
-    }
-}
-
-function playJumpSound() {
-    if (!audioContext) return;
-    
-    const osc = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    
-    osc.connect(gain);
-    gain.connect(audioContext.destination);
-    
-    // Bouncy jump sound - rising pitch
-    osc.frequency.setValueAtTime(300, audioContext.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.1);
-    
-    gain.gain.setValueAtTime(0.15, audioContext.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
-    
-    osc.start(audioContext.currentTime);
-    osc.stop(audioContext.currentTime + 0.15);
 }
 
 function defeatBoss() {
@@ -1922,15 +1826,6 @@ function getObjectSize(z) {
 function handleCollision(obj) {
     // Skip damage if boss is defeated (prevents post-victory damage)
     if (isBossLevel && bossDefeated && obj.type === 'hazard') {
-        return;
-    }
-    
-    // Skip puddles when Toby is jumping (can jump over puddles!)
-    if (toby.isJumping && obj.objectType === OBJECT_TYPES.PUDDLE) {
-        addFloatingText('Jumped! 🦘', '#00FF00', toby.x, toby.y - 60 - toby.jumpHeight);
-        spawnParticles(toby.x, toby.y - toby.jumpHeight, '#00FF00', 8);
-        // Give small bonus for successful jump
-        score += 5;
         return;
     }
     

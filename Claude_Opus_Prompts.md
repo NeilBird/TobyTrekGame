@@ -244,3 +244,8 @@ The Sponsors are now visible in v1.0.8, but are too low, can they be shown below
 
 ## 47
 
+On a laptop device using Edge, I cannot see the Sponsors at all? - And we want to remove the Jump option completely, as it does not work well.
+
+## 48
+
+On the home page, can we show the total number of times the game has been played, using the database? Total plays, or similar description?
