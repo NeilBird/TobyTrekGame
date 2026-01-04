@@ -661,16 +661,22 @@ function showScreen(screen) {
     startScreen.classList.add('hidden');
     gameScreen.classList.add('hidden');
     gameOverScreen.classList.add('hidden');
+    
+    // Show/hide sponsors based on screen
+    const sponsors = document.getElementById('sponsors');
 
     switch(screen) {
         case 'start':
             startScreen.classList.remove('hidden');
+            if (sponsors) sponsors.style.display = 'none';
             break;
         case 'game':
             gameScreen.classList.remove('hidden');
+            if (sponsors) sponsors.style.display = 'block';
             break;
         case 'gameover':
             gameOverScreen.classList.remove('hidden');
+            if (sponsors) sponsors.style.display = 'none';
             break;
     }
 }

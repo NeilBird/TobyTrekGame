@@ -954,15 +954,16 @@ body {
 
 /* Sponsors section */
 #sponsors {
-    position: absolute;
-    bottom: 10px;
+    display: none; /* Hidden by default, shown during gameplay */
+    position: fixed;
+    bottom: 5px;
     left: 0;
     right: 0;
     text-align: center;
     font-size: 11px;
     color: rgba(255, 255, 255, 0.6);
     padding: 8px;
-    z-index: 50;
+    z-index: 1000;
 }
 
 #sponsors a {
