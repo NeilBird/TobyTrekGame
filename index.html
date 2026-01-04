@@ -54,11 +54,11 @@
                     </svg>
                 </div>
                 <h1>Toby Trek</h1>
-                <div class="version">v0.9.8</div>
+                <div class="version">v1.0.0</div>
             </div>
             
             <!-- Kitty Coins Display -->
-            <div id="kitty-coins-display" class="kitty-coins">🪙 0</div>
+            <div id="kitty-coins-display" class="kitty-coins">Kitty Coins 🪙 0</div>
             
             <!-- Quick Setup Row -->
             <div class="setup-row">
@@ -82,7 +82,7 @@
             <div class="quick-actions">
                 <button id="how-to-play-btn" class="action-btn">❓ How to Play</button>
                 <button id="achievements-btn" class="action-btn">🏆 Achievements</button>
-                <button id="skins-btn" class="action-btn">🎨 Shop</button>
+                <button id="skins-btn" class="action-btn">� Shop</button>
             </div>
             
             <!-- Settings Icons -->
@@ -104,7 +104,8 @@
                         <div class="legend-item bad"><span class="icon">💨 💧</span> Hazards = Avoid!</div>
                         <div class="legend-item power"><span class="icon">🛡️⚡🧲✨👊</span> Power-ups!</div>
                     </div>
-                    <p class="worlds">🌿 Garden → ❄️ Snow → 🎢 Park → 🚀 Space → 😼 BOSS every 10 levels!</p>
+                    <p class="worlds">🌿 Garden → ❄️ Snow → 🎢 Park → 🚀 Space → 😼 BOSS every 6 levels!</p>
+                    <p class="difficulty-info">📊 Score Multiplier: Easy 0.5x | Normal 1x | Hard 2x</p>
                 </div>
             </div>
             
@@ -116,7 +117,29 @@
                 </div>
                 <div class="panel-content">
                     <p class="shop-info">Earn 🪙 Kitty Coins by collecting treats, completing levels, and defeating bosses!</p>
+                    
+                    <!-- Shop Category Tabs -->
+                    <div class="shop-tabs">
+                        <button class="shop-tab active" data-category="skins" onclick="switchShopCategory('skins')">🐱 Skins</button>
+                        <button class="shop-tab" data-category="accessories" onclick="switchShopCategory('accessories')">🎀 Accessories</button>
+                        <button class="shop-tab" data-category="powerups" onclick="switchShopCategory('powerups')">⚡ Power-ups</button>
+                    </div>
+                    
+                    <!-- Sort Options -->
+                    <div class="shop-sort">
+                        <label>Sort by:</label>
+                        <select id="shop-sort-select" onchange="sortShopItems()">
+                            <option value="default">Default</option>
+                            <option value="price-low">Price: Low to High</option>
+                            <option value="price-high">Price: High to Low</option>
+                            <option value="name">Name A-Z</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Shop Items Container -->
                     <div id="skin-selector" class="skin-selector"></div>
+                    <div id="accessories-selector" class="skin-selector hidden"></div>
+                    <div id="powerups-selector" class="skin-selector hidden"></div>
                 </div>
             </div>
             

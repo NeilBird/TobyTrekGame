@@ -1,5 +1,5 @@
 // Game Version
-const GAME_VERSION = '0.9.8';
+const GAME_VERSION = '1.0.0';
 
 // Game Constants
 const CANVAS_WIDTH = 800;
@@ -19,11 +19,11 @@ const LEVELS_PER_WORLD = 2; // Complete 2 levels before changing world
 const SHIELD_DURATION = 5000; // 5 seconds of protection
 const BOSS_LEVEL_INTERVAL = 6; // Boss battle every 6 levels
 
-// Difficulty settings
+// Difficulty settings with score multipliers
 const DIFFICULTY_SETTINGS = {
-    easy: { speedMult: 0.5, energyDecayMult: 0.4, spawnMult: 1.5, label: 'Easy' },
-    normal: { speedMult: 0.8, energyDecayMult: 0.8, spawnMult: 1.1, label: 'Normal' },
-    hard: { speedMult: 1.2, energyDecayMult: 1.3, spawnMult: 0.8, label: 'Hard' }
+    easy: { speedMult: 0.5, energyDecayMult: 0.4, spawnMult: 1.5, scoreMult: 0.5, label: 'Easy' },
+    normal: { speedMult: 0.8, energyDecayMult: 0.8, spawnMult: 1.1, scoreMult: 1.0, label: 'Normal' },
+    hard: { speedMult: 1.2, energyDecayMult: 1.3, spawnMult: 0.8, scoreMult: 2.0, label: 'Hard' }
 };
 let currentDifficulty = 'normal';
 
@@ -161,16 +161,40 @@ function darkenColor(hex, percent) {
 
 // Character skins with prices
 const TOBY_SKINS = {
-    default: { name: 'Classic Toby', unlocked: true, price: 0, bodyColor: '#FFFFFF', patchColor: '#333333' },
-    golden: { name: 'Golden Toby', unlocked: false, price: 100, bodyColor: '#FFD700', patchColor: '#B8860B' },
-    midnight: { name: 'Midnight Toby', unlocked: false, price: 150, bodyColor: '#2C3E50', patchColor: '#1A252F' },
-    rainbow: { name: 'Rainbow Toby', unlocked: false, price: 200, bodyColor: '#FF69B4', patchColor: '#9B59B6' },
-    space: { name: 'Space Toby', unlocked: false, price: 250, bodyColor: '#4A0080', patchColor: '#00CED1' },
-    tiger: { name: 'Tiger Toby', unlocked: false, price: 300, bodyColor: '#FF8C00', patchColor: '#8B4513' },
-    ghost: { name: 'Ghost Toby', unlocked: false, price: 350, bodyColor: '#E8E8E8', patchColor: '#C0C0C0' },
-    neon: { name: 'Neon Toby', unlocked: false, price: 400, bodyColor: '#00FF00', patchColor: '#FF00FF' }
+    default: { name: 'Classic Toby', unlocked: true, price: 0, bodyColor: '#FFFFFF', patchColor: '#333333', isNew: false },
+    golden: { name: 'Golden Toby', unlocked: false, price: 100, bodyColor: '#FFD700', patchColor: '#B8860B', isNew: false },
+    midnight: { name: 'Midnight Toby', unlocked: false, price: 150, bodyColor: '#2C3E50', patchColor: '#1A252F', isNew: false },
+    rainbow: { name: 'Rainbow Toby', unlocked: false, price: 200, bodyColor: '#FF69B4', patchColor: '#9B59B6', isNew: false },
+    space: { name: 'Space Toby', unlocked: false, price: 250, bodyColor: '#4A0080', patchColor: '#00CED1', isNew: false },
+    tiger: { name: 'Tiger Toby', unlocked: false, price: 300, bodyColor: '#FF8C00', patchColor: '#8B4513', isNew: false },
+    ghost: { name: 'Ghost Toby', unlocked: false, price: 350, bodyColor: '#E8E8E8', patchColor: '#C0C0C0', isNew: true },
+    neon: { name: 'Neon Toby', unlocked: false, price: 400, bodyColor: '#00FF00', patchColor: '#FF00FF', isNew: true }
 };
 let currentSkin = 'default';
+
+// Accessories system
+const TOBY_ACCESSORIES = {
+    none: { name: 'No Accessory', unlocked: true, price: 0, icon: '➖', isNew: false },
+    crown: { name: 'Royal Crown', unlocked: false, price: 150, icon: '👑', isNew: true, description: 'Feel like royalty!' },
+    bow: { name: 'Cute Bow', unlocked: false, price: 75, icon: '🎀', isNew: true, description: 'Pretty in pink!' },
+    hat: { name: 'Top Hat', unlocked: false, price: 125, icon: '🎩', isNew: false, description: 'Very distinguished!' },
+    glasses: { name: 'Cool Shades', unlocked: false, price: 100, icon: '😎', isNew: false, description: 'Too cool for school!' },
+    flower: { name: 'Flower Crown', unlocked: false, price: 80, icon: '🌸', isNew: true, description: 'Spring vibes!' },
+    halo: { name: 'Angel Halo', unlocked: false, price: 200, icon: '😇', isNew: false, description: 'Heavenly kitty!' }
+};
+let currentAccessory = 'none';
+
+// Power-up boosts (consumable items bought with coins)
+const SHOP_POWERUPS = {
+    extraLife: { name: 'Extra Life', price: 50, icon: '❤️', description: 'Start with +20 energy', isNew: false, owned: 0 },
+    headStart: { name: 'Head Start', price: 75, icon: '🚀', description: 'Start at level 2', isNew: true, owned: 0 },
+    coinMagnet: { name: 'Coin Magnet', price: 100, icon: '🧲', description: 'Double coin earnings', isNew: false, owned: 0 },
+    luckyCharm: { name: 'Lucky Charm', price: 125, icon: '🍀', description: 'More power-up spawns', isNew: true, owned: 0 }
+};
+
+// Current shop category
+let currentShopCategory = 'skins';
+let currentShopSort = 'default';
 
 // Achievements system
 const ACHIEVEMENTS = {
@@ -282,9 +306,12 @@ function init() {
     loadLeaderboard();
     loadAchievements();
     loadSkins();
+    loadAccessories();
+    loadPowerups();
     loadKittyCoins();
     loadSettings();
     displayLeaderboard();
+    updateAllShopDisplays();
 
     showScreen('start');
 }
@@ -1737,14 +1764,20 @@ function getObjectSize(z) {
 }
 
 function handleCollision(obj) {
-    // Calculate points with double points modifier
-    const pointMultiplier = doublePointsActive ? 2 : 1;
+    // Skip damage if boss is defeated (prevents post-victory damage)
+    if (isBossLevel && bossDefeated && obj.type === 'hazard') {
+        return;
+    }
+    
+    // Calculate points with double points and difficulty multipliers
+    const diffSettings = DIFFICULTY_SETTINGS[currentDifficulty];
+    const pointMultiplier = (doublePointsActive ? 2 : 1) * diffSettings.scoreMult;
     
     if (obj.type === 'shield') {
         shieldActive = true;
         shieldEndTime = Date.now() + SHIELD_DURATION;
         shieldBubblePhase = 0;
-        score += obj.points * level * pointMultiplier;
+        score += Math.round(obj.points * level * pointMultiplier);
         if (soundEnabled) {
             playShieldCollectSound();
             playYeySound();
@@ -1759,7 +1792,7 @@ function handleCollision(obj) {
     } else if (obj.type === 'speedboost') {
         speedBoostActive = true;
         speedBoostEndTime = Date.now() + 5000; // 5 second boost
-        score += obj.points * level * pointMultiplier;
+        score += Math.round(obj.points * level * pointMultiplier);
         if (soundEnabled) {
             playPowerUpSound();
             playYeySound();
@@ -1772,7 +1805,7 @@ function handleCollision(obj) {
     } else if (obj.type === 'magnet') {
         magnetActive = true;
         magnetEndTime = Date.now() + 8000; // 8 second magnet
-        score += obj.points * level * pointMultiplier;
+        score += Math.round(obj.points * level * pointMultiplier);
         if (soundEnabled) {
             playPowerUpSound();
             playYeySound();
@@ -1785,7 +1818,7 @@ function handleCollision(obj) {
     } else if (obj.type === 'doublepoints') {
         doublePointsActive = true;
         doublePointsEndTime = Date.now() + 10000; // 10 second double points
-        score += obj.points * level * 2; // Apply double immediately
+        score += Math.round(obj.points * level * pointMultiplier * 2); // Apply double immediately
         if (soundEnabled) {
             playPowerUpSound();
             playYeySound();
@@ -1798,7 +1831,7 @@ function handleCollision(obj) {
     } else if (obj.type === 'punch') {
         // Collect punch ammo for boss battle!
         punchesCollected++;
-        score += obj.points * level * pointMultiplier;
+        score += Math.round(obj.points * level * pointMultiplier);
         if (soundEnabled) {
             playPowerUpSound();
             playYeySound();
@@ -1815,7 +1848,7 @@ function handleCollision(obj) {
         
         // Calculate combo bonus
         const comboBonus = Math.floor(comboCount / 2);
-        const totalPoints = (obj.points + comboBonus) * level * pointMultiplier;
+        const totalPoints = Math.round((obj.points + comboBonus) * level * pointMultiplier);
         score += totalPoints;
         energy = Math.min(100, energy + ENERGY_GAIN);
         
@@ -2266,7 +2299,7 @@ function displayLeaderboard() {
         <div class="leaderboard-entry ${index === 0 ? 'first' : ''}">
             <span class="rank">${index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : (index + 1) + '.'}</span>
             <span class="name">${escapeHtml(entry.name)}</span>
-            <span class="score">${entry.score}</span>
+            <span class="score">${entry.score}${entry.level ? ' (Lvl ' + entry.level + ')' : ''}</span>
         </div>
     `).join('');
 }
@@ -5688,7 +5721,7 @@ function loadKittyCoins() {
 function updateCoinDisplay() {
     const coinDisplay = document.getElementById('kitty-coins-display');
     if (coinDisplay) {
-        coinDisplay.textContent = `🪙 ${kittyCoins}`;
+        coinDisplay.textContent = `Kitty Coins 🪙 ${kittyCoins}`;
     }
 }
 
@@ -5712,11 +5745,29 @@ function purchaseSkin(skinId) {
     return false;
 }
 
+// Sort items based on current sort setting
+function getSortedItems(items) {
+    const entries = Object.entries(items);
+    
+    switch (currentShopSort) {
+        case 'price-low':
+            return entries.sort((a, b) => a[1].price - b[1].price);
+        case 'price-high':
+            return entries.sort((a, b) => b[1].price - a[1].price);
+        case 'name':
+            return entries.sort((a, b) => a[1].name.localeCompare(b[1].name));
+        default:
+            return entries;
+    }
+}
+
 function updateSkinDisplay() {
     const container = document.getElementById('skin-selector');
     if (!container) return;
     
-    container.innerHTML = Object.entries(TOBY_SKINS).map(([id, skin]) => {
+    const sortedSkins = getSortedItems(TOBY_SKINS);
+    
+    container.innerHTML = sortedSkins.map(([id, skin]) => {
         const isSelected = id === currentSkin;
         const isLocked = !skin.unlocked;
         const canAfford = kittyCoins >= skin.price;
@@ -5736,9 +5787,12 @@ function updateSkinDisplay() {
             statusText = isSelected ? '<span class="skin-equipped">✓ Equipped</span>' : '<span class="skin-owned">Owned</span>';
         }
         
+        const newBadge = skin.isNew && isLocked ? '<span class="new-badge">New!</span>' : '';
+        
         return `
             <div class="skin-option ${isSelected ? 'selected' : ''} ${isLocked ? 'locked' : ''} ${isLocked && canAfford ? 'can-afford' : ''}" 
                  onclick="${onClick}">
+                ${newBadge}
                 <div class="skin-preview" style="background: ${skin.bodyColor}; border-color: ${skin.patchColor}">
                     ${isLocked ? '🔒' : ''}
                 </div>
@@ -5749,8 +5803,203 @@ function updateSkinDisplay() {
     }).join('');
 }
 
-// Make purchaseSkin available globally
+function updateAccessoriesDisplay() {
+    const container = document.getElementById('accessories-selector');
+    if (!container) return;
+    
+    const sortedAccessories = getSortedItems(TOBY_ACCESSORIES);
+    
+    container.innerHTML = sortedAccessories.map(([id, acc]) => {
+        const isSelected = id === currentAccessory;
+        const isLocked = !acc.unlocked;
+        const canAfford = kittyCoins >= acc.price;
+        
+        let onClick = '';
+        let statusText = '';
+        
+        if (isLocked) {
+            if (canAfford) {
+                onClick = `purchaseAccessory('${id}')`;
+                statusText = `<span class="skin-price affordable">🪙 ${acc.price}</span>`;
+            } else {
+                statusText = `<span class="skin-price">🪙 ${acc.price}</span>`;
+            }
+        } else {
+            onClick = `selectAccessory('${id}')`;
+            statusText = isSelected ? '<span class="skin-equipped">✓ Equipped</span>' : '<span class="skin-owned">Owned</span>';
+        }
+        
+        const newBadge = acc.isNew && isLocked ? '<span class="new-badge">New!</span>' : '';
+        
+        return `
+            <div class="skin-option ${isSelected ? 'selected' : ''} ${isLocked ? 'locked' : ''} ${isLocked && canAfford ? 'can-afford' : ''}" 
+                 onclick="${onClick}"
+                 title="${acc.description || ''}">
+                ${newBadge}
+                <div class="accessory-preview">${acc.icon}</div>
+                <span class="skin-name">${acc.name}</span>
+                ${statusText}
+            </div>
+        `;
+    }).join('');
+}
+
+function updatePowerupsDisplay() {
+    const container = document.getElementById('powerups-selector');
+    if (!container) return;
+    
+    const sortedPowerups = getSortedItems(SHOP_POWERUPS);
+    
+    container.innerHTML = sortedPowerups.map(([id, powerup]) => {
+        const canAfford = kittyCoins >= powerup.price;
+        const ownedCount = powerup.owned || 0;
+        
+        const onClick = canAfford ? `purchasePowerup('${id}')` : '';
+        const newBadge = powerup.isNew ? '<span class="new-badge">New!</span>' : '';
+        
+        return `
+            <div class="skin-option ${canAfford ? 'can-afford' : 'locked'}" 
+                 onclick="${onClick}"
+                 title="${powerup.description}">
+                ${newBadge}
+                <div class="powerup-preview">${powerup.icon}</div>
+                <span class="skin-name">${powerup.name}</span>
+                <span class="skin-price ${canAfford ? 'affordable' : ''}">🪙 ${powerup.price}</span>
+                ${ownedCount > 0 ? `<span class="skin-owned">Owned: ${ownedCount}</span>` : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+// Accessory functions
+function selectAccessory(accId) {
+    if (TOBY_ACCESSORIES[accId] && TOBY_ACCESSORIES[accId].unlocked) {
+        currentAccessory = accId;
+        saveAccessories();
+        updateAccessoriesDisplay();
+    }
+}
+
+function purchaseAccessory(accId) {
+    const acc = TOBY_ACCESSORIES[accId];
+    if (!acc || acc.unlocked) return false;
+    
+    if (spendKittyCoins(acc.price)) {
+        acc.unlocked = true;
+        saveAccessories();
+        if (soundEnabled) playCollectSound();
+        updateAccessoriesDisplay();
+        return true;
+    }
+    return false;
+}
+
+function saveAccessories() {
+    const toSave = {};
+    Object.keys(TOBY_ACCESSORIES).forEach(key => {
+        toSave[key] = TOBY_ACCESSORIES[key].unlocked;
+    });
+    localStorage.setItem('tobyTrekAccessories', JSON.stringify(toSave));
+    localStorage.setItem('tobyTrekCurrentAccessory', currentAccessory);
+}
+
+function loadAccessories() {
+    const saved = localStorage.getItem('tobyTrekAccessories');
+    if (saved) {
+        const savedAcc = JSON.parse(saved);
+        Object.keys(savedAcc).forEach(key => {
+            if (TOBY_ACCESSORIES[key]) {
+                TOBY_ACCESSORIES[key].unlocked = savedAcc[key];
+            }
+        });
+    }
+    
+    const savedCurrent = localStorage.getItem('tobyTrekCurrentAccessory');
+    if (savedCurrent && TOBY_ACCESSORIES[savedCurrent] && TOBY_ACCESSORIES[savedCurrent].unlocked) {
+        currentAccessory = savedCurrent;
+    }
+}
+
+// Power-up purchase
+function purchasePowerup(powerupId) {
+    const powerup = SHOP_POWERUPS[powerupId];
+    if (!powerup) return false;
+    
+    if (spendKittyCoins(powerup.price)) {
+        powerup.owned = (powerup.owned || 0) + 1;
+        savePowerups();
+        if (soundEnabled) playCollectSound();
+        updatePowerupsDisplay();
+        return true;
+    }
+    return false;
+}
+
+function savePowerups() {
+    const toSave = {};
+    Object.keys(SHOP_POWERUPS).forEach(key => {
+        toSave[key] = SHOP_POWERUPS[key].owned || 0;
+    });
+    localStorage.setItem('tobyTrekShopPowerups', JSON.stringify(toSave));
+}
+
+function loadPowerups() {
+    const saved = localStorage.getItem('tobyTrekShopPowerups');
+    if (saved) {
+        const savedPowerups = JSON.parse(saved);
+        Object.keys(savedPowerups).forEach(key => {
+            if (SHOP_POWERUPS[key]) {
+                SHOP_POWERUPS[key].owned = savedPowerups[key];
+            }
+        });
+    }
+}
+
+// Shop category switching
+function switchShopCategory(category) {
+    currentShopCategory = category;
+    
+    // Update tab buttons
+    document.querySelectorAll('.shop-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.category === category);
+    });
+    
+    // Show/hide containers
+    document.getElementById('skin-selector').classList.toggle('hidden', category !== 'skins');
+    document.getElementById('accessories-selector').classList.toggle('hidden', category !== 'accessories');
+    document.getElementById('powerups-selector').classList.toggle('hidden', category !== 'powerups');
+    
+    // Update displays
+    if (category === 'skins') updateSkinDisplay();
+    else if (category === 'accessories') updateAccessoriesDisplay();
+    else if (category === 'powerups') updatePowerupsDisplay();
+}
+
+// Shop sorting
+function sortShopItems() {
+    const sortSelect = document.getElementById('shop-sort-select');
+    currentShopSort = sortSelect ? sortSelect.value : 'default';
+    
+    // Refresh current category display
+    if (currentShopCategory === 'skins') updateSkinDisplay();
+    else if (currentShopCategory === 'accessories') updateAccessoriesDisplay();
+    else if (currentShopCategory === 'powerups') updatePowerupsDisplay();
+}
+
+// Update all shop displays
+function updateAllShopDisplays() {
+    updateSkinDisplay();
+    updateAccessoriesDisplay();
+    updatePowerupsDisplay();
+}
+
+// Make shop functions available globally
 window.purchaseSkin = purchaseSkin;
+window.purchaseAccessory = purchaseAccessory;
+window.selectAccessory = selectAccessory;
+window.purchasePowerup = purchasePowerup;
+window.switchShopCategory = switchShopCategory;
+window.sortShopItems = sortShopItems;
 
 // ============== SETTINGS SYSTEM ==============
 

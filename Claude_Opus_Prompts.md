@@ -190,3 +190,25 @@ can we make the background music more "classic arcade" style please?
 
 ## 36
 
+On the "How to play" screen, it states the "BOSS every 10 levels", I think this is incorrect? - Are the boss levels every 6 levels now? - Also is this the correct order for the levels "Garden --> Snow --> Park --> Space --> " in the "How to Play" screen? - Also, where it shows your "Coins" on the home page, can we add the text "Kitty Coins" to the left of the icon? - Do you have any ideas for how we can improve the shop? - And the icon for the Shop, looks like a paint pallet, which is not great?, should this look like a shop or supermarket icon? - Also on the "Top Scores" global leaderboard, in addition to the total points the player scored, can we add the level they reached? Which could just show blank for existing scores, but track for all new scores? Also, for the three "Difficulty" modes of the game, can these offer a Points multiplier, so that if you play the game on "Easy" you get less points, and if you play on Hard, you get more points throughout the game levels, and show this pointers multiple on the "How to Play" screen. And lastly, a user reported that when a BOSS is defeated, that it is still possible to sustain damage from hair dryers for a few seconds after beating / completing the boss, can we fix this please? - Please make these changes with a new version of 1.0.0.
+
+## 37
+
+Note about Shop improvements: The shop currently shows skins with purchase options. Some ideas to improve it further could include:
+
+Category tabs (Skins, Accessories, Power-ups)
+Preview animations
+"New" badges on recent items
+Sorting options (by price, popularity)
+
+Would you like me to implement any shop improvements, or should I commit these changes and create a PR for v1.0.0?
+
+Answer:
+Thanks, implement all those shop improvements as part of v1.0.0 and update the changelog and readme.md
+
+## 38
+
+A user has reported that when you play the game using Safari on an Apple iOS device, playing the game in portrait mode, the left and right buttons work, but when you press them, they sometimes highlight in blue, like the Safari browser has selected the icon to allow you to copy and paste the hightlighted object, this is not required and gives the impression that the button is not working correctly on mobile devices? - Can we improve the movement (left and right) icons in anyway to prevent this selection?
+
+## 39
+

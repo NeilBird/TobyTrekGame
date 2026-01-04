@@ -85,23 +85,51 @@ Unlock achievements for milestones like:
 - 🏰 **Boss Master** - Defeat 3 bosses
 
 ### 🪙 Kitty Coins & Shop
-Earn **Kitty Coins** to purchase skins in the shop:
+Earn **Kitty Coins** to purchase items in the shop:
 - **1 coin** per treat collected
 - **10 coins** per level completed
 - **50 coins** per boss defeated
 
-### Character Skins
-Purchase and customize Toby with different skins:
-| Skin | Price |
-|------|-------|
-| Classic Toby | Free (default) |
-| Golden Toby | 100 🪙 |
-| Midnight Toby | 150 🪙 |
-| Rainbow Toby | 200 🪙 |
-| Space Toby | 250 🪙 |
-| Tiger Toby | 300 🪙 |
-| Ghost Toby | 350 🪙 |
-| Neon Toby | 400 🪙 |
+### 🏪 Kitty Shop
+The shop features **3 categories** with sorting options and preview animations:
+
+#### 🐱 Character Skins
+| Skin | Price | Colors |
+|------|-------|--------|
+| Classic Toby | Free | White/Black |
+| Golden Toby | 100 🪙 | Gold/Brown |
+| Midnight Toby | 150 🪙 | Dark Blue |
+| Rainbow Toby | 200 🪙 | Pink/Purple |
+| Space Toby | 250 🪙 | Purple/Cyan |
+| Tiger Toby | 300 🪙 | Orange/Brown |
+| Ghost Toby | 350 🪙 | Light Gray |
+| Neon Toby | 400 🪙 | Green/Magenta |
+
+#### 🎀 Accessories
+| Accessory | Price | Description |
+|-----------|-------|-------------|
+| Royal Crown 👑 | 150 🪙 | Feel like royalty! |
+| Cute Bow 🎀 | 75 🪙 | Pretty in pink! |
+| Top Hat 🎩 | 125 🪙 | Very distinguished! |
+| Cool Shades 😎 | 100 🪙 | Too cool for school! |
+| Flower Crown 🌸 | 80 🪙 | Spring vibes! |
+| Angel Halo 😇 | 200 🪙 | Heavenly kitty! |
+
+#### ⚡ Power-up Boosts (Consumables)
+| Power-up | Price | Effect |
+|----------|-------|--------|
+| Extra Life ❤️ | 50 🪙 | Start with +20 energy |
+| Head Start 🚀 | 75 🪙 | Begin at level 2 |
+| Coin Magnet 🧲 | 100 🪙 | Double coin earnings |
+| Lucky Charm 🍀 | 125 🪙 | More power-up spawns |
+
+### 📊 Difficulty Score Multipliers
+Choose your challenge level - harder difficulties earn more points!
+| Difficulty | Speed | Score Multiplier |
+|------------|-------|------------------|
+| Easy | Slower | 0.5x points |
+| Normal | Standard | 1x points |
+| Hard | Faster | 2x points |
 
 ### Audio
 - **Atmospheric Music**: Each world has unique ambient soundtrack
