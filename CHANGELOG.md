@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.5] - 2026-01-04
+
+### Added
+
+- **Jump Ability!** 🦘
+  - Press **SPACE** during normal gameplay to jump over puddles
+  - Mobile players get a new **Jump button** (🦘) between left/right controls
+  - Successfully jumping over a puddle gives +5 bonus points
+  - Jump not available during boss battles (SPACE throws punches instead)
+
+### Improved
+
+- **Boss Battle UI** 🎮
+  - Toby's energy bar and Boss health bar now displayed **side by side** with "VS" divider
+  - Better visibility of both health bars during boss fights
+  - Boss names shortened to fit better (Dave, Hoover, Cucumber, Dougie)
+
+- **Boss Battle Balance** ⚖️
+  - Punch power-ups now **only spawn when you run out** of ammo (0 punches)
+  - When out of punches, 2-3 punches spawn together with "Ammo incoming!" notification
+  - Prevents boss battles from being too easy with constant punch spawning
+
+---
+
 ## [1.0.4] - 2026-01-04
 
 ### Fixed
