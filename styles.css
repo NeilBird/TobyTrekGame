@@ -341,6 +341,16 @@ body {
     margin-top: 15px;
 }
 
+.panel-content .difficulty-info {
+    color: #FFD54F;
+    font-size: 11px;
+    margin-top: 8px;
+    padding: 5px 10px;
+    background: rgba(255, 215, 79, 0.15);
+    border-radius: 8px;
+    display: inline-block;
+}
+
 .panel-content .legend {
     display: flex;
     flex-direction: column;
@@ -489,14 +499,72 @@ body {
 
 /* Shop Panel */
 .shop-panel .panel-content {
-    max-height: 350px;
+    max-height: 400px;
     overflow-y: auto;
 }
 
 .shop-info {
     font-size: 11px !important;
     color: rgba(255, 255, 255, 0.6) !important;
-    margin-bottom: 15px !important;
+    margin-bottom: 12px !important;
+}
+
+/* Shop Category Tabs */
+.shop-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    padding: 4px;
+}
+
+.shop-tab {
+    flex: 1;
+    padding: 8px 4px;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 11px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.shop-tab:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.shop-tab.active {
+    background: linear-gradient(135deg, #FFD700 0%, #FF8C00 100%);
+    color: #1a1a2e;
+    font-weight: bold;
+}
+
+/* Shop Sort Options */
+.shop-sort {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.shop-sort select {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    cursor: pointer;
+}
+
+.shop-sort select:focus {
+    outline: none;
+    border-color: #FFD700;
 }
 
 /* Skin Selector in Panel */
@@ -517,6 +585,28 @@ body {
     cursor: pointer;
     transition: all 0.2s ease;
     border: 2px solid transparent;
+    position: relative;
+}
+
+/* New Badge */
+.new-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: linear-gradient(135deg, #FF4081 0%, #FF1744 100%);
+    color: #fff;
+    font-size: 8px;
+    font-weight: bold;
+    padding: 3px 6px;
+    border-radius: 8px;
+    text-transform: uppercase;
+    animation: newBadgePulse 1.5s ease-in-out infinite;
+    z-index: 1;
+}
+
+@keyframes newBadgePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
 }
 
 .skin-option:hover {
@@ -556,6 +646,60 @@ body {
     justify-content: center;
     font-size: 20px;
     margin-bottom: 8px;
+    transition: transform 0.3s ease;
+}
+
+/* Preview Animation on Hover */
+.skin-option:hover .skin-preview {
+    animation: previewBounce 0.5s ease-in-out;
+}
+
+@keyframes previewBounce {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    25% { transform: scale(1.1) rotate(-5deg); }
+    50% { transform: scale(1.15) rotate(0deg); }
+    75% { transform: scale(1.1) rotate(5deg); }
+}
+
+/* Accessory Preview */
+.accessory-preview {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+.skin-option:hover .accessory-preview {
+    animation: accessoryWiggle 0.4s ease-in-out;
+}
+
+@keyframes accessoryWiggle {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-10deg); }
+    75% { transform: rotate(10deg); }
+}
+
+/* Power-up Preview */
+.powerup-preview {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+.skin-option:hover .powerup-preview {
+    animation: powerupGlow 0.5s ease-in-out;
+}
+
+@keyframes powerupGlow {
+    0%, 100% { transform: scale(1); filter: brightness(1); }
+    50% { transform: scale(1.2); filter: brightness(1.3); }
 }
 
 .skin-name {

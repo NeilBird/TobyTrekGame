@@ -7,6 +7,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.0] - 2026-01-06
+
+### 🎉 First Major Release!
+
+### Added
+- **Completely Redesigned Kitty Shop** 🏪
+  - **Category Tabs**: Shop now organized into 3 categories:
+    - 🐱 **Skins** - Character color variations
+    - 🎀 **Accessories** - Hats, bows, glasses and more!
+    - ⚡ **Power-ups** - Consumable boosts for your runs
+  - **Sorting Options**: Sort items by price (low/high) or name
+  - **Preview Animations**: Items bounce and wiggle on hover
+  - **"NEW!" Badges**: Highlights recently added items with pulsing badges
+  
+- **New Accessories System** 🎀
+  - Royal Crown 👑, Cute Bow 🎀, Top Hat 🎩
+  - Cool Shades 😎, Flower Crown 🌸, Angel Halo 😇
+  - Equip accessories alongside your skin!
+
+- **Purchasable Power-up Boosts** ⚡
+  - Extra Life ❤️ - Start with +20 energy
+  - Head Start 🚀 - Begin at level 2
+  - Coin Magnet 🧲 - Double coin earnings
+  - Lucky Charm 🍀 - More power-up spawns
+
+- **Difficulty Score Multipliers** 📊
+  - Easy mode: 0.5x points (half points for a gentler challenge)
+  - Normal mode: 1x points (standard scoring)
+  - Hard mode: 2x points (double points for skilled players!)
+  - Score multiplier info displayed in "How to Play" screen
+
+- **Level Display on Leaderboard** 🏆
+  - Leaderboard now shows the level reached alongside the score
+  - Format: "Score (Lvl X)" for new entries
+  - Existing scores display without level (backwards compatible)
+
+- **"Kitty Coins" Label** 🪙
+  - Home screen now shows "Kitty Coins" text next to the coin icon
+  - Better visibility of your currency balance
+
+### Changed
+- **Shop Icon Update** 🏪
+  - Changed shop button icon from paint palette (🎨) to store (🏪)
+  - Better represents the in-game shop functionality
+
+### Fixed
+- **Post-Boss Damage Bug** 🐛
+  - Fixed critical bug where hair dryers could still damage Toby for a few seconds after defeating a boss
+  - Boss battle area now immediately clears hazard collision detection when boss is defeated
+  - Prevents unfair damage after winning boss battles
+
+- **"How to Play" Text Correction** 📝
+  - Fixed incorrect boss level interval text (was "every 10 levels", now correctly shows "every 6 levels")
+
+---
+
 ## [0.9.8] - 2026-01-03
 
 ### Changed
