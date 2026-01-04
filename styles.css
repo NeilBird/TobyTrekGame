@@ -1409,6 +1409,17 @@ body {
     cursor: default;
 }
 
+.home-btn {
+    background: linear-gradient(180deg, #9b59b6 0%, #8e44ad 100%);
+    color: #FFFFFF !important;
+    -webkit-text-fill-color: #FFFFFF;
+}
+
+.home-btn:hover {
+    background: linear-gradient(180deg, #a569bd 0%, #9b59b6 100%);
+    color: #FFFFFF !important;
+}
+
 /* Stats Grid */
 .stats-grid {
     display: grid;
