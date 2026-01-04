@@ -179,6 +179,35 @@
             </div>
         </div>
 
+        <!-- Tutorial Overlay (shown on first play) -->
+        <div id="tutorial-overlay" class="tutorial-overlay hidden">
+            <div class="tutorial-content">
+                <h2>🐱 Welcome to Toby Trek!</h2>
+                <div class="tutorial-steps">
+                    <div class="tutorial-step">
+                        <span class="tutorial-icon">🍗</span>
+                        <p><strong>Collect treats</strong> to gain energy and score points!</p>
+                    </div>
+                    <div class="tutorial-step">
+                        <span class="tutorial-icon">💧</span>
+                        <p><strong>Avoid hazards</strong> - puddles and hair dryers hurt!</p>
+                    </div>
+                    <div class="tutorial-step">
+                        <span class="tutorial-icon">⬅️➡️</span>
+                        <p><strong>Move left/right</strong> using arrow keys or touch buttons</p>
+                    </div>
+                    <div class="tutorial-step">
+                        <span class="tutorial-icon">👹</span>
+                        <p><strong>Boss battles</strong> every 6 levels - throw punches with SPACE!</p>
+                    </div>
+                </div>
+                <button id="tutorial-start-btn" class="game-btn">Let's Go! 🚀</button>
+                <label class="tutorial-checkbox">
+                    <input type="checkbox" id="dont-show-tutorial"> Don't show again
+                </label>
+            </div>
+        </div>
+
         <div id="game-screen" class="screen hidden">
             <div id="hud">
                 <div id="timer-display">⏱️ <span id="timer">00:00</span></div>

@@ -158,6 +158,9 @@ let playerStats = {
     totalScore: 0
 };
 
+// Tutorial state
+let hasSeenTutorial = false;
+
 // Kitty Coins Currency System
 let kittyCoins = 0;
 const COINS_PER_TREAT = 1;      // Earn 1 coin per treat collected
@@ -362,9 +365,11 @@ function init() {
     loadKittyCoins();
     loadPersonalBest();
     loadPlayerStats();
+    loadTutorialState();
     loadSettings();
     displayLeaderboard();
     updateAllShopDisplays();
+    setupTutorial();
 
     showScreen('start');
 }
@@ -736,6 +741,16 @@ function startGame() {
         }
     }
     
+    // Show tutorial for first-time players
+    if (!hasSeenTutorial) {
+        showTutorial();
+        return;
+    }
+    
+    actuallyStartGame();
+}
+
+function actuallyStartGame() {
     // Reset active boosts
     activeBoosts = {
         extraLife: false,
@@ -2518,6 +2533,55 @@ function hideStats() {
     const modal = document.getElementById('stats-modal');
     if (modal) {
         modal.classList.add('hidden');
+    }
+}
+
+// ============== TUTORIAL FUNCTIONS ==============
+
+function loadTutorialState() {
+    try {
+        hasSeenTutorial = localStorage.getItem('tobyTrek_hasSeenTutorial') === 'true';
+    } catch (e) {
+        hasSeenTutorial = false;
+    }
+}
+
+function saveTutorialState() {
+    try {
+        localStorage.setItem('tobyTrek_hasSeenTutorial', 'true');
+    } catch (e) {
+        console.log('Could not save tutorial state:', e);
+    }
+}
+
+function showTutorial() {
+    const overlay = document.getElementById('tutorial-overlay');
+    if (overlay) {
+        overlay.classList.remove('hidden');
+    }
+}
+
+function hideTutorial() {
+    const overlay = document.getElementById('tutorial-overlay');
+    if (overlay) {
+        overlay.classList.add('hidden');
+    }
+    
+    // Check if "don't show again" is checked
+    const dontShowCheckbox = document.getElementById('dont-show-tutorial');
+    if (dontShowCheckbox && dontShowCheckbox.checked) {
+        saveTutorialState();
+        hasSeenTutorial = true;
+    }
+}
+
+function setupTutorial() {
+    const startBtn = document.getElementById('tutorial-start-btn');
+    if (startBtn) {
+        startBtn.addEventListener('click', () => {
+            hideTutorial();
+            actuallyStartGame();
+        });
     }
 }
 
