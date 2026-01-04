@@ -143,6 +143,9 @@ let personalBest = {
     time: 0
 };
 
+// Haptic feedback setting
+let hapticEnabled = true;
+
 // Kitty Coins Currency System
 let kittyCoins = 0;
 const COINS_PER_TREAT = 1;      // Earn 1 coin per treat collected
@@ -164,6 +167,26 @@ function darkenColor(hex, percent) {
     const g = Math.max(0, Math.floor(((num >> 8) & 0x00FF) * (1 - percent)));
     const b = Math.max(0, Math.floor((num & 0x0000FF) * (1 - percent)));
     return '#' + (0x1000000 + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+}
+
+// Haptic feedback helper (mobile vibration)
+function triggerHaptic(pattern) {
+    if (!hapticEnabled) return;
+    if (!navigator.vibrate) return;
+    
+    try {
+        if (pattern === 'light') {
+            navigator.vibrate(30);
+        } else if (pattern === 'medium') {
+            navigator.vibrate(50);
+        } else if (pattern === 'heavy') {
+            navigator.vibrate([50, 30, 100]);
+        } else if (pattern === 'success') {
+            navigator.vibrate([30, 50, 30]);
+        }
+    } catch (e) {
+        // Vibration not supported or blocked
+    }
 }
 
 // Character skins with prices
@@ -1467,6 +1490,7 @@ function updateBossBattle() {
             thrownPunches.splice(i, 1);
             
             if (soundEnabled) playBossHitSound();
+            triggerHaptic('medium');
             spawnParticles(bossX, bossY, '#FF0000', 20);
             
             // Spawn a shield at 50% health to help block hair dryers
@@ -1578,6 +1602,7 @@ function defeatBoss() {
     earnKittyCoins(COINS_PER_BOSS);
     
     if (soundEnabled) playBossDefeatedSound();
+    triggerHaptic('success');
     spawnParticles(bossX, bossY, '#FFD700', 50);
     spawnParticles(bossX, bossY, '#FF6B35', 30);
     
@@ -1969,6 +1994,7 @@ function handleCollision(obj) {
             if (soundEnabled) playCollectSound();
             spawnParticles(toby.x, toby.y, '#00BFFF', 8);
             addFloatingText('Blocked!', '#00BFFF', toby.x, toby.y - 60);
+            triggerHaptic('light');
         } else {
             // Reset combo on hit
             comboCount = 0;
@@ -1981,6 +2007,9 @@ function handleCollision(obj) {
                 playHitSound();
                 playOwwSound();
             }
+            
+            // Haptic feedback for damage
+            triggerHaptic('heavy');
             
             // Screen shake!
             triggerScreenShake(8, 200);
