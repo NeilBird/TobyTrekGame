@@ -2,7 +2,7 @@
 
 A browser-based endless runner game created in memory of our beloved cat **Toby** (2026). Built entirely through "vibe coding" with AI assistance.
 
-**Current Version:** v1.1.1
+**Current Version:** v1.1.3
 
 ## 🎮 Play the Game
 
@@ -152,6 +152,8 @@ Choose your challenge level - harder difficulties earn more points!
 - **Responsive Design** - Full mobile support with touch controls
 - **localStorage** - Saves local leaderboard, achievements, settings, and skins
 - **Firebase Realtime Database** - Global leaderboard shared across all players
+- **Service Worker** - Offline support with cache-first strategy
+- **Haptic Feedback** - Mobile vibration on key events
 
 ## 🌐 Global Leaderboard
 
@@ -164,6 +166,7 @@ TobyTrekGame/
 ├── index.html          # Main HTML file (includes Firebase SDK)
 ├── styles.css          # Game styling
 ├── game.js             # Game logic and rendering
+├── sw.js               # Service Worker for offline support
 ├── CHANGELOG.md        # Version history
 ├── Claude_Opus_Prompts.md  # AI prompts used to create the game
 └── README.md           # This file
@@ -175,6 +178,10 @@ Toby was a white cat with grey and black markings, featuring distinctive yellow-
 
 ## 📜 Version History
 
+- **v1.1.3** - Player Experience: Personal best tracking, haptic feedback, share score, statistics page, tutorial, difficulty auto-adjust, landscape mode, offline support
+- **v1.1.2** - UI Polish: Renamed Shop to Pet Shop, fixed iOS touch controls
+- **v1.1.1** - Mobile UI: Touch controls repositioned, SPEED UP indicator moved
+- **v1.1.0** - Total plays counter, sponsors visible on desktop
 - **v0.9.6** - Multiple Bosses: 4 unique boss types (Dave, Hoover, Cucumber, Dougie), boss indicator auto-hide fix
 - **v0.9.5** - Running Animation: Animated legs, body bobbing, tail wagging, whisker wiggle
 - **v0.9.4** - Gameplay Fixes: Improved music, easier difficulty, boss every 6 levels, mobile energy bar fix, mobile punch button

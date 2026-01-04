@@ -1,5 +1,5 @@
 // Game Version
-const GAME_VERSION = '1.1.2';
+const GAME_VERSION = '1.1.3';
 
 // Game Constants
 const CANVAS_WIDTH = 800;
@@ -21,9 +21,9 @@ const BOSS_LEVEL_INTERVAL = 6; // Boss battle every 6 levels
 
 // Difficulty settings with score multipliers
 const DIFFICULTY_SETTINGS = {
-    easy: { speedMult: 0.5, energyDecayMult: 0.4, spawnMult: 1.5, scoreMult: 0.5, label: 'Easy' },
+    easy: { speedMult: 0.5, energyDecayMult: 0.4, spawnMult: 1.5, scoreMult: 1.0, label: 'Easy' },
     normal: { speedMult: 0.8, energyDecayMult: 0.8, spawnMult: 1.1, scoreMult: 1.0, label: 'Normal' },
-    hard: { speedMult: 1.2, energyDecayMult: 1.3, spawnMult: 0.8, scoreMult: 2.0, label: 'Hard' }
+    hard: { speedMult: 1.2, energyDecayMult: 1.3, spawnMult: 0.8, scoreMult: 1.5, label: 'Hard' }
 };
 let currentDifficulty = 'normal';
 
@@ -136,6 +136,36 @@ let gamePaused = false;
 let dailyChallengeActive = false;
 let dailyChallengeSeed = 0;
 
+// Personal Best Tracking
+let personalBest = {
+    score: 0,
+    level: 0,
+    time: 0
+};
+
+// Haptic feedback setting
+let hapticEnabled = true;
+
+// Player Statistics (persisted to localStorage)
+let playerStats = {
+    gamesPlayed: 0,
+    totalTimePlayed: 0,
+    treatsCollected: 0,
+    hazardsHit: 0,
+    bossesDefeated: 0,
+    highestLevel: 0,
+    highestScore: 0,
+    totalScore: 0
+};
+
+// Tutorial state
+let hasSeenTutorial = false;
+
+// Difficulty auto-adjust tracking
+let earlyDeathCount = 0;
+const EARLY_DEATH_THRESHOLD = 3;  // Suggest Easy after 3 deaths on level 1-2
+let hasOfferedEasyMode = false;
+
 // Kitty Coins Currency System
 let kittyCoins = 0;
 const COINS_PER_TREAT = 1;      // Earn 1 coin per treat collected
@@ -157,6 +187,26 @@ function darkenColor(hex, percent) {
     const g = Math.max(0, Math.floor(((num >> 8) & 0x00FF) * (1 - percent)));
     const b = Math.max(0, Math.floor((num & 0x0000FF) * (1 - percent)));
     return '#' + (0x1000000 + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+}
+
+// Haptic feedback helper (mobile vibration)
+function triggerHaptic(pattern) {
+    if (!hapticEnabled) return;
+    if (!navigator.vibrate) return;
+    
+    try {
+        if (pattern === 'light') {
+            navigator.vibrate(30);
+        } else if (pattern === 'medium') {
+            navigator.vibrate(50);
+        } else if (pattern === 'heavy') {
+            navigator.vibrate([50, 30, 100]);
+        } else if (pattern === 'success') {
+            navigator.vibrate([30, 50, 30]);
+        }
+    } catch (e) {
+        // Vibration not supported or blocked
+    }
 }
 
 // Character skins with prices
@@ -318,9 +368,13 @@ function init() {
     loadAccessories();
     loadPowerups();
     loadKittyCoins();
+    loadPersonalBest();
+    loadPlayerStats();
+    loadTutorialState();
     loadSettings();
     displayLeaderboard();
     updateAllShopDisplays();
+    setupTutorial();
 
     showScreen('start');
 }
@@ -692,6 +746,16 @@ function startGame() {
         }
     }
     
+    // Show tutorial for first-time players
+    if (!hasSeenTutorial) {
+        showTutorial();
+        return;
+    }
+    
+    actuallyStartGame();
+}
+
+function actuallyStartGame() {
     // Reset active boosts
     activeBoosts = {
         extraLife: false,
@@ -1459,6 +1523,7 @@ function updateBossBattle() {
             thrownPunches.splice(i, 1);
             
             if (soundEnabled) playBossHitSound();
+            triggerHaptic('medium');
             spawnParticles(bossX, bossY, '#FF0000', 20);
             
             // Spawn a shield at 50% health to help block hair dryers
@@ -1569,7 +1634,11 @@ function defeatBoss() {
     // Big Kitty Coins bonus for defeating boss!
     earnKittyCoins(COINS_PER_BOSS);
     
+    // Track for stats
+    trackBossDefeated();
+    
     if (soundEnabled) playBossDefeatedSound();
+    triggerHaptic('success');
     spawnParticles(bossX, bossY, '#FFD700', 50);
     spawnParticles(bossX, bossY, '#FF6B35', 30);
     
@@ -1926,8 +1995,9 @@ function handleCollision(obj) {
         score += totalPoints;
         energy = Math.min(100, energy + ENERGY_GAIN);
         
-        // Track total treats for achievements
+        // Track total treats for achievements and stats
         totalTreatsCollected++;
+        trackTreatCollected();
         checkTreatAchievements();
         
         // Earn Kitty Coins!
@@ -1961,10 +2031,14 @@ function handleCollision(obj) {
             if (soundEnabled) playCollectSound();
             spawnParticles(toby.x, toby.y, '#00BFFF', 8);
             addFloatingText('Blocked!', '#00BFFF', toby.x, toby.y - 60);
+            triggerHaptic('light');
         } else {
             // Reset combo on hit
             comboCount = 0;
             levelDamageTaken = true;
+            
+            // Track hazard hit for stats
+            trackHazardHit();
             
             score = Math.max(0, score + obj.points);
             energy = Math.max(0, energy - ENERGY_LOSS);
@@ -1973,6 +2047,9 @@ function handleCollision(obj) {
                 playHitSound();
                 playOwwSound();
             }
+            
+            // Haptic feedback for damage
+            triggerHaptic('heavy');
             
             // Screen shake!
             triggerScreenShake(8, 200);
@@ -2221,10 +2298,355 @@ function gameOver() {
     finalLevel.textContent = level;
     finalTime.textContent = formatTime(playTime);
     
+    // Check and update personal best
+    const isNewBest = checkAndUpdatePersonalBest();
+    updatePersonalBestDisplay(isNewBest);
+    
+    // Update player statistics
+    updateStatsOnGameEnd();
+    
+    // Check for early death and suggest Easy mode
+    checkEarlyDeathAndSuggestEasy();
+    
     // Save score to leaderboard
     saveScore(playerName, score, level);
     
     showScreen('gameover');
+}
+
+// ============== PERSONAL BEST FUNCTIONS ==============
+
+function loadPersonalBest() {
+    try {
+        const saved = localStorage.getItem('tobyTrek_personalBest');
+        if (saved) {
+            personalBest = JSON.parse(saved);
+        }
+    } catch (e) {
+        console.log('Could not load personal best:', e);
+    }
+}
+
+function savePersonalBest() {
+    try {
+        localStorage.setItem('tobyTrek_personalBest', JSON.stringify(personalBest));
+    } catch (e) {
+        console.log('Could not save personal best:', e);
+    }
+}
+
+function checkAndUpdatePersonalBest() {
+    let isNewBest = false;
+    
+    if (score > personalBest.score) {
+        personalBest.score = score;
+        personalBest.level = level;
+        personalBest.time = playTime;
+        isNewBest = true;
+        savePersonalBest();
+    }
+    
+    return isNewBest;
+}
+
+function updatePersonalBestDisplay(isNewBest) {
+    const personalBestEl = document.getElementById('personal-best-display');
+    if (personalBestEl) {
+        if (isNewBest) {
+            personalBestEl.innerHTML = `<span class="new-best">🎉 NEW PERSONAL BEST! 🎉</span>`;
+            personalBestEl.classList.add('celebrating');
+        } else if (personalBest.score > 0) {
+            personalBestEl.innerHTML = `Your best: ${personalBest.score} pts (Lvl ${personalBest.level})`;
+            personalBestEl.classList.remove('celebrating');
+        } else {
+            personalBestEl.innerHTML = '';
+        }
+    }
+}
+
+// ============== DIFFICULTY AUTO-ADJUST ==============
+
+function checkEarlyDeathAndSuggestEasy() {
+    // Only track for non-easy difficulties
+    if (currentDifficulty === 'easy') {
+        earlyDeathCount = 0;
+        return;
+    }
+    
+    // Check if death was early (level 1 or 2)
+    if (level <= 2) {
+        earlyDeathCount++;
+        
+        // Suggest Easy mode after threshold deaths
+        if (earlyDeathCount >= EARLY_DEATH_THRESHOLD && !hasOfferedEasyMode) {
+            hasOfferedEasyMode = true;
+            showEasyModeSuggestion();
+        }
+    } else {
+        // Reset if player got further
+        earlyDeathCount = 0;
+    }
+}
+
+function showEasyModeSuggestion() {
+    const messageEl = document.getElementById('game-over-message');
+    if (messageEl) {
+        messageEl.innerHTML = `Toby ran out of energy!<br><br>
+            <span class="easy-suggestion">
+                💡 Having trouble? Try <button onclick="switchToEasyMode()" class="easy-mode-btn">Easy Mode</button>
+            </span>`;
+    }
+}
+
+function switchToEasyMode() {
+    currentDifficulty = 'easy';
+    
+    // Update UI to reflect selection
+    const diffButtons = document.querySelectorAll('.difficulty-btn');
+    diffButtons.forEach(btn => {
+        btn.classList.remove('selected');
+        if (btn.dataset.difficulty === 'easy') {
+            btn.classList.add('selected');
+        }
+    });
+    
+    // Reset death counter
+    earlyDeathCount = 0;
+    
+    // Update message to confirm
+    const messageEl = document.getElementById('game-over-message');
+    if (messageEl) {
+        messageEl.innerHTML = `✅ Switched to Easy Mode! Give it another try!`;
+    }
+}
+
+// ============== SHARE SCORE FUNCTION ==============
+
+function shareScore() {
+    const shareText = `🐱 I scored ${score} points and reached Level ${level} in Toby Trek! Can you beat my score? 🎮`;
+    const shareUrl = 'https://neilbird.github.io/TobyTrekGame/';
+    
+    // Try native share API first (mobile)
+    if (navigator.share) {
+        navigator.share({
+            title: 'Toby Trek Score',
+            text: shareText,
+            url: shareUrl
+        }).catch(() => {
+            // User cancelled or error - fall back to clipboard
+            copyToClipboard(shareText + '\n' + shareUrl);
+        });
+    } else {
+        // Fallback: copy to clipboard
+        copyToClipboard(shareText + '\n' + shareUrl);
+    }
+}
+
+function copyToClipboard(text) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+            showShareFeedback('Copied to clipboard! 📋');
+        }).catch(() => {
+            showShareFeedback('Could not copy');
+        });
+    } else {
+        // Fallback for older browsers
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            document.execCommand('copy');
+            showShareFeedback('Copied to clipboard! 📋');
+        } catch (e) {
+            showShareFeedback('Could not copy');
+        }
+        document.body.removeChild(textarea);
+    }
+}
+
+function showShareFeedback(message) {
+    const btn = document.getElementById('share-btn');
+    if (btn) {
+        const originalText = btn.textContent;
+        btn.textContent = message;
+        btn.disabled = true;
+        setTimeout(() => {
+            btn.textContent = originalText;
+            btn.disabled = false;
+        }, 2000);
+    }
+}
+
+// ============== PLAYER STATISTICS FUNCTIONS ==============
+
+function loadPlayerStats() {
+    try {
+        const saved = localStorage.getItem('tobyTrek_playerStats');
+        if (saved) {
+            const loaded = JSON.parse(saved);
+            // Merge with defaults to handle new stat fields
+            playerStats = { ...playerStats, ...loaded };
+        }
+    } catch (e) {
+        console.log('Could not load player stats:', e);
+    }
+}
+
+function savePlayerStats() {
+    try {
+        localStorage.setItem('tobyTrek_playerStats', JSON.stringify(playerStats));
+    } catch (e) {
+        console.log('Could not save player stats:', e);
+    }
+}
+
+function updateStatsOnGameEnd() {
+    playerStats.gamesPlayed++;
+    playerStats.totalTimePlayed += playTime;
+    playerStats.totalScore += score;
+    
+    if (score > playerStats.highestScore) {
+        playerStats.highestScore = score;
+    }
+    if (level > playerStats.highestLevel) {
+        playerStats.highestLevel = level;
+    }
+    
+    savePlayerStats();
+}
+
+function trackTreatCollected() {
+    playerStats.treatsCollected++;
+}
+
+function trackHazardHit() {
+    playerStats.hazardsHit++;
+}
+
+function trackBossDefeated() {
+    playerStats.bossesDefeated++;
+}
+
+function formatPlayTime(seconds) {
+    const hours = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+    
+    if (hours > 0) {
+        return `${hours}h ${mins}m`;
+    } else if (mins > 0) {
+        return `${mins}m ${secs}s`;
+    } else {
+        return `${secs}s`;
+    }
+}
+
+function showStats() {
+    const modal = document.getElementById('stats-modal');
+    const content = document.getElementById('stats-content');
+    
+    if (modal && content) {
+        content.innerHTML = `
+            <div class="stat-item">
+                <span class="stat-icon">🎮</span>
+                <span class="stat-label">Games Played</span>
+                <span class="stat-value">${playerStats.gamesPlayed}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">⏱️</span>
+                <span class="stat-label">Total Time</span>
+                <span class="stat-value">${formatPlayTime(playerStats.totalTimePlayed)}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">🏆</span>
+                <span class="stat-label">Best Score</span>
+                <span class="stat-value">${playerStats.highestScore}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">📊</span>
+                <span class="stat-label">Highest Level</span>
+                <span class="stat-value">${playerStats.highestLevel}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">🍗</span>
+                <span class="stat-label">Treats Collected</span>
+                <span class="stat-value">${playerStats.treatsCollected}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">💥</span>
+                <span class="stat-label">Hazards Hit</span>
+                <span class="stat-value">${playerStats.hazardsHit}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">👹</span>
+                <span class="stat-label">Bosses Defeated</span>
+                <span class="stat-value">${playerStats.bossesDefeated}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">💰</span>
+                <span class="stat-label">Total Score</span>
+                <span class="stat-value">${playerStats.totalScore.toLocaleString()}</span>
+            </div>
+        `;
+        modal.classList.remove('hidden');
+    }
+}
+
+function hideStats() {
+    const modal = document.getElementById('stats-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+// ============== TUTORIAL FUNCTIONS ==============
+
+function loadTutorialState() {
+    try {
+        hasSeenTutorial = localStorage.getItem('tobyTrek_hasSeenTutorial') === 'true';
+    } catch (e) {
+        hasSeenTutorial = false;
+    }
+}
+
+function saveTutorialState() {
+    try {
+        localStorage.setItem('tobyTrek_hasSeenTutorial', 'true');
+    } catch (e) {
+        console.log('Could not save tutorial state:', e);
+    }
+}
+
+function showTutorial() {
+    const overlay = document.getElementById('tutorial-overlay');
+    if (overlay) {
+        overlay.classList.remove('hidden');
+    }
+}
+
+function hideTutorial() {
+    const overlay = document.getElementById('tutorial-overlay');
+    if (overlay) {
+        overlay.classList.add('hidden');
+    }
+    
+    // Check if "don't show again" is checked
+    const dontShowCheckbox = document.getElementById('dont-show-tutorial');
+    if (dontShowCheckbox && dontShowCheckbox.checked) {
+        saveTutorialState();
+        hasSeenTutorial = true;
+    }
+}
+
+function setupTutorial() {
+    const startBtn = document.getElementById('tutorial-start-btn');
+    if (startBtn) {
+        startBtn.addEventListener('click', () => {
+            hideTutorial();
+            actuallyStartGame();
+        });
+    }
 }
 
 // ============== LEADERBOARD FUNCTIONS (Firebase + Local) ==============

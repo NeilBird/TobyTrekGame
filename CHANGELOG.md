@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.3] - 2026-01-04
+
+### Added
+
+- **Personal Best Tracking** 🏆
+  - Your highest score is now saved locally
+  - Displayed at game over screen with comparison to current run
+
+- **Haptic Feedback** 📳
+  - Mobile devices now vibrate on key events (collisions, power-ups, boss hits)
+  - Light, medium, heavy, and success vibration patterns
+
+- **Share Score Button** 📤
+  - Share your score via native share API on mobile
+  - Clipboard fallback for desktop browsers
+
+- **Statistics Page** 📊
+  - Track 8 lifetime stats: games played, total time, distance traveled, treats collected, hazards hit, bosses defeated, highest combo, and highest level
+  - Access from home screen via "📊 Stats" button
+
+- **Tutorial Overlay** 📖
+  - First-time players see a helpful tutorial
+  - "Don't show again" checkbox option
+
+- **Difficulty Auto-Adjust** 🎯
+  - Game suggests Easy mode after 3 early deaths (dying before level 2)
+  - Helps new players enjoy the game
+
+- **Landscape Mode Support** 📱
+  - Improved CSS for mobile landscape orientation
+  - Better layout when playing horizontally
+
+- **Offline Support** 🔌
+  - Service Worker caches core game files
+  - Play without internet connection (leaderboard requires connection)
+
+### Fixed
+
+- **Sponsor Text Visibility** 🏷️
+  - Changed sponsor link color from yellow to white for better readability on iOS Safari
+
+---
+
 ## [1.1.2] - 2026-01-04
 
 ### Changed

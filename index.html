@@ -55,7 +55,7 @@
                 </div>
                 <h1>Toby Trek</h1>
                 <div class="version-row">
-                    <div class="version">v1.1.2</div>
+                    <div class="version">v1.1.3</div>
                     <div id="total-plays" class="total-plays">🎮 Total plays: Loading...</div>
                 </div>
             </div>
@@ -86,6 +86,7 @@
                 <button id="how-to-play-btn" class="action-btn">❓ How to Play</button>
                 <button id="achievements-btn" class="action-btn">🏆 Achievements</button>
                 <button id="skins-btn" class="action-btn">🛒 Pet Shop</button>
+                <button id="stats-btn" class="action-btn" onclick="showStats()">📊 Stats</button>
             </div>
             
             <!-- Settings Icons -->
@@ -163,6 +164,47 @@
                 <h2>🏆 Achievements <span id="achievements-progress">0/16</span></h2>
                 <div id="achievements-list"></div>
                 <button onclick="hideAchievements()" class="game-btn">Close</button>
+            </div>
+        </div>
+
+        <!-- Stats Modal -->
+        <div id="stats-modal" class="modal hidden">
+            <div class="modal-content">
+                <button class="close-panel-btn modal-close-btn" onclick="hideStats()">✕</button>
+                <h2>📊 Your Statistics</h2>
+                <div id="stats-content" class="stats-grid">
+                    <!-- Stats populated by JS -->
+                </div>
+                <button onclick="hideStats()" class="game-btn">Close</button>
+            </div>
+        </div>
+
+        <!-- Tutorial Overlay (shown on first play) -->
+        <div id="tutorial-overlay" class="tutorial-overlay hidden">
+            <div class="tutorial-content">
+                <h2>🐱 Welcome to Toby Trek!</h2>
+                <div class="tutorial-steps">
+                    <div class="tutorial-step">
+                        <span class="tutorial-icon">🍗</span>
+                        <p><strong>Collect treats</strong> to gain energy and score points!</p>
+                    </div>
+                    <div class="tutorial-step">
+                        <span class="tutorial-icon">💧</span>
+                        <p><strong>Avoid hazards</strong> - puddles and hair dryers hurt!</p>
+                    </div>
+                    <div class="tutorial-step">
+                        <span class="tutorial-icon">⬅️➡️</span>
+                        <p><strong>Move left/right</strong> using arrow keys or touch buttons</p>
+                    </div>
+                    <div class="tutorial-step">
+                        <span class="tutorial-icon">👹</span>
+                        <p><strong>Boss battles</strong> every 6 levels - throw punches with SPACE!</p>
+                    </div>
+                </div>
+                <button id="tutorial-start-btn" class="game-btn">Let's Go! 🚀</button>
+                <label class="tutorial-checkbox">
+                    <input type="checkbox" id="dont-show-tutorial"> Don't show again
+                </label>
             </div>
         </div>
 
@@ -255,12 +297,16 @@
             </div>
             <h1>Game Over!</h1>
             <p id="game-over-message">Toby ran out of energy!</p>
+            <div id="personal-best-display" class="personal-best"></div>
             <div id="final-stats">
                 <p>⏱️ Time: <span id="final-time">00:00</span></p>
                 <p>🏆 Score: <span id="final-score">0</span></p>
                 <p>📊 Level: <span id="final-level">1</span></p>
             </div>
-            <button id="restart-btn" class="game-btn">Run Again!</button>
+            <div class="game-over-buttons">
+                <button id="restart-btn" class="game-btn">Run Again!</button>
+                <button id="share-btn" class="game-btn share-btn" onclick="shareScore()">📤 Share</button>
+            </div>
         </div>
     </div>
     
@@ -291,6 +337,21 @@
             console.log('Firebase initialized successfully');
         } catch (error) {
             console.log('Firebase not configured - using local storage only');
+        }
+    </script>
+    
+    <!-- Service Worker Registration for Offline Support -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registered successfully');
+                    })
+                    .catch(function(error) {
+                        console.log('ServiceWorker registration failed:', error);
+                    });
+            });
         }
     </script>
     
