@@ -177,6 +177,9 @@ Toby was a white cat with grey and black markings, featuring distinctive yellow-
 - **v0.9.5** - Running Animation: Animated legs, body bobbing, tail wagging, whisker wiggle
 - **v0.9.4** - Gameplay Fixes: Improved music, easier difficulty, boss every 6 levels, mobile energy bar fix, mobile punch button
 - **v0.9.3** - Kitty Coins: Currency system, shop interface, 3 new skins (Tiger, Ghost, Neon)
+- **v1.0.1** - Mobile UX: Moved touch controls and energy bar higher for better portrait mode play
+- **v1.0.0** - Major Release: Redesigned Kitty Shop with categories, accessories, power-up boosts, difficulty multipliers
+- **v0.9.8** - iOS Safari fixes, puddle graphic improvement
 - **v0.9.2** - Modern UI: Dark theme, collapsible panels, cleaner home screen
 - **v0.9.1** - Global Leaderboard: Firebase integration for worldwide high scores, real-time updates
 - **v0.9.0** - Boss Battle System: Angry black cat boss, castle world, punch combat, new achievements
