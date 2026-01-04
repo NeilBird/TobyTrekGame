@@ -2,7 +2,7 @@
 
 A browser-based endless runner game created in memory of our beloved cat **Toby** (2026). Built entirely through "vibe coding" with AI assistance.
 
-**Current Version:** v1.0.8
+**Current Version:** v1.0.9
 
 ## 🎮 Play the Game
 
