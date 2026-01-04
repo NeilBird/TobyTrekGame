@@ -292,7 +292,7 @@ yes, but do it very careful, so that you do not break the game or introduce bugs
 
 ## 56
 
-Please can you alter the font colour of the "Sponsors", because when viewed on iOS using Sarafi, the yellow text is not the best, with the blue background colour of the game play page. And with all these new changes, can you bump the version number, update the changelog, readme and create a new PR using Git CLI.
+Please can you alter the font colour of the "Sponsors" text, because when viewed on iOS using Sarafi, the yellow text is not the best, with the blue background colour of the game play page. And with all these new changes, can you bump the version number, update the changelog, readme and create a new PR using Git CLI.
 
 ## 57
 
