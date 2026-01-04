@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.0] - 2026-01-04
+
+### Added
+
+- **Total Plays Counter** 🎮
+  - Home screen now shows total number of times the game has been played
+  - Real-time counter synced via Firebase database
+  - Displays as "🎮 Total plays: X" below the version number
+
+### Fixed
+
+- **Sponsors Now Visible on Desktop** 💻
+  - Sponsors section now displays correctly on desktop browsers (Edge, Chrome)
+  - Sponsors appear directly below the game canvas during gameplay
+
+### Removed
+
+- **Jump Feature Removed** 🦘
+  - Removed jump ability as it did not work well
+  - SPACE key now only used for punching during boss battles
+  - Removed mobile jump button
+  - Simplified gameplay - avoid hazards by moving left/right
+
+---
+
 ## [1.0.9] - 2026-01-04
 
 ### Fixed
@@ -58,14 +83,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 ## [1.0.5] - 2026-01-04
-
-### Added
-
-- **Jump Ability!** 🦘
-  - Press **SPACE** during normal gameplay to jump over puddles
-  - Mobile players get a new **Jump button** (🦘) between left/right controls
-  - Successfully jumping over a puddle gives +5 bonus points
-  - Jump not available during boss battles (SPACE throws punches instead)
 
 ### Improved
 

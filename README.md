@@ -2,7 +2,7 @@
 
 A browser-based endless runner game created in memory of our beloved cat **Toby** (2026). Built entirely through "vibe coding" with AI assistance.
 
-**Current Version:** v1.0.9
+**Current Version:** v1.1.0
 
 ## 🎮 Play the Game
 
@@ -12,10 +12,10 @@ Simply open `index.html` in any modern web browser to play! Works on desktop and
 
 ### Controls
 - **← / →** Arrow keys or **A / D** keys to move Toby
-- **SPACE** to jump over puddles (normal levels) or throw punches (boss battles)
+- **SPACE** to throw punches (boss battles)
 - **P** or **ESC** to pause the game
 - **M** to toggle sound mute
-- On mobile: Tap screen sides to move, 🦘 to jump, 👊 to throw punches
+- On mobile: Use buttons to move, 👊 to throw punches
 
 ## 🌟 Features
 
