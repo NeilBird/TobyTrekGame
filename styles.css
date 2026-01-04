@@ -934,6 +934,24 @@ body {
     display: block;
 }
 
+/* Mobile jump button */
+#touch-jump {
+    width: 70px;
+    height: 70px;
+    background: rgba(0, 200, 100, 0.5);
+    border-color: rgba(100, 255, 150, 0.8);
+    font-size: 32px;
+    display: none; /* Hidden by default, shown during normal gameplay */
+}
+
+#touch-jump:active {
+    background: rgba(0, 200, 100, 0.8);
+}
+
+#touch-jump.visible {
+    display: block;
+}
+
 /* Show touch controls on touch devices */
 @media (hover: none) and (pointer: coarse) {
     #touch-controls {

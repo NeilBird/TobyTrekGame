@@ -10,10 +10,10 @@ Simply open `index.html` in any modern web browser to play! Works on desktop and
 
 ### Controls
 - **← / →** Arrow keys or **A / D** keys to move Toby
-- **SPACE** to throw punches at bosses!
+- **SPACE** to jump over puddles (normal levels) or throw punches (boss battles)
 - **P** or **ESC** to pause the game
 - **M** to toggle sound mute
-- On mobile: Tap screen sides to move, tap 👊 button to throw punches
+- On mobile: Tap screen sides to move, 🦘 to jump, 👊 to throw punches
 
 ## 🌟 Features
 

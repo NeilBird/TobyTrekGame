@@ -228,3 +228,7 @@ A user reported that they purchased a Top Hat in the store, and it showed "Equip
 
 ## 43
 
+On the BOSS levels, the Boss's energy is not visible, only Toby's energy can be seen, can we put them side by side on the BOSS levels? - Also, on the boss levels, can we only offer additional Punches, when the user has run out, and then send two or three only, as it seems a little easy to immediately send additional punches at the start of a boss level, when the user already has the punches they have collected. Another idea that has been suggested, during normal levels, could we add the ability for Toby to jump over puddles, perhaps using the space bar, or adding a "Jump" button for mobile browsers?
+
+## 44
+

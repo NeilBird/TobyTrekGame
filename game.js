@@ -1,5 +1,5 @@
 // Game Version
-const GAME_VERSION = '1.0.4';
+const GAME_VERSION = '1.0.5';
 
 // Game Constants
 const CANVAS_WIDTH = 800;
@@ -258,7 +258,12 @@ let toby = {
     targetX: CANVAS_WIDTH / 2,
     // Animation state
     runCycle: 0,       // Animation frame counter (0 to 2π)
-    bobOffset: 0       // Vertical bobbing offset
+    bobOffset: 0,      // Vertical bobbing offset
+    // Jump state
+    isJumping: false,
+    jumpHeight: 0,
+    jumpVelocity: 0,
+    jumpStartTime: 0
 };
 
 // Approaching objects (3D perspective)
@@ -778,9 +783,16 @@ function startGame() {
     bossDefeated = false;
     bossDefeatedTime = 0;
     
-    // Hide mobile punch button
+    // Reset jump state
+    toby.isJumping = false;
+    toby.jumpHeight = 0;
+    toby.jumpVelocity = 0;
+    
+    // Show jump button, hide punch button for normal gameplay
     const touchPunch = document.getElementById('touch-punch');
+    const touchJump = document.getElementById('touch-jump');
     if (touchPunch) touchPunch.classList.remove('visible');
+    if (touchJump) touchJump.classList.add('visible');
 
     toby.x = CANVAS_WIDTH / 2;
     toby.targetX = CANVAS_WIDTH / 2;
@@ -799,10 +811,15 @@ function handleKeyDown(e) {
     if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = true;
     if (e.key === 'ArrowRight' || e.key === 'd') keys.right = true;
     
-    // Space bar to throw punch during boss battle
-    if (e.key === ' ' && gameState === 'playing' && isBossLevel && !gamePaused) {
+    // Space bar - throw punch during boss battle, OR jump during normal levels
+    if (e.key === ' ' && gameState === 'playing' && !gamePaused) {
         e.preventDefault(); // Prevent page scroll
-        throwPunch();
+        if (isBossLevel) {
+            throwPunch();
+        } else {
+            // Jump during normal gameplay
+            triggerJump();
+        }
     }
     
     // Pause with Escape or P
@@ -950,6 +967,22 @@ function setupTouchControls() {
             }
         });
     }
+    
+    // Jump button for mobile normal gameplay
+    const touchJump = document.getElementById('touch-jump');
+    if (touchJump) {
+        touchJump.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (!isBossLevel && gameState === 'playing' && !gamePaused) {
+                triggerJump();
+            }
+        }, { passive: false });
+        touchJump.addEventListener('click', () => {
+            if (!isBossLevel && gameState === 'playing' && !gamePaused) {
+                triggerJump();
+            }
+        });
+    }
 }
 
 function handleTouchStart(e) {
@@ -1053,6 +1086,9 @@ function update(timestamp) {
     toby.runCycle += animSpeed;
     if (toby.runCycle > Math.PI * 2) toby.runCycle -= Math.PI * 2;
     toby.bobOffset = Math.sin(toby.runCycle * 2) * 3; // Body bobbing
+    
+    // Update jump physics
+    updateJump();
     
     // Check expression expiration
     if (tobyExpression !== 'normal' && Date.now() > expressionEndTime) {
@@ -1395,9 +1431,11 @@ function startBossBattle() {
         }, 3000);
     }
     
-    // Show mobile punch button
+    // Show mobile punch button, hide jump button during boss battle
     const touchPunch = document.getElementById('touch-punch');
+    const touchJump = document.getElementById('touch-jump');
     if (touchPunch) touchPunch.classList.add('visible');
+    if (touchJump) touchJump.classList.remove('visible');
     
     if (soundEnabled) playBossMusic();
     updateHUD();
@@ -1463,9 +1501,14 @@ function updateBossBattle() {
         spawnBossHazard();
     }
     
-    // Occasionally spawn punch power-ups so player can collect more ammo
-    if (Math.random() < 0.015) {
-        spawnBossPunch();
+    // Only spawn punch power-ups when player has run out of ammo (0 punches)
+    // Spawn 2-3 punches at once to give them a fighting chance
+    if (punchesCollected === 0 && Math.random() < 0.03) {
+        const punchesToSpawn = 2 + Math.floor(Math.random() * 2); // 2-3 punches
+        for (let i = 0; i < punchesToSpawn; i++) {
+            setTimeout(() => spawnBossPunch(), i * 300); // Stagger spawns slightly
+        }
+        addFloatingText('👊 Ammo incoming!', '#FF6B35', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 80);
     }
 }
 
@@ -1526,6 +1569,66 @@ function throwPunch() {
     
     if (soundEnabled) playPunchSound();
     updateHUD();
+}
+
+// ============== JUMP SYSTEM ==============
+const JUMP_VELOCITY = 15;      // Initial upward velocity
+const GRAVITY = 0.8;           // Gravity pulling Toby down
+const JUMP_DURATION = 500;     // Max jump duration in ms
+
+function triggerJump() {
+    // Can only jump during normal gameplay, not during boss battles
+    if (isBossLevel || toby.isJumping || gameState !== 'playing') return;
+    
+    toby.isJumping = true;
+    toby.jumpVelocity = JUMP_VELOCITY;
+    toby.jumpStartTime = Date.now();
+    toby.jumpHeight = 0;
+    
+    if (soundEnabled) playJumpSound();
+    addFloatingText('🦘 Jump!', '#00FF00', toby.x, toby.y - 60);
+}
+
+function updateJump() {
+    if (!toby.isJumping) return;
+    
+    // Apply velocity and gravity
+    toby.jumpHeight += toby.jumpVelocity;
+    toby.jumpVelocity -= GRAVITY;
+    
+    // Check if landed
+    if (toby.jumpHeight <= 0) {
+        toby.isJumping = false;
+        toby.jumpHeight = 0;
+        toby.jumpVelocity = 0;
+    }
+    
+    // Safety timeout - force land after max duration
+    if (Date.now() - toby.jumpStartTime > JUMP_DURATION) {
+        toby.isJumping = false;
+        toby.jumpHeight = 0;
+        toby.jumpVelocity = 0;
+    }
+}
+
+function playJumpSound() {
+    if (!audioContext) return;
+    
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    
+    // Bouncy jump sound - rising pitch
+    osc.frequency.setValueAtTime(300, audioContext.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.1);
+    
+    gain.gain.setValueAtTime(0.15, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+    
+    osc.start(audioContext.currentTime);
+    osc.stop(audioContext.currentTime + 0.15);
 }
 
 function defeatBoss() {
@@ -1813,6 +1916,15 @@ function getObjectSize(z) {
 function handleCollision(obj) {
     // Skip damage if boss is defeated (prevents post-victory damage)
     if (isBossLevel && bossDefeated && obj.type === 'hazard') {
+        return;
+    }
+    
+    // Skip puddles when Toby is jumping (can jump over puddles!)
+    if (toby.isJumping && obj.objectType === OBJECT_TYPES.PUDDLE) {
+        addFloatingText('Jumped! 🦘', '#00FF00', toby.x, toby.y - 60 - toby.jumpHeight);
+        spawnParticles(toby.x, toby.y - toby.jumpHeight, '#00FF00', 8);
+        // Give small bonus for successful jump
+        score += 5;
         return;
     }
     
@@ -3928,41 +4040,74 @@ function drawDangerousDougieTheDog() {
 }
 
 function drawBossHealthBar() {
-    const barWidth = 200;
+    const barWidth = 150;
     const barHeight = 20;
-    const barX = CANVAS_WIDTH / 2 - barWidth / 2;
+    const spacing = 30; // Space between bars
+    const totalWidth = barWidth * 2 + spacing;
+    const startX = CANVAS_WIDTH / 2 - totalWidth / 2;
     const barY = 50;
+    
+    // ===== TOBY'S ENERGY (Left side) =====
+    const tobyBarX = startX;
     
     // Background
     ctx.fillStyle = '#333333';
-    ctx.fillRect(barX - 2, barY - 2, barWidth + 4, barHeight + 4);
+    ctx.fillRect(tobyBarX - 2, barY - 2, barWidth + 4, barHeight + 4);
+    
+    // Energy bar
+    const energyPercent = energy / 100;
+    const energyColor = energyPercent > 0.5 ? '#00FF00' : energyPercent > 0.25 ? '#FFFF00' : '#FF0000';
+    
+    ctx.fillStyle = '#005500';
+    ctx.fillRect(tobyBarX, barY, barWidth, barHeight);
+    
+    ctx.fillStyle = energyColor;
+    ctx.fillRect(tobyBarX, barY, barWidth * energyPercent, barHeight);
+    
+    // Toby label
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 14px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('🐱 TOBY', tobyBarX + barWidth / 2, barY - 8);
+    
+    // Energy text
+    ctx.font = '12px Arial';
+    ctx.fillText(`${Math.ceil(energy)} / 100`, tobyBarX + barWidth / 2, barY + 15);
+    
+    // ===== VS DIVIDER =====
+    ctx.fillStyle = '#FFD700';
+    ctx.font = 'bold 20px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('VS', CANVAS_WIDTH / 2, barY + 14);
+    
+    // ===== BOSS HEALTH (Right side) =====
+    const bossBarX = startX + barWidth + spacing;
+    
+    // Background
+    ctx.fillStyle = '#333333';
+    ctx.fillRect(bossBarX - 2, barY - 2, barWidth + 4, barHeight + 4);
     
     // Health bar
     const healthPercent = bossHealth / bossMaxHealth;
-    const healthColor = healthPercent > 0.5 ? '#FF0000' : healthPercent > 0.25 ? '#FF6600' : '#FF0000';
+    const healthColor = healthPercent > 0.5 ? '#FF0000' : healthPercent > 0.25 ? '#FF6600' : '#CC0000';
     
     ctx.fillStyle = '#550000';
-    ctx.fillRect(barX, barY, barWidth, barHeight);
+    ctx.fillRect(bossBarX, barY, barWidth, barHeight);
     
     ctx.fillStyle = healthColor;
-    ctx.fillRect(barX, barY, barWidth * healthPercent, barHeight);
+    ctx.fillRect(bossBarX, barY, barWidth * healthPercent, barHeight);
     
     // Boss name based on current boss type
-    const bossNames = [
-        '😼 DAVE THE ANGRY CAT 😼',
-        '🧹 BIG BAD HOOVER 🧹',
-        '🥒 CREEPY CRAZY CUCUMBER 🥒',
-        '🐕 DANGEROUS DOUGIE 🐕'
-    ];
+    const bossEmojis = ['😼', '🧹', '🥒', '🐕'];
+    const bossShortNames = ['DAVE', 'HOOVER', 'CUCUMBER', 'DOUGIE'];
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 16px Arial';
+    ctx.font = 'bold 14px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText(bossNames[currentBossType] || bossNames[0], CANVAS_WIDTH / 2, barY - 8);
+    ctx.fillText(`${bossEmojis[currentBossType] || bossEmojis[0]} ${bossShortNames[currentBossType] || bossShortNames[0]}`, bossBarX + barWidth / 2, barY - 8);
     
     // Health text
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = '14px Arial';
-    ctx.fillText(`${Math.ceil(bossHealth)} / ${bossMaxHealth}`, CANVAS_WIDTH / 2, barY + 15);
+    ctx.font = '12px Arial';
+    ctx.fillText(`${Math.ceil(bossHealth)} / ${bossMaxHealth}`, bossBarX + barWidth / 2, barY + 15);
 }
 
 function drawDefeatedBoss() {
@@ -5443,8 +5588,9 @@ function drawToby() {
     const bodyDarker = darkenColor(bodyColor, 0.15);
     const patchLighter = lightenColor(patchColor, 0.2);
     
-    // Apply body bob for running animation
-    ctx.translate(toby.x, toby.y + toby.bobOffset);
+    // Apply body bob for running animation, plus jump height offset
+    const jumpOffset = toby.isJumping ? toby.jumpHeight : 0;
+    ctx.translate(toby.x, toby.y + toby.bobOffset - jumpOffset);
 
     // Flip based on direction
     if (toby.direction === -1) {
