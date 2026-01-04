@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.1.0] - 2026-01-04
 
+### Added
+
+- **Total Plays Counter** 🎮
+  - Home screen now shows total number of times the game has been played
+  - Real-time counter synced via Firebase database
+  - Displays as "🎮 Total plays: X" below the version number
+
 ### Fixed
 
 - **Sponsors Now Visible on Desktop** 💻

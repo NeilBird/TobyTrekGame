@@ -90,6 +90,13 @@ body {
     border-radius: 15px;
 }
 
+.total-plays {
+    font-size: 12px;
+    color: rgba(255, 200, 100, 0.9);
+    font-weight: 500;
+    margin-top: 8px;
+}
+
 /* Setup Row - Name & Difficulty */
 .setup-row {
     display: flex;

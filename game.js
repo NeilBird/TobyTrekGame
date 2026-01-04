@@ -312,6 +312,7 @@ function init() {
 
     // Load saved data from localStorage
     loadLeaderboard();
+    loadTotalPlays();
     loadAchievements();
     loadSkins();
     loadAccessories();
@@ -720,6 +721,9 @@ function startGame() {
         activeBoosts.luckyCharm = true;
         savePowerups();
     }
+    
+    // Increment total plays counter
+    incrementTotalPlays();
     
     gameState = 'playing';
     score = 0;
@@ -2219,6 +2223,52 @@ function gameOver() {
 function isFirebaseAvailable() {
     return typeof firebaseDB !== 'undefined' && firebaseDB !== null;
 }
+
+// ============== TOTAL PLAYS COUNTER ==============
+
+let totalPlays = 0;
+
+function loadTotalPlays() {
+    if (!isFirebaseAvailable()) {
+        updateTotalPlaysDisplay(0);
+        return;
+    }
+    
+    try {
+        const playsRef = firebaseDB.ref('stats/totalPlays');
+        
+        // Listen for real-time updates
+        playsRef.on('value', (snapshot) => {
+            totalPlays = snapshot.val() || 0;
+            updateTotalPlaysDisplay(totalPlays);
+        });
+    } catch (e) {
+        console.error('Error loading total plays:', e);
+        updateTotalPlaysDisplay(0);
+    }
+}
+
+function incrementTotalPlays() {
+    if (!isFirebaseAvailable()) return;
+    
+    try {
+        const playsRef = firebaseDB.ref('stats/totalPlays');
+        playsRef.transaction((currentPlays) => {
+            return (currentPlays || 0) + 1;
+        });
+    } catch (e) {
+        console.error('Error incrementing total plays:', e);
+    }
+}
+
+function updateTotalPlaysDisplay(count) {
+    const display = document.getElementById('total-plays');
+    if (display) {
+        display.textContent = `🎮 Total plays: ${count.toLocaleString()}`;
+    }
+}
+
+// ============== LEADERBOARD ==============
 
 function loadLeaderboard() {
     // Load local leaderboard first
