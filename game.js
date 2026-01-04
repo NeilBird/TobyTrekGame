@@ -161,6 +161,11 @@ let playerStats = {
 // Tutorial state
 let hasSeenTutorial = false;
 
+// Difficulty auto-adjust tracking
+let earlyDeathCount = 0;
+const EARLY_DEATH_THRESHOLD = 3;  // Suggest Easy after 3 deaths on level 1-2
+let hasOfferedEasyMode = false;
+
 // Kitty Coins Currency System
 let kittyCoins = 0;
 const COINS_PER_TREAT = 1;      // Earn 1 coin per treat collected
@@ -2300,6 +2305,9 @@ function gameOver() {
     // Update player statistics
     updateStatsOnGameEnd();
     
+    // Check for early death and suggest Easy mode
+    checkEarlyDeathAndSuggestEasy();
+    
     // Save score to leaderboard
     saveScore(playerName, score, level);
     
@@ -2353,6 +2361,62 @@ function updatePersonalBestDisplay(isNewBest) {
         } else {
             personalBestEl.innerHTML = '';
         }
+    }
+}
+
+// ============== DIFFICULTY AUTO-ADJUST ==============
+
+function checkEarlyDeathAndSuggestEasy() {
+    // Only track for non-easy difficulties
+    if (currentDifficulty === 'easy') {
+        earlyDeathCount = 0;
+        return;
+    }
+    
+    // Check if death was early (level 1 or 2)
+    if (level <= 2) {
+        earlyDeathCount++;
+        
+        // Suggest Easy mode after threshold deaths
+        if (earlyDeathCount >= EARLY_DEATH_THRESHOLD && !hasOfferedEasyMode) {
+            hasOfferedEasyMode = true;
+            showEasyModeSuggestion();
+        }
+    } else {
+        // Reset if player got further
+        earlyDeathCount = 0;
+    }
+}
+
+function showEasyModeSuggestion() {
+    const messageEl = document.getElementById('game-over-message');
+    if (messageEl) {
+        messageEl.innerHTML = `Toby ran out of energy!<br><br>
+            <span class="easy-suggestion">
+                💡 Having trouble? Try <button onclick="switchToEasyMode()" class="easy-mode-btn">Easy Mode</button>
+            </span>`;
+    }
+}
+
+function switchToEasyMode() {
+    currentDifficulty = 'easy';
+    
+    // Update UI to reflect selection
+    const diffButtons = document.querySelectorAll('.difficulty-btn');
+    diffButtons.forEach(btn => {
+        btn.classList.remove('selected');
+        if (btn.dataset.difficulty === 'easy') {
+            btn.classList.add('selected');
+        }
+    });
+    
+    // Reset death counter
+    earlyDeathCount = 0;
+    
+    // Update message to confirm
+    const messageEl = document.getElementById('game-over-message');
+    if (messageEl) {
+        messageEl.innerHTML = `✅ Switched to Easy Mode! Give it another try!`;
     }
 }
 
