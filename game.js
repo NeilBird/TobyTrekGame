@@ -136,6 +136,13 @@ let gamePaused = false;
 let dailyChallengeActive = false;
 let dailyChallengeSeed = 0;
 
+// Personal Best Tracking
+let personalBest = {
+    score: 0,
+    level: 0,
+    time: 0
+};
+
 // Kitty Coins Currency System
 let kittyCoins = 0;
 const COINS_PER_TREAT = 1;      // Earn 1 coin per treat collected
@@ -318,6 +325,7 @@ function init() {
     loadAccessories();
     loadPowerups();
     loadKittyCoins();
+    loadPersonalBest();
     loadSettings();
     displayLeaderboard();
     updateAllShopDisplays();
@@ -2221,10 +2229,64 @@ function gameOver() {
     finalLevel.textContent = level;
     finalTime.textContent = formatTime(playTime);
     
+    // Check and update personal best
+    const isNewBest = checkAndUpdatePersonalBest();
+    updatePersonalBestDisplay(isNewBest);
+    
     // Save score to leaderboard
     saveScore(playerName, score, level);
     
     showScreen('gameover');
+}
+
+// ============== PERSONAL BEST FUNCTIONS ==============
+
+function loadPersonalBest() {
+    try {
+        const saved = localStorage.getItem('tobyTrek_personalBest');
+        if (saved) {
+            personalBest = JSON.parse(saved);
+        }
+    } catch (e) {
+        console.log('Could not load personal best:', e);
+    }
+}
+
+function savePersonalBest() {
+    try {
+        localStorage.setItem('tobyTrek_personalBest', JSON.stringify(personalBest));
+    } catch (e) {
+        console.log('Could not save personal best:', e);
+    }
+}
+
+function checkAndUpdatePersonalBest() {
+    let isNewBest = false;
+    
+    if (score > personalBest.score) {
+        personalBest.score = score;
+        personalBest.level = level;
+        personalBest.time = playTime;
+        isNewBest = true;
+        savePersonalBest();
+    }
+    
+    return isNewBest;
+}
+
+function updatePersonalBestDisplay(isNewBest) {
+    const personalBestEl = document.getElementById('personal-best-display');
+    if (personalBestEl) {
+        if (isNewBest) {
+            personalBestEl.innerHTML = `<span class="new-best">🎉 NEW PERSONAL BEST! 🎉</span>`;
+            personalBestEl.classList.add('celebrating');
+        } else if (personalBest.score > 0) {
+            personalBestEl.innerHTML = `Your best: ${personalBest.score} pts (Lvl ${personalBest.level})`;
+            personalBestEl.classList.remove('celebrating');
+        } else {
+            personalBestEl.innerHTML = '';
+        }
+    }
 }
 
 // ============== LEADERBOARD FUNCTIONS (Firebase + Local) ==============

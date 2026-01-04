@@ -1354,3 +1354,33 @@ body {
         justify-content: center;
     }
 }
+
+/* Personal Best Display */
+.personal-best {
+    font-size: 14px;
+    color: #FFD700;
+    margin: 10px 0;
+    min-height: 24px;
+}
+
+.personal-best .new-best {
+    font-size: 18px;
+    font-weight: bold;
+    color: #00FF00;
+    animation: celebratePulse 0.5s ease-in-out infinite alternate;
+}
+
+.personal-best.celebrating {
+    animation: celebrateShake 0.3s ease-in-out;
+}
+
+@keyframes celebratePulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.1); }
+}
+
+@keyframes celebrateShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
