@@ -248,4 +248,7 @@ On a laptop device using Edge, I cannot see the Sponsors at all? - And we want t
 
 ## 48
 
-On the home page, can we show the total number of times the game has been played, using the database? Total plays, or similar description?
+On the home page, can we show the total number of times the game has been played, using the data in the database? "Total plays: XX", or similar description for how many times the game has been played?
+
+## 49
+
