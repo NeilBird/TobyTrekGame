@@ -224,3 +224,7 @@ The changes to the navigation buttons and energy bar, have resulted in the energ
 
 ## 42
 
+A user reported that they purchased a Top Hat in the store, and it showed "Equipped" but Toby was not wearing it, do all of the items that can be purchased in the shop work?
+
+## 43
+
