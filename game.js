@@ -1,5 +1,5 @@
 // Game Version
-const GAME_VERSION = '1.1.3';
+const GAME_VERSION = '1.1.4';
 
 // Game Constants
 const CANVAS_WIDTH = 800;
@@ -189,23 +189,71 @@ function darkenColor(hex, percent) {
     return '#' + (0x1000000 + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
 }
 
-// Haptic feedback helper (mobile vibration)
+// Haptic feedback helper (mobile vibration with audio fallback for iOS)
 function triggerHaptic(pattern) {
     if (!hapticEnabled) return;
-    if (!navigator.vibrate) return;
+    
+    // Try native vibration first (Android)
+    if (navigator.vibrate) {
+        try {
+            if (pattern === 'light') {
+                navigator.vibrate(30);
+            } else if (pattern === 'medium') {
+                navigator.vibrate(50);
+            } else if (pattern === 'heavy') {
+                navigator.vibrate([50, 30, 100]);
+            } else if (pattern === 'success') {
+                navigator.vibrate([30, 50, 30]);
+            }
+            return; // Vibration worked, no need for audio fallback
+        } catch (e) {
+            // Vibration failed, try audio fallback
+        }
+    }
+    
+    // Audio click fallback for iOS and other devices without vibration
+    playHapticClick(pattern);
+}
+
+// Audio click feedback for iOS (fallback when vibration not available)
+function playHapticClick(pattern) {
+    if (!audioContext) return;
     
     try {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        // Different sounds for different feedback types
         if (pattern === 'light') {
-            navigator.vibrate(30);
+            oscillator.frequency.value = 800;
+            gainNode.gain.setValueAtTime(0.05, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.03);
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.03);
         } else if (pattern === 'medium') {
-            navigator.vibrate(50);
+            oscillator.frequency.value = 600;
+            gainNode.gain.setValueAtTime(0.08, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.05);
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.05);
         } else if (pattern === 'heavy') {
-            navigator.vibrate([50, 30, 100]);
+            oscillator.frequency.value = 200;
+            gainNode.gain.setValueAtTime(0.12, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.1);
         } else if (pattern === 'success') {
-            navigator.vibrate([30, 50, 30]);
+            oscillator.frequency.value = 1000;
+            gainNode.gain.setValueAtTime(0.06, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.08);
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.08);
         }
     } catch (e) {
-        // Vibration not supported or blocked
+        // Audio feedback not available
     }
 }
 
