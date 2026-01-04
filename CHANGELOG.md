@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.4] - 2026-01-04
+
+### Added
+
+- **Home Button on Game Over** 🏠
+  - New "Home" button on game over screen
+  - Allows players to return to home screen to access Pet Shop, change difficulty, or view stats
+
+- **iOS Audio Feedback** 🔊
+  - Audio click fallback for haptic feedback on iOS devices
+  - Different tones for light, medium, heavy, and success feedback patterns
+  - Works alongside vibration on Android devices
+
+### Fixed
+
+- **Share Button Text Color** 📤
+  - Fixed Share button text appearing blue on iOS Safari (now white on blue)
+
+- **Sponsor Text Color** 🏷️
+  - Changed sponsor link color from yellow to white for better readability on iOS Safari
+
+---
+
 ## [1.1.3] - 2026-01-04
 
 ### Added
