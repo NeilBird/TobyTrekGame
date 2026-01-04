@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.8] - 2026-01-04
+
+### Fixed
+
+- **iOS Safari Sponsors Fix** 📱
+  - Fixed sponsors appearing at top instead of bottom on iOS Safari
+  - Used `top: unset` instead of `top: auto` for better iOS compatibility
+  - Added `env(safe-area-inset-bottom)` padding for iPhone notch/home bar
+  - Added dark background for better visibility
+  - Improved GPU compositing with `translate3d` and `backface-visibility`
+  - Cross-browser compatible (Chrome, Android, Safari)
+
+---
+
 ## [1.0.7] - 2026-01-04
 
 ### Fixed
