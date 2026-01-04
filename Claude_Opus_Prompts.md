@@ -236,3 +236,7 @@ During game play, please can you add "Sponsors: Caterpillar Catering Ltd and Bea
 
 ## 45
 
+The sponsors alignment text does not work on mobile, using Apple iOS, the text appears at the top of the game play. behind the time counter?
+
+## 46
+
