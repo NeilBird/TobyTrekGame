@@ -55,7 +55,7 @@
                 </div>
                 <h1>Toby Trek</h1>
                 <div class="version-row">
-                    <div class="version">v1.1.1</div>
+                    <div class="version">v1.1.2</div>
                     <div id="total-plays" class="total-plays">🎮 Total plays: Loading...</div>
                 </div>
             </div>
@@ -120,14 +120,14 @@
                     <button class="close-panel-btn" onclick="togglePanel('skins-panel')">✕</button>
                 </div>
                 <div class="panel-content">
-                    <p class="shop-info">Earn 🪙 Kitty Coins by collecting treats, completing levels, and defeating bosses!</p>
-                    
                     <!-- Shop Category Tabs -->
                     <div class="shop-tabs">
                         <button class="shop-tab active" data-category="skins" onclick="switchShopCategory('skins')">🐱 Skins</button>
                         <button class="shop-tab" data-category="accessories" onclick="switchShopCategory('accessories')">🎀 Accessories</button>
                         <button class="shop-tab" data-category="powerups" onclick="switchShopCategory('powerups')">⚡ Power-ups</button>
                     </div>
+                    
+                    <p class="shop-info">Earn 🪙 Kitty Coins by collecting treats, completing levels, and defeating bosses!</p>
                     
                     <!-- Sort Options -->
                     <div class="shop-sort">
@@ -159,6 +159,7 @@
         <!-- Achievements Modal -->
         <div id="achievements-modal" class="modal hidden">
             <div class="modal-content">
+                <button class="close-panel-btn modal-close-btn" onclick="hideAchievements()">✕</button>
                 <h2>🏆 Achievements <span id="achievements-progress">0/16</span></h2>
                 <div id="achievements-list"></div>
                 <button onclick="hideAchievements()" class="game-btn">Close</button>

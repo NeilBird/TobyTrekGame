@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.2] - 2026-01-04
+
+### Changed
+
+- **UI Polish** 🎨
+  - Renamed "Shop" to "Pet Shop"
+  - Moved total plays counter to same line as version number
+
+### Fixed
+
+- **iOS Safari Fixes** 📱
+  - Fixed touch controls - left button now supports hold-to-move (added touchcancel, stopPropagation, touch-action:none)
+  - Fixed Pet Shop emoji (was showing as question mark on iOS)
+  - Fixed version-row layout with webkit flexbox prefixes
+
+---
+
 ## [1.1.1] - 2026-01-04
 
 ### Fixed
