@@ -208,3 +208,7 @@ Thanks, implement all those shop improvements as part of v1.0.0 and update the c
 
 ## 38
 
+A user has reported that when you play the game using Safari on an Apple iOS device, playing the game in portrait mode, the left and right buttons work, but when you press them, they sometimes highlight in blue, like the Safari browser has selected the icon to allow you to copy and paste the hightlighted object, this is not required and gives the impression that the button is not working correctly on mobile devices? - Can we improve the movement (left and right) icons in anyway to prevent this selection?
+
+## 39
+

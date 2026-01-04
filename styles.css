@@ -869,6 +869,11 @@ body {
     padding: 0 20px;
     z-index: 100;
     pointer-events: none;
+    /* Prevent iOS selection */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .touch-btn {
@@ -887,6 +892,14 @@ body {
     -webkit-backdrop-filter: blur(5px);
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    /* Prevent iOS Safari selection/highlight */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
 }
 
 .touch-btn:active {
