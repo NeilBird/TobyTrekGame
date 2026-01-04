@@ -49,7 +49,7 @@ const OBJECT_TYPES = {
     TUNA: { emoji: 'tuna', type: 'treat', points: 20, color: '#4FC3F7' },
     // Bad items - things Toby hates!
     HAIRDRYER: { emoji: 'hairdryer', type: 'bad', points: -10, color: '#FFB347' },
-    PUDDLE: { emoji: '💧', type: 'bad', points: -10, color: '#87CEEB' },
+    PUDDLE: { emoji: 'puddle', type: 'bad', points: -10, color: '#87CEEB' },
     // Shield power-up!
     SHIELD: { emoji: '🛡️', type: 'shield', points: 5, color: '#00BFFF' },
     // New power-ups!
@@ -4960,6 +4960,8 @@ function drawApproachingObject(obj) {
         drawHairdryer(size);
     } else if (obj.emoji === 'tuna') {
         drawTunaCan(size);
+    } else if (obj.emoji === 'puddle') {
+        drawPuddle(size);
     } else {
         // Scale and draw emoji
         ctx.font = `${size}px Arial`;
@@ -5135,6 +5137,73 @@ function drawTunaCan(size) {
     ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
     ctx.beginPath();
     ctx.ellipse(-8, -3, 6, 8, -0.2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.restore();
+}
+
+function drawPuddle(size) {
+    const scale = size / 40; // Base size is 40
+    ctx.save();
+    ctx.scale(scale, scale);
+    
+    // Main puddle shape - irregular ellipse
+    const puddleGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 25);
+    puddleGradient.addColorStop(0, '#87CEEB');
+    puddleGradient.addColorStop(0.5, '#5DADE2');
+    puddleGradient.addColorStop(1, '#3498DB');
+    
+    ctx.fillStyle = puddleGradient;
+    
+    // Draw irregular puddle shape
+    ctx.beginPath();
+    ctx.moveTo(-20, 0);
+    ctx.bezierCurveTo(-22, -8, -10, -12, 0, -10);
+    ctx.bezierCurveTo(12, -12, 22, -6, 20, 2);
+    ctx.bezierCurveTo(22, 10, 8, 14, 0, 12);
+    ctx.bezierCurveTo(-12, 14, -22, 8, -20, 0);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Darker edge/border
+    ctx.strokeStyle = '#2980B9';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // Water ripples
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.lineWidth = 1;
+    
+    // Ripple 1
+    ctx.beginPath();
+    ctx.ellipse(-5, -3, 8, 4, -0.2, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    // Ripple 2
+    ctx.beginPath();
+    ctx.ellipse(5, 2, 6, 3, 0.3, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    // Highlight/shine spots
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.beginPath();
+    ctx.ellipse(-8, -5, 4, 2, -0.5, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.beginPath();
+    ctx.ellipse(6, -4, 3, 1.5, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Small splash droplets around edges
+    ctx.fillStyle = '#5DADE2';
+    ctx.beginPath();
+    ctx.arc(-18, -8, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(16, -7, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(-15, 10, 1.5, 0, Math.PI * 2);
     ctx.fill();
     
     ctx.restore();
