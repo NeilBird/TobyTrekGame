@@ -296,3 +296,7 @@ Please can you alter the font colour of the "Sponsors" text, because when viewed
 
 ## 57
 
+on the "Share" button on iOS, the text is blue on blue and unreadable? Also, can you add a "Home" option when Toby runs out of energy, instead of just "Run Again!", in case a player wants to use the Pet Shop or change the difficulty
+
+## 58
+

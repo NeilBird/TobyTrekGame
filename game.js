@@ -731,6 +731,12 @@ function showScreen(screen) {
     }
 }
 
+// Go back to home screen from game over
+function goHome() {
+    stopMusic();
+    showScreen('start');
+}
+
 function startGame() {
     initAudio();
     
