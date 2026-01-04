@@ -904,13 +904,18 @@ function setupTouchControls() {
     const touchRight = document.getElementById('touch-right');
     
     if (touchLeft && touchRight) {
-        // Left button
+        // Left button - hold to move continuously
         touchLeft.addEventListener('touchstart', (e) => {
             e.preventDefault();
+            e.stopPropagation();
             keys.left = true;
             keys.right = false;
         }, { passive: false });
         touchLeft.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            keys.left = false;
+        }, { passive: false });
+        touchLeft.addEventListener('touchcancel', (e) => {
             e.preventDefault();
             keys.left = false;
         }, { passive: false });
@@ -925,13 +930,18 @@ function setupTouchControls() {
             keys.left = false;
         });
         
-        // Right button
+        // Right button - hold to move continuously
         touchRight.addEventListener('touchstart', (e) => {
             e.preventDefault();
+            e.stopPropagation();
             keys.right = true;
             keys.left = false;
         }, { passive: false });
         touchRight.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            keys.right = false;
+        }, { passive: false });
+        touchRight.addEventListener('touchcancel', (e) => {
             e.preventDefault();
             keys.right = false;
         }, { passive: false });

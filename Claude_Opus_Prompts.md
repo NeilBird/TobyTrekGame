@@ -260,3 +260,7 @@ Also the box that shows "SPEED UP" and other infomration could be a little lower
 
 ## 51
 
+on iOS device, the right button works when pressing and holding it down, but the left does not, you have to repeatedly push the left button, why can the left button not just be pressed and held like the right button?
+
+## 52
+

@@ -907,7 +907,7 @@ body {
     user-select: none;
     -webkit-touch-callout: none;
     -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
+    touch-action: none; /* Prevent all default touch behaviors */
 }
 
 .touch-btn:active {
