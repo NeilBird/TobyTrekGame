@@ -862,7 +862,7 @@ body {
     display: none;
     position: absolute;
     bottom: auto;
-    top: calc(100vw * 9 / 16 + 10px); /* Position directly below 16:9 canvas */
+    top: calc(100vw * 9 / 16 - 35px); /* Position overlapping bottom of canvas */
     left: 0;
     right: 0;
     justify-content: space-between;
