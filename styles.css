@@ -1384,3 +1384,24 @@ body {
     25% { transform: translateX(-5px); }
     75% { transform: translateX(5px); }
 }
+
+/* Game Over Buttons Container */
+.game-over-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 15px;
+}
+
+.share-btn {
+    background: linear-gradient(180deg, #3498db 0%, #2980b9 100%);
+}
+
+.share-btn:hover {
+    background: linear-gradient(180deg, #5dade2 0%, #3498db 100%);
+}
+
+.share-btn:disabled {
+    background: #666;
+    cursor: default;
+}

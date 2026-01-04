@@ -2318,6 +2318,64 @@ function updatePersonalBestDisplay(isNewBest) {
     }
 }
 
+// ============== SHARE SCORE FUNCTION ==============
+
+function shareScore() {
+    const shareText = `🐱 I scored ${score} points and reached Level ${level} in Toby Trek! Can you beat my score? 🎮`;
+    const shareUrl = 'https://neilbird.github.io/TobyTrekGame/';
+    
+    // Try native share API first (mobile)
+    if (navigator.share) {
+        navigator.share({
+            title: 'Toby Trek Score',
+            text: shareText,
+            url: shareUrl
+        }).catch(() => {
+            // User cancelled or error - fall back to clipboard
+            copyToClipboard(shareText + '\n' + shareUrl);
+        });
+    } else {
+        // Fallback: copy to clipboard
+        copyToClipboard(shareText + '\n' + shareUrl);
+    }
+}
+
+function copyToClipboard(text) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+            showShareFeedback('Copied to clipboard! 📋');
+        }).catch(() => {
+            showShareFeedback('Could not copy');
+        });
+    } else {
+        // Fallback for older browsers
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            document.execCommand('copy');
+            showShareFeedback('Copied to clipboard! 📋');
+        } catch (e) {
+            showShareFeedback('Could not copy');
+        }
+        document.body.removeChild(textarea);
+    }
+}
+
+function showShareFeedback(message) {
+    const btn = document.getElementById('share-btn');
+    if (btn) {
+        const originalText = btn.textContent;
+        btn.textContent = message;
+        btn.disabled = true;
+        setTimeout(() => {
+            btn.textContent = originalText;
+            btn.disabled = false;
+        }, 2000);
+    }
+}
+
 // ============== LEADERBOARD FUNCTIONS (Firebase + Local) ==============
 
 // Check if Firebase is available
