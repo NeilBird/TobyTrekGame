@@ -1395,10 +1395,13 @@ body {
 
 .share-btn {
     background: linear-gradient(180deg, #3498db 0%, #2980b9 100%);
+    color: #FFFFFF !important;
+    -webkit-text-fill-color: #FFFFFF;
 }
 
 .share-btn:hover {
     background: linear-gradient(180deg, #5dade2 0%, #3498db 100%);
+    color: #FFFFFF !important;
 }
 
 .share-btn:disabled {
