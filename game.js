@@ -1,5 +1,5 @@
 // Game Version
-const GAME_VERSION = '1.1.0';
+const GAME_VERSION = '1.1.1';
 
 // Game Constants
 const CANVAS_WIDTH = 800;
@@ -904,13 +904,18 @@ function setupTouchControls() {
     const touchRight = document.getElementById('touch-right');
     
     if (touchLeft && touchRight) {
-        // Left button
+        // Left button - hold to move continuously
         touchLeft.addEventListener('touchstart', (e) => {
             e.preventDefault();
+            e.stopPropagation();
             keys.left = true;
             keys.right = false;
         }, { passive: false });
         touchLeft.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            keys.left = false;
+        }, { passive: false });
+        touchLeft.addEventListener('touchcancel', (e) => {
             e.preventDefault();
             keys.left = false;
         }, { passive: false });
@@ -925,13 +930,18 @@ function setupTouchControls() {
             keys.left = false;
         });
         
-        // Right button
+        // Right button - hold to move continuously
         touchRight.addEventListener('touchstart', (e) => {
             e.preventDefault();
+            e.stopPropagation();
             keys.right = true;
             keys.left = false;
         }, { passive: false });
         touchRight.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            keys.right = false;
+        }, { passive: false });
+        touchRight.addEventListener('touchcancel', (e) => {
             e.preventDefault();
             keys.right = false;
         }, { passive: false });
@@ -2241,7 +2251,19 @@ function loadTotalPlays() {
         playsRef.on('value', (snapshot) => {
             totalPlays = snapshot.val() || 0;
             updateTotalPlaysDisplay(totalPlays);
+        }, (error) => {
+            // Error callback - Firebase permission denied or other error
+            console.error('Error loading total plays:', error);
+            updateTotalPlaysDisplay(0);
         });
+        
+        // Also set a timeout fallback in case Firebase doesn't respond
+        setTimeout(() => {
+            const display = document.getElementById('total-plays');
+            if (display && display.textContent.includes('Loading')) {
+                updateTotalPlaysDisplay(0);
+            }
+        }, 5000);
     } catch (e) {
         console.error('Error loading total plays:', e);
         updateTotalPlaysDisplay(0);

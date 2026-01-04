@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.1] - 2026-01-04
+
+### Fixed
+
+- **Mobile UI Improvements** 📱
+  - Moved touch controls higher to avoid overlapping scenery
+  - Moved SPEED UP and BOSS indicators below energy bar
+  - Better layout on iOS Safari
+
+- **Total Plays Counter** 🎮
+  - Added error handling for Firebase connection
+  - Added 5-second timeout fallback
+
+---
+
 ## [1.1.0] - 2026-01-04
 
 ### Added

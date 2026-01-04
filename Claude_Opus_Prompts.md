@@ -252,3 +252,15 @@ On the home page, can we show the total number of times the game has been played
 
 ## 49
 
+this is looking good, on Safari on iOS, the buttons for navigation could still be a little higher, so that they do not overlap the clouds and scenery of the game play.
+
+## 50
+
+Also the box that shows "SPEED UP" and other infomration could be a little lower on iOS, as it overlaps Toby's energy.
+
+## 51
+
+on iOS device, the right button works when pressing and holding it down, but the left does not, you have to repeatedly push the left button, why can the left button not just be pressed and held like the right button?
+
+## 52
+
