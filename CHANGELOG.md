@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.9] - 2026-01-04
+
+### Fixed
+
+- **Sponsors Positioning** 📱
+  - Moved sponsors inside game container for proper positioning
+  - Sponsors now appear directly below the game canvas (not at screen bottom)
+  - Simplified CSS using relative positioning
+  - Works consistently across all browsers and devices
+
+---
+
 ## [1.0.8] - 2026-01-04
 
 ### Fixed
