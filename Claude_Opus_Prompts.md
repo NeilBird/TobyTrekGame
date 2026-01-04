@@ -252,3 +252,8 @@ On the home page, can we show the total number of times the game has been played
 
 ## 49
 
+this is looking good, on Safari on iOS, the buttons for navigation could still be a little higher, so that they do not overlap the clouds and scenery of the game play.
+
+## 50
+
+

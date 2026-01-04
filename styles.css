@@ -869,7 +869,7 @@ body {
     display: none;
     position: absolute;
     bottom: auto;
-    top: calc(100vw * 9 / 16 - 35px); /* Position overlapping bottom of canvas */
+    top: calc(100vw * 9 / 16 - 80px); /* Position higher - above scenery */
     left: 0;
     right: 0;
     justify-content: space-between;
