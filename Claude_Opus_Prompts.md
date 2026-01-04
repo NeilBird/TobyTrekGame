@@ -264,3 +264,7 @@ on iOS device, the right button works when pressing and holding it down, but the
 
 ## 52
 
+users report that it has become difficult to beat the existing high scores on the leader board, this might be due to the score multipler changes you implemented earlier? - Can we make the Easy mode score similar points to prior to that change, but leave the Hard mode scoring more points?
+
+## 53
+

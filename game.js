@@ -21,9 +21,9 @@ const BOSS_LEVEL_INTERVAL = 6; // Boss battle every 6 levels
 
 // Difficulty settings with score multipliers
 const DIFFICULTY_SETTINGS = {
-    easy: { speedMult: 0.5, energyDecayMult: 0.4, spawnMult: 1.5, scoreMult: 0.5, label: 'Easy' },
+    easy: { speedMult: 0.5, energyDecayMult: 0.4, spawnMult: 1.5, scoreMult: 1.0, label: 'Easy' },
     normal: { speedMult: 0.8, energyDecayMult: 0.8, spawnMult: 1.1, scoreMult: 1.0, label: 'Normal' },
-    hard: { speedMult: 1.2, energyDecayMult: 1.3, spawnMult: 0.8, scoreMult: 2.0, label: 'Hard' }
+    hard: { speedMult: 1.2, energyDecayMult: 1.3, spawnMult: 0.8, scoreMult: 1.5, label: 'Hard' }
 };
 let currentDifficulty = 'normal';
 
