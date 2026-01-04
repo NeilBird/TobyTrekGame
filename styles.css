@@ -1405,3 +1405,44 @@ body {
     background: #666;
     cursor: default;
 }
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin: 15px 0;
+}
+
+.stat-item {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+}
+
+.stat-icon {
+    display: block;
+    font-size: 24px;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    display: block;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 3px;
+}
+
+.stat-value {
+    display: block;
+    font-size: 18px;
+    font-weight: bold;
+    color: #FFD700;
+}
+
+@media (max-width: 400px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}

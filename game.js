@@ -146,6 +146,18 @@ let personalBest = {
 // Haptic feedback setting
 let hapticEnabled = true;
 
+// Player Statistics (persisted to localStorage)
+let playerStats = {
+    gamesPlayed: 0,
+    totalTimePlayed: 0,
+    treatsCollected: 0,
+    hazardsHit: 0,
+    bossesDefeated: 0,
+    highestLevel: 0,
+    highestScore: 0,
+    totalScore: 0
+};
+
 // Kitty Coins Currency System
 let kittyCoins = 0;
 const COINS_PER_TREAT = 1;      // Earn 1 coin per treat collected
@@ -349,6 +361,7 @@ function init() {
     loadPowerups();
     loadKittyCoins();
     loadPersonalBest();
+    loadPlayerStats();
     loadSettings();
     displayLeaderboard();
     updateAllShopDisplays();
@@ -1601,6 +1614,9 @@ function defeatBoss() {
     // Big Kitty Coins bonus for defeating boss!
     earnKittyCoins(COINS_PER_BOSS);
     
+    // Track for stats
+    trackBossDefeated();
+    
     if (soundEnabled) playBossDefeatedSound();
     triggerHaptic('success');
     spawnParticles(bossX, bossY, '#FFD700', 50);
@@ -1959,8 +1975,9 @@ function handleCollision(obj) {
         score += totalPoints;
         energy = Math.min(100, energy + ENERGY_GAIN);
         
-        // Track total treats for achievements
+        // Track total treats for achievements and stats
         totalTreatsCollected++;
+        trackTreatCollected();
         checkTreatAchievements();
         
         // Earn Kitty Coins!
@@ -1999,6 +2016,9 @@ function handleCollision(obj) {
             // Reset combo on hit
             comboCount = 0;
             levelDamageTaken = true;
+            
+            // Track hazard hit for stats
+            trackHazardHit();
             
             score = Math.max(0, score + obj.points);
             energy = Math.max(0, energy - ENERGY_LOSS);
@@ -2262,6 +2282,9 @@ function gameOver() {
     const isNewBest = checkAndUpdatePersonalBest();
     updatePersonalBestDisplay(isNewBest);
     
+    // Update player statistics
+    updateStatsOnGameEnd();
+    
     // Save score to leaderboard
     saveScore(playerName, score, level);
     
@@ -2373,6 +2396,128 @@ function showShareFeedback(message) {
             btn.textContent = originalText;
             btn.disabled = false;
         }, 2000);
+    }
+}
+
+// ============== PLAYER STATISTICS FUNCTIONS ==============
+
+function loadPlayerStats() {
+    try {
+        const saved = localStorage.getItem('tobyTrek_playerStats');
+        if (saved) {
+            const loaded = JSON.parse(saved);
+            // Merge with defaults to handle new stat fields
+            playerStats = { ...playerStats, ...loaded };
+        }
+    } catch (e) {
+        console.log('Could not load player stats:', e);
+    }
+}
+
+function savePlayerStats() {
+    try {
+        localStorage.setItem('tobyTrek_playerStats', JSON.stringify(playerStats));
+    } catch (e) {
+        console.log('Could not save player stats:', e);
+    }
+}
+
+function updateStatsOnGameEnd() {
+    playerStats.gamesPlayed++;
+    playerStats.totalTimePlayed += playTime;
+    playerStats.totalScore += score;
+    
+    if (score > playerStats.highestScore) {
+        playerStats.highestScore = score;
+    }
+    if (level > playerStats.highestLevel) {
+        playerStats.highestLevel = level;
+    }
+    
+    savePlayerStats();
+}
+
+function trackTreatCollected() {
+    playerStats.treatsCollected++;
+}
+
+function trackHazardHit() {
+    playerStats.hazardsHit++;
+}
+
+function trackBossDefeated() {
+    playerStats.bossesDefeated++;
+}
+
+function formatPlayTime(seconds) {
+    const hours = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+    
+    if (hours > 0) {
+        return `${hours}h ${mins}m`;
+    } else if (mins > 0) {
+        return `${mins}m ${secs}s`;
+    } else {
+        return `${secs}s`;
+    }
+}
+
+function showStats() {
+    const modal = document.getElementById('stats-modal');
+    const content = document.getElementById('stats-content');
+    
+    if (modal && content) {
+        content.innerHTML = `
+            <div class="stat-item">
+                <span class="stat-icon">🎮</span>
+                <span class="stat-label">Games Played</span>
+                <span class="stat-value">${playerStats.gamesPlayed}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">⏱️</span>
+                <span class="stat-label">Total Time</span>
+                <span class="stat-value">${formatPlayTime(playerStats.totalTimePlayed)}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">🏆</span>
+                <span class="stat-label">Best Score</span>
+                <span class="stat-value">${playerStats.highestScore}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">📊</span>
+                <span class="stat-label">Highest Level</span>
+                <span class="stat-value">${playerStats.highestLevel}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">🍗</span>
+                <span class="stat-label">Treats Collected</span>
+                <span class="stat-value">${playerStats.treatsCollected}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">💥</span>
+                <span class="stat-label">Hazards Hit</span>
+                <span class="stat-value">${playerStats.hazardsHit}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">👹</span>
+                <span class="stat-label">Bosses Defeated</span>
+                <span class="stat-value">${playerStats.bossesDefeated}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">💰</span>
+                <span class="stat-label">Total Score</span>
+                <span class="stat-value">${playerStats.totalScore.toLocaleString()}</span>
+            </div>
+        `;
+        modal.classList.remove('hidden');
+    }
+}
+
+function hideStats() {
+    const modal = document.getElementById('stats-modal');
+    if (modal) {
+        modal.classList.add('hidden');
     }
 }
 

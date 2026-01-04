@@ -86,6 +86,7 @@
                 <button id="how-to-play-btn" class="action-btn">❓ How to Play</button>
                 <button id="achievements-btn" class="action-btn">🏆 Achievements</button>
                 <button id="skins-btn" class="action-btn">🛒 Pet Shop</button>
+                <button id="stats-btn" class="action-btn" onclick="showStats()">📊 Stats</button>
             </div>
             
             <!-- Settings Icons -->
@@ -163,6 +164,18 @@
                 <h2>🏆 Achievements <span id="achievements-progress">0/16</span></h2>
                 <div id="achievements-list"></div>
                 <button onclick="hideAchievements()" class="game-btn">Close</button>
+            </div>
+        </div>
+
+        <!-- Stats Modal -->
+        <div id="stats-modal" class="modal hidden">
+            <div class="modal-content">
+                <button class="close-panel-btn modal-close-btn" onclick="hideStats()">✕</button>
+                <h2>📊 Your Statistics</h2>
+                <div id="stats-content" class="stats-grid">
+                    <!-- Stats populated by JS -->
+                </div>
+                <button onclick="hideStats()" class="game-btn">Close</button>
             </div>
         </div>
 
