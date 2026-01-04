@@ -940,14 +940,14 @@ body {
         display: flex;
     }
     
-    /* Fix iOS Safari energy bar visibility - position above touch controls */
+    /* Fix iOS Safari energy bar visibility - pin below HUD at top of screen */
     #energy-container {
         position: fixed;
+        top: 55px; /* Below the HUD bar */
         bottom: auto;
-        top: calc(100vw * 9 / 16 + 100px); /* Below canvas, above touch buttons */
         left: 50%;
         transform: translateX(-50%);
-        background: rgba(0, 0, 0, 0.7);
+        background: rgba(0, 0, 0, 0.8);
         padding: 8px 15px;
         border-radius: 25px;
         z-index: 101;
@@ -984,14 +984,14 @@ body {
         align-items: stretch;
     }
     
-    /* Ensure energy bar is visible on mobile - positioned below canvas */
+    /* Ensure energy bar is visible on mobile - pinned below HUD at top */
     #energy-container {
         position: fixed;
+        top: 55px; /* Below the HUD bar */
         bottom: auto;
-        top: calc(100vw * 9 / 16 + 100px); /* Below canvas, above touch buttons */
         left: 50%;
         transform: translateX(-50%);
-        background: rgba(0, 0, 0, 0.7);
+        background: rgba(0, 0, 0, 0.8);
         padding: 8px 15px;
         border-radius: 25px;
         z-index: 101;

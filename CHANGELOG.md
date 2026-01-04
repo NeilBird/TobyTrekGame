@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.2] - 2026-01-04
+
+### Fixed
+- **Mobile Energy Bar Position** 📱
+  - Energy bar no longer blocks view of Toby on mobile devices
+  - Energy bar now pinned directly below the HUD (time/score/level bar) at top of screen
+  - Better visibility on iPhone and other iOS Safari devices
+
+---
+
 ## [1.0.1] - 2026-01-04
 
 ### Improved

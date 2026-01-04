@@ -216,4 +216,12 @@ can you make the puddle look more like a puddle and not a water drop?
 
 ## 40
 
-Users report that when playing the game on mobile, in portrait mode, that the screen layout is not ideal. 
+Users report that when playing the game on mobile, in portrait mode, the screen layout is not ideal and is difficult to use, can we move the navigation buttons and energy button up the screen, so they are directly below the game play with less gap? - To prevent players closing the web browser tab by mistake when playing the game?
+
+## 41
+
+The changes to the navigation buttons and energy bar, have resulted in the engery bar blocking the view of Toby. Can we pin the Energy bar below the bar that shows the time, score and level? The mobile experience is not great. I am testing using Safari on an Apple iOS device (iPhone 16 Pro).
+
+## 42
+
+ 
